@@ -1,0 +1,444 @@
+<mvc:View controllerName="ze3fiemployee.ze3fiemployee.controller.EmployeeView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:dataset="sap.viz.ui5.data"
+    xmlns:feeds="sap.viz.ui5.controls.common.feeds"
+    displayBlock="true">
+
+    <mvc:dependents>
+
+        <!-- 사원 생성 / 수정 다이얼로그 -->
+        <Dialog id="empDialog"
+            title="{= ${view>/mode} === 'CREATE' ? '신규 사원 등록' : '사원 정보 수정'}"
+            contentWidth="54rem" draggable="true" resizable="true">
+            <content>
+                <VBox class="empDlgBody">
+
+                    <Text text="기본 정보" class="empSectionTitle"/>
+                    <HBox wrap="Wrap" class="empFormRow">
+                        <VBox class="empFormCell">
+                            <Label text="사원번호" required="true"/>
+                            <Input value="{view>/form/Pernr}"
+                                editable="false"
+                                width="100%"/>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="성명" required="true"/>
+                            <Input value="{view>/form/Pernam}"
+                                placeholder="사원 이름" maxLength="10" width="100%"/>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="부서"/>
+                            <Select selectedKey="{view>/form/Btrtl}" width="100%" change=".onBtrtlDialogChange">
+                                <items>
+                                    <core:Item key=""       text="부서 선택"/>
+                                    <core:Item key="MGMT"   text="경영기획실"/>
+                                    <core:Item key="SD_DOM" text="국내영업"/>
+                                    <core:Item key="SD_GLO" text="해외영업"/>
+                                    <core:Item key="MKTG"   text="마케팅"/>
+                                    <core:Item key="RND"    text="연구개발"/>
+                                    <core:Item key="PP_PLT" text="생산(공장)"/>
+                                    <core:Item key="QM_QC"  text="품질관리"/>
+                                    <core:Item key="QM_QA"  text="품질보증"/>
+                                    <core:Item key="MM_LOG" text="물류팀"/>
+                                    <core:Item key="PLAN"   text="경영기획팀"/>
+                                    <core:Item key="HR"     text="인사팀"/>
+                                    <core:Item key="FIN"    text="재무팀"/>
+                                    <core:Item key="ACCT"   text="회계팀"/>
+                                </items>
+                            </Select>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="직급"/>
+                            <Select selectedKey="{view>/form/Grade}" width="100%"
+                                    change=".onGradeDialogChange">
+                                <items>
+                                    <core:Item key="SA" text="사원"/>
+                                    <core:Item key="DR" text="대리"/>
+                                    <core:Item key="GJ" text="과장"/>
+                                    <core:Item key="BJ" text="부장"/>
+                                    <core:Item key="DI" text="이사"/>
+                                    <core:Item key="IM" text="대표"/>
+                                </items>
+                            </Select>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="입사일" required="true"/>
+                            <DatePicker value="{view>/form/Eindt}"
+                                displayFormat="yyyy-MM-dd" valueFormat="yyyyMMdd"
+                                placeholder="입사일" width="100%"
+                                change=".onEindtChange"/>
+                        </VBox>
+                        <VBox class="empFormCell" visible="{= ${view>/mode} === 'EDIT'}">
+                            <Label text="재직상태"/>
+                            <Select selectedKey="{view>/form/RetireYn}" width="100%">
+                                <items>
+                                    <core:Item key="N" text="재직중"/>
+                                    <core:Item key="Y" text="퇴사"/>
+                                </items>
+                            </Select>
+                        </VBox>
+                    </HBox>
+
+                    <Text text="급여 정보" class="empSectionTitle"/>
+                    <HBox wrap="Wrap" class="empFormRow">
+                        <VBox class="empFormCell">
+                            <Label text="기본급"/>
+                            <Input value="{path: 'view>/form/Betrg', formatter: '.fmtSalaryDisplay'}"
+                                editable="false" width="100%"/>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="급여 시작일"/>
+                            <DatePicker value="{view>/form/Begda}"
+                                displayFormat="yyyy-MM-dd" valueFormat="yyyyMMdd"
+                                placeholder="시작일" width="100%" editable="false"/>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="코스트센터"/>
+                            <Input value="{view>/form/Kostl}"
+                                placeholder="코스트센터" maxLength="10" width="100%" editable="false"/>
+                        </VBox>
+                    </HBox>
+
+                </VBox>
+            </content>
+            <buttons>
+                <Button text="저장" type="Emphasized" icon="sap-icon://save" press=".onSave"/>
+                <Button text="취소" icon="sap-icon://decline" press=".onCloseEmpDialog"/>
+            </buttons>
+        </Dialog>
+
+        <!-- 급여 설정 다이얼로그 -->
+        <Dialog id="salaryDialog"
+            title="{view>/salaryTitle}"
+            contentWidth="36rem" draggable="true" resizable="true">
+            <content>
+                <VBox class="empDlgBody">
+                    <HBox wrap="Wrap" class="empFormRow">
+                        <VBox class="empFormCell">
+                            <Label text="기본급" required="true"/>
+                            <Input value="{view>/salaryForm/Betrg}"
+                                placeholder="숫자 입력" type="Number" width="100%"/>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="급여 시작일"/>
+                            <DatePicker value="{view>/salaryForm/Begda}"
+                                displayFormat="yyyy-MM-dd" valueFormat="yyyyMMdd"
+                                placeholder="시작일" width="100%"/>
+                        </VBox>
+                        <VBox class="empFormCell">
+                            <Label text="코스트센터"/>
+                            <Input value="{view>/salaryForm/Kostl}"
+                                placeholder="코스트센터" maxLength="10" width="100%" editable="false"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </content>
+            <buttons>
+                <Button text="저장" type="Emphasized" icon="sap-icon://save" press=".onSaveSalary"/>
+                <Button text="취소" icon="sap-icon://decline" press=".onCloseSalaryDialog"/>
+            </buttons>
+        </Dialog>
+
+    </mvc:dependents>
+
+    <Page id="mainPage" showHeader="false">
+        <content>
+            <VBox class="psPageHeader">
+                <VBox class="psPageHeaderContent">
+                    <Title class="psPageHeaderTitle" text="사원 마스터 조회" level="H3"/>
+                    <Text class="psPageHeaderSub" text="Employee Master Overview"/>
+                </VBox>
+            </VBox>
+
+            <!-- ① 사원 현황 KPI -->
+            <Panel id="kpiRow" expandable="false">
+                <HBox width="100%" class="empKpiRow">
+                    <VBox class="empKpiCard empKpiCard--blue" alignItems="Start">
+                        <layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
+                        <HBox alignItems="Center" class="empKpiLabelRow">
+                            <core:Icon src="sap-icon://group" class="empKpiIcon empKpiIcon--blue"/>
+                            <Text text="총 사원" class="empKpiLabel"/>
+                        </HBox>
+                        <ObjectNumber number="{view>/kpi/total}" unit="명"
+                                      emphasized="true" class="empKpiNum--blue"/>
+                        <Text text="전체 사원" class="empKpiSub"/>
+                    </VBox>
+                    <VBox class="empKpiCard empKpiCard--green" alignItems="Start">
+                        <layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
+                        <HBox alignItems="Center" class="empKpiLabelRow">
+                            <core:Icon src="sap-icon://employee" class="empKpiIcon empKpiIcon--green"/>
+                            <Text text="재직중" class="empKpiLabel"/>
+                        </HBox>
+                        <ObjectNumber number="{view>/kpi/active}" unit="명"
+                                      state="Success" emphasized="true" class="empKpiNum--green"/>
+                        <Text text="재직 사원" class="empKpiSub"/>
+                    </VBox>
+                    <VBox class="empKpiCard empKpiCard--red" alignItems="Start">
+                        <layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
+                        <HBox alignItems="Center" class="empKpiLabelRow">
+                            <core:Icon src="sap-icon://employee-rejections" class="empKpiIcon empKpiIcon--red"/>
+                            <Text text="퇴사" class="empKpiLabel"/>
+                        </HBox>
+                        <ObjectNumber number="{view>/kpi/retired}" unit="명"
+                                      state="Error" emphasized="true" class="empKpiNum--red"/>
+                        <Text text="퇴사 사원" class="empKpiSub"/>
+                    </VBox>
+                    <VBox class="empKpiCard empKpiCard--amber" alignItems="Start">
+                        <layoutData><FlexItemData growFactor="1" baseSize="0"/></layoutData>
+                        <HBox alignItems="Center" class="empKpiLabelRow">
+                            <core:Icon src="sap-icon://money-bills" class="empKpiIcon empKpiIcon--amber"/>
+                            <Text text="총 급여합계" class="empKpiLabel"/>
+                        </HBox>
+                        <ObjectNumber number="{view>/kpi/totalSalary}" unit="KRW" emphasized="true"/>
+                        <Text text="재직 사원 기준" class="empKpiSub"/>
+                    </VBox>
+                </HBox>
+            </Panel>
+
+            <!-- ② 탭 바 -->
+            <IconTabBar id="mainTabBar"
+                applyContentPadding="false"
+                backgroundDesign="Transparent"
+                expandable="false">
+                <items>
+
+                    <!-- 사원 목록 탭 -->
+                    <IconTabFilter text="사원 목록" icon="sap-icon://employee" key="emp">
+
+                        <!-- 필터 툴바 -->
+                        <Toolbar id="filterBar" design="Solid">
+                            <SegmentedButton id="retireSegBtn"
+                                selectedKey="{view>/selectedRetire}"
+                                selectionChange=".onRetireChange">
+                                <items>
+                                    <SegmentedButtonItem key="" text="전체"/>
+                                    <SegmentedButtonItem key="N" text="재직"/>
+                                    <SegmentedButtonItem key="Y" text="퇴사"/>
+                                </items>
+                            </SegmentedButton>
+                            <Select selectedKey="{view>/selectedBtrtl}"
+                                change=".onBtrtlChange" width="150px">
+                                <items>
+                                    <core:Item key=""       text="부서 전체"/>
+                                    <core:Item key="MGMT"   text="경영기획실"/>
+                                    <core:Item key="SD_DOM" text="국내영업"/>
+                                    <core:Item key="SD_GLO" text="해외영업"/>
+                                    <core:Item key="MKTG"   text="마케팅"/>
+                                    <core:Item key="RND"    text="연구개발"/>
+                                    <core:Item key="PP_PLT" text="생산(공장)"/>
+                                    <core:Item key="QM_QC"  text="품질관리"/>
+                                    <core:Item key="QM_QA"  text="품질보증"/>
+                                    <core:Item key="MM_LOG" text="물류팀"/>
+                                    <core:Item key="PLAN"   text="경영기획팀"/>
+                                    <core:Item key="HR"     text="인사팀"/>
+                                    <core:Item key="FIN"    text="재무팀"/>
+                                    <core:Item key="ACCT"   text="회계팀"/>
+                                </items>
+                            </Select>
+                            <Select selectedKey="{view>/selectedGrade}"
+                                change=".onGradeChange" width="110px"
+                                items="{view>/gradeItems}">
+                                <core:Item key="{view>key}" text="{view>text}"/>
+                            </Select>
+                            <ToolbarSpacer/>
+                            <ToggleButton text="부서·직급순" icon="sap-icon://sort"
+                                pressed="{view>/sortByDept}" press=".onSortToggle"/>
+                            <Input id="searchField" width="15rem"
+                                placeholder="사번 / 이름 검색" liveChange=".onSearch"/>
+                            <Button id="btnNewCreate" text="등록" icon="sap-icon://add"
+                                press=".onNewCreate" type="Emphasized"/>
+                        </Toolbar>
+
+                        <!-- 사원 테이블 -->
+                        <Table id="empTable"
+                            items="{view>/pagedItems}"
+                            noDataText="조회된 사원이 없습니다."
+                            busyIndicatorDelay="0"
+                            busy="{view>/busy}"
+                            fixedLayout="false">
+                            <headerToolbar>
+                                <Toolbar>
+                                    <Title text="사원 목록" level="H5"/>
+                                    <ToolbarSpacer/>
+                                    <Text text="{view>/countText}"/>
+                                </Toolbar>
+                            </headerToolbar>
+                            <columns>
+                                <Column width="8rem"><Text text="사원번호"/></Column>
+                                <Column><Text text="성명"/></Column>
+                                <Column width="6rem"><Text text="부서"/></Column>
+                                <Column width="6rem"><Text text="직급"/></Column>
+                                <Column width="9rem" minScreenWidth="Tablet" demandPopin="true">
+                                    <Text text="입사일"/>
+                                </Column>
+                                <Column width="6rem" hAlign="Center"><Text text="재직상태"/></Column>
+                                <Column width="9rem" hAlign="End" minScreenWidth="Tablet" demandPopin="true">
+                                    <Text text="기본급"/>
+                                </Column>
+                                <Column width="7rem" hAlign="Center"><Text text="급여설정"/></Column>
+                                <Column width="6rem" hAlign="Center"><Text text="계약서"/></Column>
+                                <Column width="5rem" hAlign="Center"><Text text="수정"/></Column>
+                                <Column width="5rem" hAlign="Center"><Text text="삭제"/></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem>
+                                    <cells>
+                                        <Text text="{view>Pernr}"/>
+                                        <Text text="{view>Pernam}"/>
+                                        <Text text="{view>BtrtlName}"/>
+                                        <Text text="{view>GradeName}"/>
+                                        <Text text="{view>EindtFmt}"/>
+                                        <ObjectStatus
+                                            text="{= ${view>RetireYn} === 'Y' ? '퇴사' : '재직중'}"
+                                            state="{= ${view>RetireYn} === 'Y' ? 'Error' : 'Success'}"/>
+                                        <Text text="{view>BetrFmt}" textAlign="End"/>
+                                        <Button text="급여설정" type="Transparent"
+                                            icon="sap-icon://money-bills" press=".onSalaryPress"/>
+                                        <Button text="계약서" type="Transparent"
+                                            icon="sap-icon://document-text" press=".onContractPress"/>
+                                        <Button icon="sap-icon://edit" type="Transparent"
+                                            press=".onEditPress"/>
+                                        <Button icon="sap-icon://delete" type="Transparent"
+                                            press=".onDeletePress"/>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+
+                        <!-- 페이지네이션 -->
+                        <Toolbar class="empPaginationBar">
+                            <ToolbarSpacer/>
+                            <Button icon="sap-icon://navigation-left-arrow"
+                                enabled="{view>/hasPrev}" press=".onPagePrev" type="Transparent"/>
+                            <Text text="{view>/pageInfo}"/>
+                            <Button icon="sap-icon://navigation-right-arrow"
+                                enabled="{view>/hasNext}" press=".onPageNext" type="Transparent"/>
+                            <ToolbarSpacer/>
+                        </Toolbar>
+
+                    </IconTabFilter>
+
+                    <!-- 부서별 급여 현황 탭 -->
+                    <IconTabFilter text="급여 현황" icon="sap-icon://money-bills" key="dept">
+                        <VBox class="deptSalaryTabContent">
+
+                            <!-- 가로 막대 차트 카드 -->
+                            <VBox class="empChartCard">
+                                <HBox class="empChartCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                    <VBox>
+                                        <Title text="부서별 급여합계" level="H5" class="empChartTitle"/>
+                                        <Text text="재직 사원 기준 · 단위: 백만원 (M)" class="empChartSub"/>
+                                    </VBox>
+                                </HBox>
+                                <viz:VizFrame id="deptSalaryChart"
+                                    vizType="bar"
+                                    width="100%"
+                                    height="400px"
+                                    vizProperties="{view>/chartProps}">
+                                    <viz:dataset>
+                                        <dataset:FlattenedDataset data="{view>/kpi/deptSalary}">
+                                            <dataset:dimensions>
+                                                <dataset:DimensionDefinition name="부서" value="{view>name}"/>
+                                            </dataset:dimensions>
+                                            <dataset:measures>
+                                                <dataset:MeasureDefinition name="급여합계" value="{view>salaryM}"/>
+                                            </dataset:measures>
+                                        </dataset:FlattenedDataset>
+                                    </viz:dataset>
+                                    <viz:feeds>
+                                        <feeds:FeedItem uid="categoryAxis" type="Dimension" values="부서"/>
+                                        <feeds:FeedItem uid="valueAxis" type="Measure" values="급여합계"/>
+                                    </viz:feeds>
+                                </viz:VizFrame>
+                            </VBox>
+
+                            <!-- 부서별 목록 -->
+                            <Table id="deptSalaryTable"
+                                items="{view>/kpi/deptSalary}"
+                                noDataText="데이터 없음"
+                                fixedLayout="false"
+                                backgroundDesign="Transparent">
+                                <headerToolbar>
+                                    <Toolbar>
+                                        <Title text="부서별 인건비 현황" level="H5"/>
+                                        <ToolbarSpacer/>
+                                        <Text text="재직 기준" class="empFormCell"/>
+                                    </Toolbar>
+                                </headerToolbar>
+                                <columns>
+                                    <Column width="8rem"><Text text="부서"/></Column>
+                                    <Column width="4.5rem" hAlign="End"><Text text="인원 (명)"/></Column>
+                                    <Column hAlign="End"><Text text="급여합계 (KRW)"/></Column>
+                                    <Column width="8rem" hAlign="End"><Text text="평균급여 (KRW)"/></Column>
+                                    <Column width="9rem"><Text text="비중 (%)"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem highlight="{view>highlight}">
+                                        <cells>
+                                            <Text text="{view>name}"/>
+                                            <Text text="{view>count}" textAlign="End"/>
+                                            <Text text="{view>salary}" textAlign="End"/>
+                                            <Text text="{view>avgSalary}" textAlign="End"/>
+                                            <ProgressIndicator
+                                                percentValue="{view>pctNum}"
+                                                displayValue="{view>pct}"
+                                                showValue="true"
+                                                state="None"
+                                                width="100%"/>
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+
+                            <!-- 직급별 인건비 (CO 관점) -->
+                            <Table id="gradeSalaryTable"
+                                class="gradeSalarySection"
+                                items="{view>/kpi/gradeSalary}"
+                                noDataText="데이터 없음"
+                                fixedLayout="false"
+                                backgroundDesign="Transparent">
+                                <headerToolbar>
+                                    <Toolbar>
+                                        <Title text="직급별 인건비 현황" level="H5"/>
+                                        <ToolbarSpacer/>
+                                        <Text text="재직 기준 · CO 원가 분석"/>
+                                    </Toolbar>
+                                </headerToolbar>
+                                <columns>
+                                    <Column width="6rem"><Text text="직급"/></Column>
+                                    <Column width="4.5rem" hAlign="End"><Text text="인원 (명)"/></Column>
+                                    <Column hAlign="End"><Text text="급여합계 (KRW)"/></Column>
+                                    <Column width="8rem" hAlign="End"><Text text="평균급여 (KRW)"/></Column>
+                                    <Column width="9rem"><Text text="비중 (%)"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                            <Text text="{view>name}"/>
+                                            <Text text="{view>count}" textAlign="End"/>
+                                            <Text text="{view>salary}" textAlign="End"/>
+                                            <Text text="{view>avgSalary}" textAlign="End"/>
+                                            <ProgressIndicator
+                                                percentValue="{view>pctNum}"
+                                                displayValue="{view>pct}"
+                                                showValue="true"
+                                                state="None"
+                                                width="100%"/>
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+
+                        </VBox>
+                    </IconTabFilter>
+
+                </items>
+            </IconTabBar>
+
+        </content>
+    </Page>
+
+</mvc:View>

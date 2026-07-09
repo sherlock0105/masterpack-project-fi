@@ -1,0 +1,23 @@
+{
+  "generationParameters": {
+    "generationDate": "Mon Jun 01 2026 10:40:38 GMT+0900 (한국 표준시)",
+    "generatorPlatform": "Visual Studio Code",
+    "serviceType": "SAP System (ABAP On-Premise)",
+    "metadataFilename": "",
+    "serviceUrl": "http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E3_FI_0012_CDS",
+    "appName": "ze3_fi_hbk_rate",
+    "appTitle": "[FI] 외화통장 보유액",
+    "appDescription": "외화보유 현황 및 환율 평가",
+    "appNamespace": "ze3.fi.hbk.rate",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.120.23",
+    "enableEslint": false,
+    "enableTypeScript": false,
+    "showMockDataInfo": true,
+    "generatorVersion": "1.20.2",
+    "template": "Basic V2",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [],
+    "launchText": "To launch the generated application, run the following from the generated application root folder:\n\n```\n    npm start\n```"
+  }
+}

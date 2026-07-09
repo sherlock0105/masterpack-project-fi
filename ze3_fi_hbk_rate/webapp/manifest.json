@@ -1,0 +1,145 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ze3.fi.hbk.rate.ze3fihbkrate",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.2",
+      "toolsId": "cfb120e2-5191-4ff1-9980-016338ae5d9c"
+    },
+    "dataSources": {
+      "ZCDS_E3_FI_0012_CDS_VAN": {
+        "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E3_FI_0012_CDS_VAN',Version='0001')/$value/",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "localService/mainService/ZCDS_E3_FI_0012_CDS_VAN.xml"
+        }
+      },
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_FI_0012_CDS/",
+        "type": "OData",
+        "settings": {
+          "annotations": ["ZCDS_E3_FI_0012_CDS_VAN"],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "openItemsService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_FI_0014_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      },
+      "rateHistoryService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_FI_0008_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.export": {},
+        "sap.viz": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ze3.fi.hbk.rate.ze3fihbkrate.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      },
+      "openItemsService": {
+        "dataSource": "openItemsService",
+        "preload": true,
+        "settings": {}
+      },
+      "rateHistoryService": {
+        "dataSource": "rateHistoryService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ze3.fi.hbk.rate.ze3fihbkrate.view",
+        "async": true,
+        "viewPath": "ze3.fi.hbk.rate.ze3fihbkrate.view"
+      },
+      "routes": [
+        {
+          "name": "RouteFiRateView",
+          "pattern": ":?query:",
+          "target": ["TargetFiRateView"]
+        }
+      ],
+      "targets": {
+        "TargetFiRateView": {
+          "id": "FiRateView",
+          "name": "FiRateView"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ze3.fi.hbk.rate.ze3fihbkrate.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

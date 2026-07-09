@@ -1,0 +1,639 @@
+/* ════════════════════════════════════════════════════════════
+   재무상태표 — SAP Standard Dashboard
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 페이지 헤더 배너 ── */
+.psPageHeader.sapMVBox {
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #ede8e0;
+    justify-content: center;
+    background: url("../images/header.png") right center / cover no-repeat;
+}
+.psPageHeaderContent.sapMVBox {
+    position: relative;
+    z-index: 1;
+    gap: 0.2rem !important;
+}
+.psPageHeaderTitle.sapMTitle {
+    font-size: 1.375rem !important;
+    font-weight: 700 !important;
+    color: #1d2d3e !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.3 !important;
+}
+.psPageHeaderSub.sapMText {
+    font-size: 0.8rem !important;
+    color: #a8b4c0 !important;
+    margin-top: 0.1rem !important;
+}
+
+/* ── Page 배경 ── */
+.fxPage > .sapMPageScroll {
+    background: #f5f6f7 !important;
+}
+
+/* ── 검색 바 ── */
+.fxSearchBar.sapMTB {
+    position:      sticky !important;
+    top:           0 !important;
+    z-index:       100 !important;
+    padding:       0.375rem 0.75rem !important;
+    flex-wrap:     wrap !important;
+    height:        auto !important;
+    min-height:    2.75rem !important;
+    background:    #ffffff !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+    box-shadow:    0 1px 3px rgba(0,0,0,0.05) !important;
+}
+.fxFilterLabel.sapMLabel {
+    font-weight:  600 !important;
+    color:        #32363a !important;
+    margin-right: 0.25rem !important;
+}
+
+/* ── 대차 알림 ── */
+.fxBalanceStrip.sapMMessageStrip {
+    margin: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* ── 빈 상태 ── */
+.fxEmptyState.sapMVBox {
+    padding: 4rem 1rem !important;
+    gap:     0.75rem !important;
+}
+.fxEmptyIcon.sapUiIcon { color: #c8d3de !important; }
+.fxEmptyText.sapMText  { font-size: 0.9rem !important; color: #8d9cb0 !important; }
+
+/* ════════════════════════════════════════════════════════════
+   대시보드 레이아웃
+   ════════════════════════════════════════════════════════════ */
+.fxDashboard.sapMVBox {
+    padding: 0.625rem !important;
+}
+
+.fxCardRow.sapMHBox {
+    gap:           0.625rem !important;
+    margin-bottom: 0.625rem !important;
+    align-items:   stretch !important;
+}
+
+/* ── 카드 공통 ── */
+.fxCard.sapMVBox {
+    background:    #ffffff !important;
+    border:        1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    box-shadow:    0 1px 4px rgba(0,0,0,0.08) !important;
+    overflow:      hidden !important;
+}
+.fxCard--full.sapMVBox {
+    width:         100% !important;
+    margin-bottom: 0.625rem !important;
+}
+.fxCard--half.sapMVBox {
+    flex:          1 1 calc(50% - 0.375rem) !important;
+    min-width:     320px !important;
+    box-sizing:    border-box !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   KPI 카드
+   ════════════════════════════════════════════════════════════ */
+.fxKpiCard.sapMVBox {
+    flex:       1 1 220px !important;
+    min-width:  210px !important;
+    padding:    1rem 1.125rem !important;
+    gap:        0.2rem !important;
+    box-sizing: border-box !important;
+}
+.fxKpiCard--blue.sapMVBox   { border-top: 3px solid #0070d2 !important; }
+.fxKpiCard--orange.sapMVBox { border-top: 3px solid #e76500 !important; }
+.fxKpiCard--green.sapMVBox  { border-top: 3px solid #107e3e !important; }
+.fxKpiCard--purple.sapMVBox { border-top: 3px solid #6800d6 !important; }
+.fxKpiCard--teal.sapMVBox   { border-top: 3px solid #0d7377 !important; }
+
+.fxKpiTop.sapMHBox {
+    gap:           0.625rem !important;
+    margin-bottom: 0.5rem !important;
+}
+.fxKpiIcon.sapUiIcon {
+    font-size: 1.25rem !important;
+    color:     #8d9cb0 !important;
+}
+.fxKpiIcon--blue.sapUiIcon   { color: #0070d2 !important; }
+.fxKpiIcon--orange.sapUiIcon { color: #e76500 !important; }
+.fxKpiIcon--green.sapUiIcon  { color: #107e3e !important; }
+.fxKpiIcon--purple.sapUiIcon { color: #6800d6 !important; }
+.fxKpiIcon--teal.sapUiIcon   { color: #0d7377 !important; }
+
+.fxKpiInfo.sapMVBox { gap: 0.05rem !important; }
+.fxKpiLabel.sapMText {
+    font-size:   0.875rem !important;
+    font-weight: 600 !important;
+    color:       #32363a !important;
+}
+.fxKpiSub.sapMText {
+    font-size: 0.72rem !important;
+    color:     #8d9cb0 !important;
+}
+.fxKpiValue.sapMText {
+    font-size:   1.1rem !important;
+    font-weight: 700 !important;
+    color:       #1d2d3e !important;
+    line-height: 1.3 !important;
+    word-break:  break-all !important;
+}
+.fxKpiKrw.sapMText {
+    font-size:  0.8rem !important;
+    color:      #6a7588 !important;
+    margin-top: 0.1rem !important;
+}
+
+/* ── KPI 델타 ── */
+.fxDeltaPos.sapMText  { font-size: 0.78rem !important; color: #107e3e !important; font-weight: 600 !important; margin-top: 0.25rem !important; }
+.fxDeltaNeg.sapMText  { font-size: 0.78rem !important; color: #bb0000 !important; font-weight: 600 !important; margin-top: 0.25rem !important; }
+.fxDeltaNone.sapMText { font-size: 0.75rem !important; color: #8d9cb0 !important; margin-top: 0.25rem !important; }
+
+/* ════════════════════════════════════════════════════════════
+   재무 비율 카드
+   ════════════════════════════════════════════════════════════ */
+.fxRatioCard.sapMVBox {
+    flex:       1 1 220px !important;
+    min-width:  220px !important;
+    padding:    0.875rem 1rem 0.75rem !important;
+    gap:        0 !important;
+    box-sizing: border-box !important;
+}
+.fxRatioCard--blue.sapMVBox   { border-top: 3px solid #0070d2 !important; }
+.fxRatioCard--orange.sapMVBox { border-top: 3px solid #e76500 !important; }
+.fxRatioCard--green.sapMVBox  { border-top: 3px solid #107e3e !important; }
+.fxRatioCard--purple.sapMVBox { border-top: 3px solid #6800d6 !important; }
+
+/* 헤더 */
+.fxRatioHdr.sapMHBox {
+    gap:           0.625rem !important;
+    margin-bottom: 0.875rem !important;
+    align-items:   center !important;
+}
+.fxRatioIcon.sapUiIcon {
+    font-size: 1.5rem !important;
+    color:     #8d9cb0 !important;
+}
+.fxRatioIcon--blue.sapUiIcon   { color: #0070d2 !important; }
+.fxRatioIcon--orange.sapUiIcon { color: #e76500 !important; }
+.fxRatioIcon--green.sapUiIcon  { color: #107e3e !important; }
+.fxRatioIcon--purple.sapUiIcon { color: #6800d6 !important; }
+
+.fxRatioTitleBox.sapMVBox {
+    gap:       0.05rem !important;
+    flex:      1 1 0 !important;
+    min-width: 0 !important;
+}
+.fxRatioTitle.sapMTitle {
+    font-size:   0.875rem !important;
+    font-weight: 700 !important;
+    color:       #1d2d3e !important;
+}
+.fxRatioFormula.sapMText {
+    font-size:    0.7rem !important;
+    color:        #a8b4c0 !important;
+    white-space:  normal !important;
+    overflow-wrap: break-word !important;
+}
+
+/* 수치 본문 */
+.fxRatioBody.sapMHBox {
+    padding-bottom: 0.75rem !important;
+    border-bottom:  1px solid #f0f2f4 !important;
+    margin-bottom:  0.625rem !important;
+    align-items:    flex-end !important;
+    width:          100% !important;
+}
+.fxRatioBig.sapMText {
+    font-size:   2.125rem !important;
+    font-weight: 700 !important;
+    color:       #1d2d3e !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.fxRatioYearLabel.sapMText {
+    font-size:     0.68rem !important;
+    color:         #a8b4c0 !important;
+    margin-bottom: 0.2rem !important;
+}
+.fxRatioSmall.sapMText {
+    font-size:   1.125rem !important;
+    font-weight: 600 !important;
+    color:       #6a7588 !important;
+    line-height: 1 !important;
+}
+
+/* 하단 기준 설명 */
+.fxRatioFooter.sapMHBox {
+    align-items: center !important;
+    gap:         0.25rem !important;
+    width:       100% !important;
+}
+.fxRatioHint.sapMText {
+    font-size: 0.68rem !important;
+    color:     #bcc3ca !important;
+    flex:      1 !important;
+}
+
+/* ── KPI/Ratio 임계치 초과 시각 경고 ── */
+@keyframes fxBlink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.25; }
+}
+.fxRatioCard--danger.sapMVBox {
+    background-color: #fff0f0 !important;
+    border-color:     #e8b4b4 !important;
+}
+.fxRatioCard--danger .fxRatioIcon,
+.fxBlinkIcon { animation: fxBlink 1.4s ease-in-out infinite; }
+
+/* ════════════════════════════════════════════════════════════
+   추세 차트
+   ════════════════════════════════════════════════════════════ */
+.fxTrendChartWrap.sapMVBox {
+    padding: 0.75rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   차트 카드
+   ════════════════════════════════════════════════════════════ */
+.fxCardHdr.sapMHBox {
+    padding:       0.75rem 1rem 0.5rem 1rem !important;
+    border-bottom: 1px solid #e4e7eb !important;
+    min-height:    3rem !important;
+}
+.fxCardTitle.sapMTitle {
+    font-size:   0.875rem !important;
+    font-weight: 700 !important;
+    color:       #32363a !important;
+}
+.fxCardSub.sapMText {
+    font-size:  0.75rem !important;
+    color:      #8d9cb0 !important;
+    margin-top: 0.1rem !important;
+}
+.fxCardBadge.sapMText {
+    font-size:   0.8rem !important;
+    color:       #6a7588 !important;
+    white-space: nowrap !important;
+    align-self:  center !important;
+}
+
+.fxChartRow.sapMHBox {
+    padding:   0.75rem !important;
+    gap:       0.625rem !important;
+    flex-wrap: wrap !important;
+}
+.fxChartBox {
+    background:    #ffffff !important;
+    border:        1px solid #e4e7eb !important;
+    border-radius: 4px !important;
+    padding:       0.75rem !important;
+}
+.fxChartBox--large { flex: 2 1 380px !important; min-width: 280px !important; }
+.fxChartBox--small { flex: 1 1 200px !important; min-width: 180px !important; }
+.fxChartBox--half  { flex: 1 1 300px !important; min-width: 260px !important; }
+
+.fxChartSubTitle.sapMTitle {
+    font-size:     0.78rem !important;
+    font-weight:   600 !important;
+    color:         #32363a !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   재무상태표 테이블
+   ════════════════════════════════════════════════════════════ */
+.fxTable.sapMTable { margin: 0 !important; }
+.fxTable .sapMText { font-size: 0.82rem !important; }
+.fxTable .sapMListTblCell { padding: 0.25rem 0.75rem !important; }
+.fxTable .sapMListTblHeaderCell {
+    background:    #f5f6f7 !important;
+    font-size:     0.78rem !important;
+    font-weight:   600 !important;
+    color:         #32363a !important;
+    border-bottom: 2px solid #0070d2 !important;
+    padding:       0.35rem 0.75rem !important;
+}
+
+/* ════════════════════════════════════════
+   재무상태표 테이블 계층 스타일
+   (최고 강도 셀렉터 — tr + td + .sapMText 모두 커버)
+   ════════════════════════════════════════ */
+
+/* ── Section (대분류: 자산 / 부채 / 자본) ── */
+html body tr.bsRowSection > td,
+html body tr.bsRowSection td,
+html body .bsRowSection > td,
+html body .bsRowSection td {
+    background-color: #1b3f6a !important;
+    border-top:       3px solid #0a2d52 !important;
+    padding-top:      0.6rem !important;
+    padding-bottom:   0.6rem !important;
+}
+html body tr.bsRowSection .sapMText,
+html body .bsRowSection .sapMText {
+    color:          #ffffff !important;
+    font-weight:    700 !important;
+    font-size:      0.9rem !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* ── Group (중분류: 유동자산 등) ── */
+html body tr.bsRowGroup > td,
+html body tr.bsRowGroup td,
+html body .bsRowGroup > td,
+html body .bsRowGroup td {
+    background-color: #e8f1fb !important;
+    padding-top:      0.4rem !important;
+    padding-bottom:   0.4rem !important;
+    border-top:       1px solid #c5d8ef !important;
+}
+html body tr.bsRowGroup .sapMText,
+html body .bsRowGroup .sapMText {
+    color:       #0854a0 !important;
+    font-weight: 700 !important;
+    font-size:   0.84rem !important;
+}
+
+/* ── Item (계정과목) ── */
+html body tr.bsRowItem > td,
+html body tr.bsRowItem td,
+html body .bsRowItem > td,
+html body .bsRowItem td {
+    background-color: #ffffff !important;
+    padding-top:      0.22rem !important;
+    padding-bottom:   0.22rem !important;
+}
+html body tr.bsRowItem .sapMText,
+html body .bsRowItem .sapMText {
+    color:     #555 !important;
+    font-size: 0.81rem !important;
+}
+
+/* ── Total (자산·부채·자본 합계) ── */
+html body tr.bsRowTotal > td,
+html body tr.bsRowTotal td,
+html body .bsRowTotal > td,
+html body .bsRowTotal td {
+    background-color: #c6d9f0 !important;
+    border-top:       2px solid #7eaad6 !important;
+    padding-top:      0.45rem !important;
+    padding-bottom:   0.45rem !important;
+}
+html body tr.bsRowTotal .sapMText,
+html body .bsRowTotal .sapMText {
+    color:       #0854a0 !important;
+    font-weight: 700 !important;
+    font-size:   0.84rem !important;
+}
+
+/* ── Grand (부채 및 자본 총계) ── */
+html body tr.bsRowGrand > td,
+html body tr.bsRowGrand td,
+html body .bsRowGrand > td,
+html body .bsRowGrand td {
+    background-color: #1b3f6a !important;
+    border-top:       3px solid #0a2d52 !important;
+    padding-top:      0.6rem !important;
+    padding-bottom:   0.6rem !important;
+}
+html body tr.bsRowGrand .sapMText,
+html body .bsRowGrand .sapMText {
+    color:       #ffffff !important;
+    font-weight: 700 !important;
+    font-size:   0.88rem !important;
+}
+
+/* ── 최종 업데이트 레이블 ── */
+.fxUpdateLabel.sapMText {
+    font-size:   0.75rem !important;
+    color:       #8d9cb0 !important;
+    white-space: nowrap !important;
+}
+
+/* ── 이상 징후 아이콘 ── */
+.fxAnomalyIcon.sapUiIcon {
+    vertical-align: middle !important;
+    flex-shrink:     0 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   재무제표 트리 테이블 (PL / CF — DART 표준)
+   ════════════════════════════════════════════════════════════ */
+
+/* 숫자 컬럼 Text가 셀 전체를 채워 textAlign="End"가 셀 우측 끝에 붙도록 */
+.fxTable.sapUiTable .sapUiTableCellInner .sapMText,
+.sapUiTable.fxTable .sapUiTableCellInner .sapMText {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 컬럼 헤더 */
+.fxTreeTable .sapUiTableColHdrTr th {
+    background-color: #1b4f8a !important;
+    color:            #ffffff !important;
+    font-weight:      600 !important;
+    font-size:        0.8125rem !important;
+}
+
+/* 그룹 행 레이블 (Ⅰ. Ⅱ. … 섹션 헤더) */
+.fxTreeGroup.sapMText {
+    font-weight: 700 !important;
+    color:       #1d2d3e !important;
+    font-size:   0.875rem !important;
+}
+
+/* 계산 행 (매출총이익 / 영업이익 / 당기순이익 / 영업활동CF 합계 등) */
+.fxTreeCalc.sapMText {
+    font-weight:  700 !important;
+    color:        #0070d2 !important;
+    font-size:    0.9rem !important;
+}
+
+/* 세부 항목 행 */
+.fxTreeItem.sapMText {
+    color:     #32363a !important;
+    font-size: 0.8125rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   AI 재무 분석 리포트 패널
+   ════════════════════════════════════════════════════════════ */
+
+/* 패널 외곽 */
+.fxAiPanel.sapMVBox {
+    margin:        0.75rem 1.5rem 0;
+    border:        1.5px solid #c9a84c;
+    border-radius: 8px;
+    overflow:      hidden;
+    background:    #fffdf0;
+    box-shadow:    0 2px 18px rgba(180, 140, 30, 0.18);
+}
+
+/* 패널 헤더 — 골드 그라디언트 */
+.fxAiPanelHdr.sapMHBox {
+    background: linear-gradient(105deg, #7d5a00 0%, #c9973f 35%, #E0C268 65%, #c9973f 100%);
+    padding:    0.65rem 1rem;
+    gap:        0.5rem;
+}
+
+/* 헤더 아이콘 */
+.fxAiPanelIcon.sapUiIcon {
+    color:        #ffffff !important;
+    flex-shrink:  0 !important;
+    margin-right: 0.3rem !important;
+    filter:       drop-shadow(0 1px 3px rgba(100,60,0,0.4));
+}
+
+/* 헤더 제목 */
+.fxAiPanelTitle.sapMTitle {
+    color:        #ffffff !important;
+    font-size:    0.9rem !important;
+    font-weight:  700 !important;
+    margin:       0 0.75rem 0 0 !important;
+    text-shadow:  0 1px 3px rgba(80,40,0,0.5);
+}
+
+/* 헤더 메타 (연도·회사코드) */
+.fxAiPanelMeta.sapMText {
+    color:     rgba(255, 255, 255, 0.82) !important;
+    font-size: 0.75rem !important;
+}
+
+/* 접기/펼치기 버튼 아이콘 */
+.fxAiCloseBtn.sapMBtn .sapMBtnIcon {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 패널 본문 — 연한 골드 배경 */
+.fxAiPanelBody.sapMVBox {
+    padding:    1rem 1.5rem 1.25rem;
+    min-height: 3.5rem;
+    background: linear-gradient(160deg, #fffbec 0%, #fff9e0 60%, #fffdf4 100%);
+    border-top: 1px solid rgba(201, 168, 76, 0.35);
+}
+
+/* FormattedText 줄간격 */
+.fxAiText {
+    line-height: 1.75 !important;
+    color:       #2a1a00 !important;
+}
+
+/* AI 버튼 — 골드 그라디언트 */
+.fxAiBtn.sapMBtn .sapMBtnInner {
+    background:  linear-gradient(105deg, #7d5a00, #c9973f, #E0C268) !important;
+    border:      none !important;
+    color:       #ffffff !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35) !important;
+}
+.fxAiBtn.sapMBtn:hover .sapMBtnInner {
+    filter:  brightness(1.08) !important;
+    opacity: 1 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   차트 글로시 (Glossy) 이펙트
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 카드 컨테이너 — 유리 베이스 ── */
+.fxCard.sapMVBox {
+    background:    linear-gradient(165deg, #ffffff 0%, #f5f8fd 100%) !important;
+    border:        1px solid rgba(185, 208, 238, 0.9) !important;
+    border-radius: 6px !important;
+    box-shadow:    0 4px 24px rgba(27,55,100,0.10), 0 1px 0 rgba(255,255,255,0.98) inset !important;
+    position:      relative !important;
+}
+
+/* ── 카드 헤더 — 유리 패널 ── */
+.fxCardHdr.sapMHBox {
+    background:    linear-gradient(140deg, #fbfcfe 0%, #eaf1fa 100%) !important;
+    border-bottom: 1px solid rgba(185, 208, 238, 0.75) !important;
+}
+
+/* ── fxChartBox — 차트 박스 글로시 ── */
+.fxChartBox {
+    background:    linear-gradient(170deg, #ffffff 0%, #f5f8fd 100%) !important;
+    border:        1px solid rgba(185, 208, 238, 0.7) !important;
+    border-radius: 6px !important;
+    box-shadow:    0 3px 16px rgba(27,55,100,0.08), 0 1px 0 rgba(255,255,255,0.96) inset, 0 -2px 6px rgba(27,55,100,0.04) inset !important;
+    position:      relative !important;
+    overflow:      hidden !important;
+}
+
+/* 상단 광택 하이라이트 */
+.fxChartBox::after {
+    content:        "";
+    position:       absolute;
+    top:            0;
+    left:           0;
+    right:          0;
+    height:         44%;
+    background:     linear-gradient(to bottom, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.07) 55%, transparent 100%);
+    border-radius:  6px 6px 0 0;
+    pointer-events: none;
+    z-index:        10;
+}
+
+/* ── fxTrendChartWrap — 인라인 차트 래퍼 글로시 ── */
+.fxTrendChartWrap.sapMVBox {
+    padding:  0.75rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fxTrendChartWrap.sapMVBox::after {
+    content:        "";
+    position:       absolute;
+    top:            0.75rem;
+    left:           0.75rem;
+    right:          0.75rem;
+    height:         38%;
+    background:     linear-gradient(to bottom, rgba(255,255,255,0.24) 0%, transparent 100%);
+    pointer-events: none;
+    z-index:        10;
+}
+
+/* ── VizFrame 글로시 + 레전더리 강화 ── */
+.sapVizFrame {
+    filter: drop-shadow(0 3px 16px rgba(27,55,100,0.18)) !important;
+}
+
+/* 레전드 텍스트 */
+.sapVizFrame [class*="legend"] text {
+    font-weight: 700 !important;
+    font-size:   12px !important;
+    fill:        #1d2d3e !important;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif !important;
+}
+
+/* 데이터 레이블 */
+.sapVizFrame [class*="datalabel"] text,
+.sapVizFrame [class*="v-label"] text {
+    font-weight: 700 !important;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif !important;
+}
+
+/* 축 레이블 */
+.sapVizFrame [class*="axis"] text {
+    font-weight: 600 !important;
+    fill:        #32363a !important;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif !important;
+}
+
+/* 도넛 슬라이스 구분선 (glossy 느낌 강화) */
+.sapVizFrame [class*="v-pie"] path,
+.sapVizFrame [class*="v-donut"] path {
+    stroke:       rgba(255,255,255,0.55) !important;
+    stroke-width: 2px !important;
+}

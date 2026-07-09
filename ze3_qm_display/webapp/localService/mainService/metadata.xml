@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_AGGREGATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Aggregation.V1" Alias="Aggregation"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_ANALYTICS',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Analytics.v1" Alias="Analytics"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CAPABILITIES',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CODELIST',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.CodeList.v1" Alias="SAP__CodeList"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMON',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Common.v1" Alias="Common"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMUNICATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Communication.v1" Alias="Communication"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_MEASURES',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_PERSONALDATA',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.PersonalData.v1" Alias="PersonalData"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_UI',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.UI.v1" Alias="UI"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_VALIDATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Validation.V1" Alias="Validation"/>
+    </edmx:Reference>
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZCDS_E3_QM_0002_CDS" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="ZCDS_E3_QM_0002Type" sap:label="[QM] 완제품 검수 헤더" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="prueflos"/>
+                    <PropertyRef Name="pruef_pos"/>
+                </Key>
+                <Property Name="prueflos" Type="Edm.String" Nullable="false" MaxLength="12" sap:display-format="UpperCase" sap:label="검수번호" sap:quickinfo="[QM] 검수번호"/>
+                <Property Name="pruef_pos" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="검수 항목 번호" sap:quickinfo="[QM] 검수 항목 번호"/>
+                <Property Name="insp_type" Type="Edm.String" MaxLength="2" sap:display-format="UpperCase" sap:label="검수 유형" sap:quickinfo="[QM] 검수 유형"/>
+                <Property Name="ebeln" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="구매오더번호" sap:quickinfo="[MM] 구매오더번호"/>
+                <Property Name="aufnr" Type="Edm.String" MaxLength="12" sap:display-format="UpperCase" sap:label="생산 오더 번호" sap:quickinfo="[PP] 생산 오더 번호"/>
+                <Property Name="budat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="검수 일" sap:quickinfo="[QM] 검수 일"/>
+                <Property Name="stats" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label="검수 상태" sap:quickinfo="[QM] 검수 상태"/>
+                <Property Name="pernr" Type="Edm.String" MaxLength="8" sap:display-format="UpperCase" sap:label="사원 ID" sap:quickinfo="[CM] 사원 ID"/>
+                <Property Name="matnr" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="자재코드" sap:quickinfo="[MM] 자재코드"/>
+                <Property Name="charg" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="배치번호" sap:quickinfo="[MM] 배치번호"/>
+                <Property Name="gltrp" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="생산 종료일" sap:quickinfo="[PP] 생산 종료일"/>
+                <Property Name="qi_qty" Type="Edm.Decimal" Precision="13" Scale="0" sap:unit="meins" sap:label="검사 대기" sap:quickinfo="[QM] 검사 대기"/>
+                <Property Name="pass_qty" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins" sap:label="합격 수량" sap:quickinfo="[QM] 합격 수량"/>
+                <Property Name="fail_qty" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins" sap:label="불합격 수량" sap:quickinfo="[QM] 불합격 수량"/>
+                <Property Name="meins" Type="Edm.String" MaxLength="3" sap:label="단위" sap:quickinfo="[PP] 단위" sap:semantics="unit-of-measure"/>
+                <Property Name="stats_txt" Type="Edm.String" MaxLength="4"/>
+                <Property Name="total_cost" Type="Edm.Decimal" Precision="15" Scale="2" sap:label="표준원가 손실액" sap:quickinfo="[CO] 불합격 수량 × 표준원가"/>
+            </EntityType>
+            <EntityContainer Name="ZCDS_E3_QM_0002_CDS_Entities" m:IsDefaultEntityContainer="true" sap:message-scope-supported="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="ZCDS_E3_QM_0002" EntityType="ZCDS_E3_QM_0002_CDS.ZCDS_E3_QM_0002Type" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <Annotations Target="ZCDS_E3_QM_0002_CDS.ZCDS_E3_QM_0002_CDS_Entities" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                <Annotation Term="Common.ApplyMultiUnitBehaviorForSortingAndFiltering" Bool="true"/>
+            </Annotations>
+            <atom:link rel="self" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E3_QM_0002_CDS/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E3_QM_0002_CDS/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

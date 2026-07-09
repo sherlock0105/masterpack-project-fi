@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZGWE3FI0001_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="FiRate" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Fcurr"/>
+                    <PropertyRef Name="Gdatu"/>
+                </Key>
+                <Property Name="Fcurr" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="기준 통화" sap:semantics="currency-code"/>
+                <Property Name="Gdatu" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="적용 일자"/>
+                <Property Name="Ukurs" Type="Edm.Decimal" Precision="9" Scale="5" sap:unicode="false" sap:label="환율"/>
+                <Property Name="Ffact" Type="Edm.Decimal" Precision="9" Scale="0" sap:unicode="false" sap:label="환산 비율"/>
+                <Property Name="Tfact" Type="Edm.Decimal" Precision="9" Scale="0" sap:unicode="false" sap:label="환산 비율"/>
+            </EntityType>
+            <EntityType Name="BpMaster" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Bpcode"/>
+                    <PropertyRef Name="Bptype"/>
+                </Key>
+                <Property Name="Bpcode" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="고객번호"/>
+                <Property Name="Bptype" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:label="BPTYPE"/>
+                <Property Name="Bpname" Type="Edm.String" MaxLength="35" sap:unicode="false" sap:label="거래처 공식명칭"/>
+                <Property Name="Countrycode" Type="Edm.String" MaxLength="2" sap:unicode="false" sap:label="국가"/>
+                <Property Name="Bizregno" Type="Edm.String" MaxLength="16" sap:unicode="false" sap:label="사업자 번호"/>
+                <Property Name="Telno" Type="Edm.String" MaxLength="20" sap:unicode="false" sap:label="대표/담당자 번호"/>
+                <Property Name="Address" Type="Edm.String" MaxLength="35" sap:unicode="false" sap:label="본사 주소"/>
+                <Property Name="Paymentterm" Type="Edm.String" MaxLength="5" sap:unicode="false" sap:label="결제기간"/>
+                <Property Name="Bankaccount" Type="Edm.String" MaxLength="20" sap:unicode="false" sap:label="계좌번호"/>
+                <Property Name="Bankname" Type="Edm.String" MaxLength="15" sap:unicode="false" sap:label="은행명"/>
+                <Property Name="Useflag" Type="Edm.String" MaxLength="1" sap:unicode="false" sap:label="활성상태"/>
+                <Property Name="Email" Type="Edm.String" MaxLength="35" sap:unicode="false" sap:label="[SD] 회사 이메일"/>
+                <Property Name="Repname" Type="Edm.String" MaxLength="20" sap:unicode="false" sap:label="[SD] 회사 대표자 이름"/>
+            </EntityType>
+            <EntityContainer Name="ZGWE3FI0001_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="FiRateSet" EntityType="ZGWE3FI0001_SRV.FiRate" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="BpMasterSet" EntityType="ZGWE3FI0001_SRV.BpMaster" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <atom:link rel="self" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZGWE3FI0001_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZGWE3FI0001_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

@@ -1,0 +1,7 @@
+<mvc:View controllerName="ze3.fi.bpmaster.ze3fibpmaster.controller.App"
+    displayBlock="true"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+    <App id="app">
+    </App>
+</mvc:View>

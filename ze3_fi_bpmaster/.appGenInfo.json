@@ -1,0 +1,23 @@
+{
+  "generationParameters": {
+    "generationDate": "Mon Jun 01 2026 14:09:52 GMT+0900 (한국 표준시)",
+    "generatorPlatform": "Visual Studio Code",
+    "serviceType": "SAP System (ABAP On-Premise)",
+    "metadataFilename": "",
+    "serviceUrl": "http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZGWE3FI0001_SRV",
+    "appName": "ze3_fi_bpmaster",
+    "appTitle": "[FI] BP 마스터 관리",
+    "appDescription": "고객/공급업체 마스터 조회 및 관리",
+    "appNamespace": "ze3.fi.bpmaster",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.120.23",
+    "enableEslint": false,
+    "enableTypeScript": false,
+    "showMockDataInfo": true,
+    "generatorVersion": "1.20.2",
+    "template": "Basic V2",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [],
+    "launchText": "To launch the generated application, run the following from the generated application root folder:\n\n```\n    npm start\n```"
+  }
+}

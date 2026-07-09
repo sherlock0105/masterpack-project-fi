@@ -1,0 +1,435 @@
+<mvc:View controllerName="ze3.qm.display.ze3qmdisplay.controller.QmDisplayView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:viz="sap.viz.ui5.controls">
+
+    <Page id="page" title=""
+          busy="{view>/busy}" busyIndicatorDelay="0"
+          class="sapUiNoContentPadding">
+
+        <dependents>
+            <SelectDialog id="idMatnrDialog"
+                          title="자재코드 선택"
+                          confirm="onMatnrDialogConfirm"
+                          cancel="onMatnrDialogCancel"
+                          search="onMatnrDialogSearch"
+                          items="{view>/matnrList}">
+                <StandardListItem title="{view>matnr}" description="{view>maktx}"/>
+            </SelectDialog>
+
+            <Dialog id="idDetailDialog"
+                    title="{= '검사 결과 상세  —  ' + (${view>/detail/prueflos}||'')}"
+                    contentWidth="720px"
+                    contentHeight="75vh"
+                    verticalScrolling="true"
+                    draggable="true"
+                    resizable="true"
+                    busy="{view>/detailBusy}"
+                    busyIndicatorDelay="0">
+                <content>
+                    <!-- 기본 정보 박스 -->
+                    <VBox class="qmDetailInfoBox">
+                        <HBox wrap="Wrap" class="qmDetailInfoGrid">
+                            <VBox class="qmDetailInfoItem">
+                                <Label text="자재코드" class="qmDetailInfoLabel"/>
+                                <Text text="{view>/detail/matnr}" class="qmDetailInfoValue"/>
+                            </VBox>
+                            <VBox class="qmDetailInfoItem">
+                                <Label text="검수일" class="qmDetailInfoLabel"/>
+                                <Text text="{view>/detail/budatFmt}" class="qmDetailInfoValue"/>
+                            </VBox>
+                            <VBox class="qmDetailInfoItem">
+                                <Label text="배치번호" class="qmDetailInfoLabel"/>
+                                <Text text="{view>/detail/charg}" class="qmDetailInfoValue"/>
+                            </VBox>
+                            <VBox class="qmDetailInfoItem">
+                                <Label text="단위" class="qmDetailInfoLabel"/>
+                                <Text text="{view>/detail/meins}" class="qmDetailInfoValue"/>
+                            </VBox>
+                            <VBox class="qmDetailInfoItem qmDetailInfoItem--full">
+                                <Label text="자재명" class="qmDetailInfoLabel"/>
+                                <Text text="{view>/detail/maktx}" class="qmDetailInfoValue" wrapping="true"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- 수량 요약 — SpaceBetween + ObjectNumber로 숫자 강조 -->
+                    <HBox class="qmQtySummary" justifyContent="SpaceBetween">
+                        <VBox class="qmQtySummaryItem" alignItems="Center">
+                            <Label text="검사대기" class="qmQtySummaryLabel"/>
+                            <ObjectNumber number="{view>/detail/qiQtyFmt}"
+                                          unit="{view>/detail/meins}"
+                                          emphasized="true"
+                                          class="sapUiTinyMarginTop"/>
+                        </VBox>
+                        <VBox class="qmQtySummaryItem" alignItems="Center">
+                            <Label text="합격수량" class="qmQtySummaryLabel"/>
+                            <ObjectNumber number="{view>/detail/passQtyFmt}"
+                                          unit="{view>/detail/meins}"
+                                          emphasized="true" state="Success"
+                                          class="sapUiTinyMarginTop"/>
+                        </VBox>
+                        <VBox class="qmQtySummaryItem" alignItems="Center">
+                            <Label text="불합격수량" class="qmQtySummaryLabel"/>
+                            <ObjectNumber number="{view>/detail/failQtyFmt}"
+                                          unit="{view>/detail/meins}"
+                                          emphasized="true" state="Error"
+                                          class="sapUiTinyMarginTop"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- 불합격 항목 테이블 -->
+                    <Table id="idDetailTable"
+                           items="{view>/detail/items}"
+                           noDataText="불합격 항목이 없습니다."
+                           alternateRowColors="true"
+                           showSeparators="Inner"
+                           fixedLayout="false">
+                        <columns>
+                            <Column width="7rem" hAlign="Begin">
+                                <Text text="항목코드"/>
+                            </Column>
+                            <Column hAlign="Begin">
+                                <Text text="항목명"/>
+                            </Column>
+                            <Column width="9rem" hAlign="End">
+                                <Text text="불합격수량"/>
+                            </Column>
+                            <Column width="5rem" hAlign="Center">
+                                <Text text="단위"/>
+                            </Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem type="Inactive">
+                                <cells>
+                                    <Text text="{view>InspCd}" wrapping="false"/>
+                                    <Text text="{view>InspNm}" wrapping="false"/>
+                                    <Text text="{view>FailQtyFmt}" wrapping="false"/>
+                                    <Text text="{view>Meins}" wrapping="false"/>
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+                <endButton>
+                    <Button text="닫기" press="onDetailClose"/>
+                </endButton>
+            </Dialog>
+        </dependents>
+
+        <subHeader>
+            <Bar>
+                <contentLeft>
+                    <Label text="자재코드" design="Bold" class="sapUiSmallMarginEnd"/>
+                    <Input id="idMatnr" placeholder="자재코드" width="120px"
+                           showValueHelp="true" valueHelpRequest="onMatnrValueHelp"
+                           submit="onSearch" class="sapUiSmallMarginEnd"/>
+                    <Label text="상태" design="Bold" class="sapUiSmallMarginEnd"/>
+                    <Select id="idStats" width="100px" class="sapUiSmallMarginEnd">
+                        <core:Item key="" text="전체"/>
+                        <core:Item key="1" text="검수대기"/>
+                        <core:Item key="3" text="결과조회"/>
+                    </Select>
+                    <Label text="자재유형" design="Bold" class="sapUiSmallMarginEnd"/>
+                    <Select id="idMatType" width="110px" class="sapUiSmallMarginEnd">
+                        <core:Item key="ALL" text="전체"/>
+                        <core:Item key="GR" text="GR (원재료)"/>
+                        <core:Item key="FG" text="FG (완제품)"/>
+                    </Select>
+                    <Label text="검수일" design="Bold" class="sapUiSmallMarginEnd"/>
+                    <DatePicker id="idBudatFrom" displayFormat="yyyy-MM-dd" valueFormat="yyyyMMdd"
+                                width="130px" class="sapUiSmallMarginEnd"/>
+                    <Text text="~" class="sapUiSmallMarginEnd"/>
+                    <DatePicker id="idBudatTo" displayFormat="yyyy-MM-dd" valueFormat="yyyyMMdd"
+                                width="130px" class="sapUiSmallMarginEnd"/>
+                </contentLeft>
+                <contentRight>
+                    <Button text="조회" type="Emphasized" icon="sap-icon://search" press="onSearch"/>
+                </contentRight>
+            </Bar>
+        </subHeader>
+
+        <content>
+            <VBox class="psPageHeader">
+                <VBox class="psPageHeaderContent">
+                    <Title class="psPageHeaderTitle" text="완제품 폐기 현황" level="H3"/>
+                    <Text class="psPageHeaderSub" text="Finished Goods Disposal Overview"/>
+                </VBox>
+            </VBox>
+
+            <!-- Feature 4: 불합격률 임계치 초과 알림 배너 -->
+            <MessageStrip
+                class="qmAlertStrip"
+                text="{view>/alerts/thresholdMsg}"
+                type="Warning"
+                showIcon="true"
+                showCloseButton="false"
+                visible="{view>/alerts/showThreshold}"/>
+
+            <l:Grid defaultSpan="L6 M12 S12" hSpacing="1" vSpacing="1"
+                    class="sapUiSmallMarginBeginEnd sapUiSmallMarginTop sapUiSmallMarginBottom">
+
+                <!-- Row 1: 파레토 L12 — Feature 5: 클릭 시 테이블 필터 -->
+                <Panel class="sapUiNoContentPadding qmDispPanel">
+                    <layoutData><l:GridData span="L12 M12 S12"/></layoutData>
+                    <VBox>
+                        <HBox class="qmPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                            <VBox>
+                                <Label text="자재별 폐기 파레토" design="Bold" class="qmPanelTitle"/>
+                                <Text text="불합격 수량 상위 10개 자재 + 누적비율  ·  막대 클릭 시 하단 테이블 자동 필터링" class="qmDispSub"/>
+                            </VBox>
+                        </HBox>
+                        <viz:VizFrame id="idParetoChart" vizType="dual_combination"
+                                      height="320px" width="100%"
+                                      selectData="onParetoSelect"/>
+                    </VBox>
+                </Panel>
+
+                <!-- Row 2: HBox로 도넛+KPI 등높이 분할 (FlexItemData + alignItems="Stretch") -->
+                <HBox class="qmDualPanel" alignItems="Stretch" wrap="Wrap" renderType="Bare">
+                    <layoutData><l:GridData span="L12 M12 S12"/></layoutData>
+
+                    <!-- Row 2-L: 폐기 사유별 구성비 도넛 -->
+                    <Panel class="sapUiNoContentPadding qmDispPanel">
+                        <layoutData>
+                            <FlexItemData growFactor="1" shrinkFactor="0" baseSize="0%" minWidth="300px"/>
+                        </layoutData>
+                        <VBox>
+                            <HBox class="qmPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                <VBox>
+                                    <Label text="폐기 사유별 구성비" design="Bold" class="qmPanelTitle"/>
+                                    <Text text="검사항목 기준 불합격 수량 분포" class="qmDispSub"/>
+                                </VBox>
+                            </HBox>
+                            <viz:VizFrame id="idReasonChart" vizType="donut"
+                                          height="300px" width="100%"/>
+                        </VBox>
+                    </Panel>
+
+                    <!-- Row 2-R: KPI 요약 -->
+                    <Panel class="sapUiNoContentPadding qmDispPanel qmKpiPanel">
+                        <layoutData>
+                            <FlexItemData growFactor="1" shrinkFactor="0" baseSize="0%" minWidth="300px"/>
+                        </layoutData>
+                        <VBox>
+                            <!-- 패널 헤더 -->
+                            <HBox class="qmPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                <VBox>
+                                    <Label text="검수 현황 요약" design="Bold" class="qmPanelTitle"/>
+                                    <Text text="{view>/kpi/dateRange}" class="qmDispSub"/>
+                                </VBox>
+                                <Text text="{= (${view>/summary/total}||0) + ' 건'}" class="qmDispCount"/>
+                            </HBox>
+
+                            <!-- 주요 KPI 2×2 카드 그리드 (ObjectNumber로 숫자 강조) -->
+                            <HBox class="qmKpiCardRow">
+                                <VBox class="qmKpiCard">
+                                    <Label text="총 검수 LOT" class="qmKpiCardLabel"/>
+                                    <ObjectNumber number="{view>/kpi/totalLots}" unit="건"
+                                                  emphasized="true" class="sapUiTinyMarginTop"/>
+                                </VBox>
+                                <VBox class="qmKpiCard qmKpiCard--noBorderRight">
+                                    <Label text="불합격 LOT" class="qmKpiCardLabel"/>
+                                    <ObjectNumber number="{view>/kpi/failLots}" unit="건"
+                                                  emphasized="true" state="Error"
+                                                  class="sapUiTinyMarginTop"/>
+                                </VBox>
+                            </HBox>
+                            <HBox class="qmKpiCardRow">
+                                <VBox class="qmKpiCard">
+                                    <Label text="총 불합격 수량" class="qmKpiCardLabel"/>
+                                    <ObjectNumber number="{view>/kpi/failQtyFmt}" unit="EA"
+                                                  emphasized="true" state="Error"
+                                                  class="sapUiTinyMarginTop"/>
+                                </VBox>
+                                <VBox class="qmKpiCard qmKpiCard--noBorderRight">
+                                    <Label text="불합격률" class="qmKpiCardLabel"/>
+                                    <ObjectStatus text="{view>/kpi/rateFmt}" state="{view>/kpi/rateState}"
+                                                  class="sapUiTinyMarginTop"/>
+                                    <Text text="≤3% 정상  /  ≤5% 주의" class="qmThresholdHint"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 전월 대비 / 품질비용 -->
+                            <Label text="전월 대비 &amp; 품질비용" class="qmSectionHdr qmSectionHdrFull"/>
+                            <HBox class="qmKpiMetaRow">
+                                <VBox class="qmKpiMetaCell">
+                                    <HBox alignItems="Center">
+                                        <core:Icon src="sap-icon://trend-up" size="1rem" color="#8d9cb0" class="sapUiTinyMarginEnd"/>
+                                        <VBox>
+                                            <Text text="전월 대비 (MoM)" class="qmKpiCardLabel"/>
+                                            <ObjectStatus text="{view>/kpi/momDelta}" state="{view>/kpi/momState}"/>
+                                            <Text text="{view>/kpi/currMon}" class="qmThresholdHint"/>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                                <VBox class="qmKpiMetaCell qmKpiMetaCell--noBorderRight">
+                                    <HBox alignItems="Center">
+                                        <core:Icon src="sap-icon://expense-report" size="1rem" color="#6800d6" class="sapUiTinyMarginEnd"/>
+                                        <VBox>
+                                            <Text text="품질비용 (COQ)" class="qmKpiCardLabel"/>
+                                            <Text text="{view>/coq/lossAmt}" class="qmCoqValue"/>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 불량 유형별 분류 -->
+                            <Label text="불량 유형별 분류" class="qmSectionHdr qmSectionHdrFull"/>
+                            <HBox class="qmKpiMetaRow qmKpiMetaRow--last">
+                                <VBox class="qmKpiMetaCell">
+                                    <HBox alignItems="Center">
+                                        <core:Icon src="sap-icon://pharmacy" size="1rem" color="#d32f2f" class="sapUiTinyMarginEnd"/>
+                                        <VBox>
+                                            <Text text="내용물/처방 불량" class="qmKpiCardLabel"/>
+                                            <Text text="{= (${view>/quality/contentFail}||'-') + ' EA  (' + (${view>/quality/contentPct}||'-') + ')'}" class="qmKpiItemValue"/>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                                <VBox class="qmKpiMetaCell qmKpiMetaCell--noBorderRight">
+                                    <HBox alignItems="Center">
+                                        <core:Icon src="sap-icon://shipping-status" size="1rem" color="#e65100" class="sapUiTinyMarginEnd"/>
+                                        <VBox>
+                                            <Text text="부자재/포장 불량" class="qmKpiCardLabel"/>
+                                            <Text text="{= (${view>/quality/packageFail}||'-') + ' EA  (' + (${view>/quality/packagePct}||'-') + ')'}" class="qmKpiItemValue"/>
+                                        </VBox>
+                                    </HBox>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </Panel>
+                </HBox>
+
+                <!-- Row 3: 불합격 사유별 월간 추이 L12 -->
+                <Panel class="sapUiNoContentPadding qmDispPanel">
+                    <layoutData><l:GridData span="L12 M12 S12"/></layoutData>
+                    <VBox>
+                        <HBox class="qmPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                            <VBox>
+                                <Label text="불합격 사유별 월간 추이" design="Bold" class="qmPanelTitle"/>
+                                <Text text="검사항목 기준 월별 누적 현황 (상위 5개 사유)" class="qmDispSub"/>
+                            </VBox>
+                        </HBox>
+                        <viz:VizFrame id="idStackedChart" vizType="stacked_column"
+                                      height="280px" width="100%"/>
+                    </VBox>
+                </Panel>
+
+            </l:Grid>
+
+            <!-- 검수 목록 테이블 -->
+            <Panel class="sapUiSmallMarginBeginEnd sapUiSmallMarginBottom sapUiNoContentPadding qmDispPanel">
+                <VBox>
+                    <HBox class="qmPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                        <Label text="검수 목록" design="Bold" class="qmPanelTitle"/>
+                        <HBox alignItems="Center">
+                            <Text text="{= (${view>/summary/total}||0) + ' 건'}" class="qmDispCount"/>
+                            <!-- Feature 5: 파레토 필터 활성 표시 + 해제 버튼 -->
+                            <Button visible="{view>/paretoFilter/active}"
+                                    text="{= '자재 필터: ' + (${view>/paretoFilter/matnr}||'')}"
+                                    type="Ghost"
+                                    icon="sap-icon://decline"
+                                    press="onParetoClearFilter"
+                                    class="sapUiTinyMarginBegin"/>
+                        </HBox>
+                    </HBox>
+                        <!-- ScrollContainer 제거 → demandPopin 반응형 활성화 -->
+                        <Table id="idInspTable"
+                               items="{view>/inspList}"
+                               noDataText="조회 결과가 없습니다. 조건 입력 후 조회하세요."
+                               alternateRowColors="true"
+                               growing="true" growingThreshold="20"
+                               showSeparators="Inner"
+                               fixedLayout="false">
+                            <columns>
+                                <!-- 핵심 컬럼: 항상 표시 -->
+                                <Column width="11rem" hAlign="Begin">
+                                    <Text text="검수번호"/>
+                                </Column>
+                                <Column width="5rem" hAlign="Center"
+                                        demandPopin="true" minScreenWidth="Tablet"
+                                        popinDisplay="Inline">
+                                    <Text text="항목"/>
+                                </Column>
+                                <Column width="9rem" hAlign="Begin">
+                                    <Text text="자재코드"/>
+                                </Column>
+                                <Column hAlign="Begin">
+                                    <Text text="자재명"/>
+                                </Column>
+                                <!-- 보조 컬럼: Tablet 미만에서 Pop-in -->
+                                <Column width="9rem" hAlign="Begin"
+                                        demandPopin="true" minScreenWidth="Tablet"
+                                        popinDisplay="Inline">
+                                    <Text text="배치번호"/>
+                                </Column>
+                                <Column width="8rem" hAlign="Center"
+                                        demandPopin="true" minScreenWidth="Tablet"
+                                        popinDisplay="Inline">
+                                    <Text text="검수일"/>
+                                </Column>
+                                <!-- 수량 컬럼: Large 미만에서 Pop-in, 우측 정렬 -->
+                                <Column width="8rem" hAlign="End"
+                                        demandPopin="true" minScreenWidth="Large"
+                                        popinDisplay="Inline">
+                                    <Text text="검사대기"/>
+                                </Column>
+                                <Column width="8rem" hAlign="End"
+                                        demandPopin="true" minScreenWidth="Large"
+                                        popinDisplay="Inline">
+                                    <Text text="합격수량"/>
+                                </Column>
+                                <Column width="8rem" hAlign="End">
+                                    <Text text="불합격수량"/>
+                                </Column>
+                                <Column width="5rem" hAlign="Center"
+                                        demandPopin="true" minScreenWidth="Tablet"
+                                        popinDisplay="Inline">
+                                    <Text text="단위"/>
+                                </Column>
+                                <Column width="8rem" hAlign="Center">
+                                    <Text text="상태"/>
+                                </Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem type="Inactive">
+                                    <cells>
+                                        <Text text="{view>Prueflos}"   wrapping="false"/>
+                                        <Text text="{view>PruefPos}"   wrapping="false"/>
+                                        <Text text="{view>Matnr}"      wrapping="false"/>
+                                        <Text text="{view>Maktx}"      wrapping="false"/>
+                                        <Text text="{view>Charg}"      wrapping="false"/>
+                                        <Text text="{view>BudatFmt}"   wrapping="false"/>
+                                        <Text text="{view>QiQtyFmt}"   wrapping="false"/>
+                                        <Text text="{view>PassQtyFmt}" wrapping="false"/>
+                                        <Text text="{view>FailQtyFmt}" wrapping="false"/>
+                                        <Text text="{view>Meins}"      wrapping="false"/>
+                                        <HBox alignItems="Center">
+                                            <!-- 결과조회: stats=3 (검사 완료) -->
+                                            <Link visible="{= ${view>_stats} === '3'}"
+                                                  text="결과조회"
+                                                  press="onDetailPress"/>
+                                            <!-- 결과입력: stats=1 (검사대기) -->
+                                            <Button visible="{= ${view>_stats} === '1'}"
+                                                    text="결과입력"
+                                                    type="Ghost"
+                                                    icon="sap-icon://edit"
+                                                    class="qmResultEntryBtn"
+                                                    press="onResultEntryPress"/>
+                                            <!-- 그 외 상태 표시 -->
+                                            <ObjectStatus
+                                                  visible="{= ${view>_stats} !== '3' &amp;&amp; ${view>_stats} !== '1'}"
+                                                  text="{view>StatsTxt}"
+                                                  state="{view>StatsState}"/>
+                                        </HBox>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                </VBox>
+            </Panel>
+        </content>
+    </Page>
+</mvc:View>

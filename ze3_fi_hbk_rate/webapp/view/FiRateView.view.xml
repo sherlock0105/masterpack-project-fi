@@ -1,0 +1,435 @@
+<mvc:View controllerName="ze3.fi.hbk.rate.ze3fihbkrate.controller.FiRateView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:viz="sap.viz.ui5.controls">
+
+    <Page id="page" title="외화보유 현황 및 환율 평가"
+          showHeader="false"
+          busy="{view>/busy}" busyIndicatorDelay="0"
+          class="sapUiNoContentPadding">
+
+        <!-- ══ 검색 바 ══════════════════════════════════════════ -->
+        <subHeader>
+            <Bar>
+                <contentLeft>
+                    <Label text="기준일 :" design="Bold" class="sapUiSmallMarginEnd" />
+                    <DatePicker id="idEvdat"
+                                displayFormat="yyyy-MM-dd"
+                                valueFormat="yyyyMMdd"
+                                width="148px"
+                                class="sapUiSmallMarginEnd" />
+                    <Button text="조회" type="Emphasized" press="onSearch"
+                            icon="sap-icon://search" />
+                </contentLeft>
+                <contentRight>
+                    <FlexBox visible="{view>/hasData}"
+                             alignItems="Center"
+                             class="fxRateChipBar">
+                        <items>
+                            <FlexBox items="{ path:'view>/rateChips', templateShareable:false }"
+                                     alignItems="Center" wrap="NoWrap">
+                                <HBox class="fxRateChip" alignItems="Center">
+                                    <Text text="{view>fwaer}"     class="fxRateChipCurr" />
+                                    <Text text="{view>rateLabel}" class="fxRateChipRate" />
+                                </HBox>
+                            </FlexBox>
+                        </items>
+                    </FlexBox>
+                    <Button text="Excel 저장" press="onExport"
+                            icon="sap-icon://excel-attachment"
+                            type="Ghost"
+                            visible="{= ${view>/activeTab} === 'eval'}"
+                            enabled="{view>/hasData}" />
+                </contentRight>
+            </Bar>
+        </subHeader>
+
+        <content>
+            <VBox class="psPageHeader">
+                <VBox class="psPageHeaderContent">
+                    <Title class="psPageHeaderTitle" text="외화보유 현황 및 환율 평가" level="H3"/>
+                    <Text class="psPageHeaderSub" text="Foreign Currency Holdings &amp; Exchange Rate Valuation"/>
+                </VBox>
+            </VBox>
+
+            <!-- ══ 폴백 안내 ════════════════════════════════════════ -->
+            <MessageStrip visible="{view>/hasRateNotice}" text="{view>/rateNotice}"
+                          type="Warning" showIcon="true" class="fxRateNoticeStrip" />
+
+            <!-- ══ 탭 바 ════════════════════════════════════════ -->
+            <IconTabBar id="idTabBar" select="onTabSelect"
+                        visible="{view>/hasData}"
+                        expandable="false"
+                        class="sapUiNoContentPadding">
+                <items>
+
+                    <!-- ── 탭 1: 평가금액 현황 ──────────────── -->
+                    <IconTabFilter text="평가금액 현황" key="eval" icon="sap-icon://money-bills">
+
+                        <VBox class="hbkDashboard">
+
+                            <!-- KPI 패널 -->
+                            <Panel id="kpiRow">
+                                <FlexBox justifyContent="Start" alignItems="Stretch"
+                                         items="{path:'view>/currencyCards', templateShareable:false}">
+                                    <VBox alignItems="Center" class="hbkKpiCell">
+                                        <ObjectNumber number="{view>totalWrbtrFmt}" unit="{view>fwaer}"
+                                                      emphasized="true"/>
+                                        <Text text="{= !${view>isKrw} ? ('≈  ' + ${view>totalEvalFmt} + ' 원') : ''}"
+                                              class="hbkKpiKrw"/>
+                                        <Text text="{view>title}"    class="hbkKpiLbl"/>
+                                        <Text text="{view>subtitle}" class="hbkKpiSub"/>
+                                    </VBox>
+                                </FlexBox>
+                            </Panel>
+
+                            <!-- ── 구성 분석: 통화별 비중 + 하우스뱅크별 분포 ── -->
+                            <HBox class="hbkChartRow hbkDonutRow" alignItems="Stretch">
+                                <VBox class="hbkCard hbkDonutCard">
+                                    <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="통화별 비중" level="H5" class="hbkCardTitle"/>
+                                            <Text text="KRW 평가금액 기준 외화 구성" class="hbkCardSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <viz:VizFrame id="idCurrDonut" height="200px" width="100%"/>
+                                </VBox>
+                                <VBox class="hbkCard hbkDonutCard">
+                                    <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="하우스뱅크별 분포" level="H5" class="hbkCardTitle"/>
+                                            <Text text="KRW 평가금액 기준 은행별 예치 비중" class="hbkCardSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <viz:VizFrame id="idBankDonut" height="200px" width="100%"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 계좌별 보유 현황 -->
+                            <Panel class="hbkAccPanel" headerText="계좌별 보유 현황">
+                                <Table items="{view>/items}" alternateRowColors="true"
+                                       showSeparators="Inner" class="hbkAccTable"
+                                       noDataText="계좌 데이터가 없습니다.">
+                                    <columns>
+                                        <Column width="4.5rem"><Text text="통화"/></Column>
+                                        <Column width="5.5rem"><Text text="하우스뱅크"/></Column>
+                                        <Column width="5.5rem"><Text text="계좌 ID"/></Column>
+                                        <Column hAlign="End"><Text text="잔액"/></Column>
+                                        <Column hAlign="End"><Text text="환율 (KRW)"/></Column>
+                                        <Column hAlign="End"><Text text="KRW 평가금액"/></Column>
+                                    </columns>
+                                    <items>
+                                        <ColumnListItem>
+                                            <cells>
+                                                <Text text="{view>Fwaer}"    wrapping="false"/>
+                                                <Text text="{view>Hbkid}"    wrapping="false"/>
+                                                <Text text="{view>Hktid}"    wrapping="false"/>
+                                                <Text text="{= ${view>WrbtrFmt} + '  ' + ${view>Fwaer}}" wrapping="false"/>
+                                                <Text text="{= !${view>IsKrw} ? ${view>UkursFmt} + ' 원' : '-'}" wrapping="false"/>
+                                                <Text text="{= ${view>EvalKrwFmt} + ' 원'}" wrapping="false"/>
+                                            </cells>
+                                        </ColumnListItem>
+                                    </items>
+                                </Table>
+                            </Panel>
+
+                            <!-- 평가금액 차트 (좌) + 월간 변동 (우) -->
+                            <HBox class="hbkChartRow" alignItems="Stretch">
+
+                                <VBox class="hbkCard hbkChartLeft">
+                                    <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="통화별 KRW 평가금액 현황" level="H5" class="hbkCardTitle"/>
+                                            <Text text="계좌 / 통화별 평가금액" class="hbkCardSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <viz:VizFrame id="idPnlChart" height="280px" width="100%" />
+                                </VBox>
+
+                                <VBox class="hbkCard hbkChartRight" visible="{view>/monthChange/visible}">
+                                    <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="월간 평가금액 변동" level="H5" class="hbkCardTitle"/>
+                                            <Text text="{= (${view>/monthChange/prevMonthFmt}||'') + '  →  ' + (${view>/monthChange/currMonthFmt}||'')}"
+                                                  class="hbkCardSub" wrapping="false"/>
+                                        </VBox>
+                                    </HBox>
+                                    <HBox class="hbkMonthSummary" alignItems="Center">
+                                        <VBox alignItems="Center" class="hbkMonthItem">
+                                            <Text text="전월 대비 총 변동" class="hbkMonthLabel"/>
+                                            <ObjectStatus
+                                                text="{view>/monthChange/changeFmt}"
+                                                state="{= ${view>/monthChange/isPositive} ? 'Success' : 'Error'}"
+                                                icon="{= ${view>/monthChange/isPositive} ? 'sap-icon://trend-up' : 'sap-icon://trend-down'}"
+                                                class="hbkMonthBig"/>
+                                        </VBox>
+                                        <VBox class="hbkMonthDiv"/>
+                                        <VBox alignItems="Center" class="hbkMonthItem">
+                                            <Text text="변동률" class="hbkMonthLabel"/>
+                                            <Text text="{view>/monthChange/changePct}"
+                                                  class="{= ${view>/monthChange/isPositive} ? 'hbkMonthPctPos' : 'hbkMonthPctNeg'}"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Table items="{view>/monthChange/items}" showSeparators="Inner"
+                                           class="hbkMonthTable" alternateRowColors="true" width="100%">
+                                        <columns>
+                                            <Column width="3.5rem"><Text text="통화"/></Column>
+                                            <Column hAlign="End">
+                                                <Text text="{view>/monthChange/currMonthFmt}" class="hbkMonthColHdr"/>
+                                            </Column>
+                                            <Column hAlign="End"><Text text="변동 금액"/></Column>
+                                        </columns>
+                                        <items>
+                                            <ColumnListItem>
+                                                <cells>
+                                                    <Text text="{view>Fwaer}" wrapping="false"/>
+                                                    <Text text="{view>CurrFmt}" wrapping="false"/>
+                                                    <ObjectStatus text="{view>DiffFmt}" state="{view>DiffState}"/>
+                                                </cells>
+                                            </ColumnListItem>
+                                        </items>
+                                    </Table>
+
+                                    <!-- 환차손익 분리 -->
+                                    <VBox visible="{view>/hasFxGainLoss}" class="hbkFxEffectSection">
+                                        <HBox class="hbkFxEffectHdr" alignItems="Center">
+                                            <core:Icon src="sap-icon://analytics-cloud" class="hbkFxEffectIcon"/>
+                                            <Text text="환율·잔액 변동 분리 분석" class="hbkFxEffectTitle"/>
+                                        </HBox>
+                                        <Table items="{view>/fxGainLossItems}"
+                                               showSeparators="Inner"
+                                               class="hbkFxEffectTable"
+                                               width="100%">
+                                            <columns>
+                                                <Column width="3.5rem"><Text text="통화"/></Column>
+                                                <Column hAlign="End"><Text text="환율 효과"/></Column>
+                                                <Column hAlign="End"><Text text="잔액 효과"/></Column>
+                                            </columns>
+                                            <items>
+                                                <ColumnListItem>
+                                                    <cells>
+                                                        <Text text="{view>Fwaer}" wrapping="false"/>
+                                                        <ObjectStatus text="{view>FxEffFmt}"  state="{view>FxEffState}"/>
+                                                        <ObjectStatus text="{view>VolEffFmt}" state="{view>VolEffState}"/>
+                                                    </cells>
+                                                </ColumnListItem>
+                                            </items>
+                                        </Table>
+                                    </VBox>
+                                </VBox>
+
+                            </HBox>
+
+                            <!-- 1주일 환율 추이 -->
+                            <VBox class="hbkCard">
+                                <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                    <VBox>
+                                        <Title text="1주일 환율 추이" level="H5" class="hbkCardTitle"/>
+                                        <Text text="최근 7일 주요 통화 환율" class="hbkCardSub"/>
+                                    </VBox>
+                                    <SegmentedButton id="idRateChartCurr"
+                                                     selectedKey="JPY"
+                                                     selectionChange="onRateCurrChange">
+                                        <items>
+                                            <SegmentedButtonItem key="USD" text="USD" width="3.5rem"/>
+                                            <SegmentedButtonItem key="EUR" text="EUR" width="3.5rem"/>
+                                            <SegmentedButtonItem key="JPY" text="JPY" width="3.5rem"/>
+                                        </items>
+                                    </SegmentedButton>
+                                </HBox>
+                                <viz:VizFrame id="idRateHistChart" height="280px" width="100%" />
+                            </VBox>
+
+                        </VBox>
+
+                    </IconTabFilter>
+
+                    <!-- ── 탭 2: 미결 전표 현황 ─────────────── -->
+                    <IconTabFilter text="미결 전표 현황" key="open"
+                                   icon="sap-icon://document"
+                                   count="{view>/openItemsCount}">
+
+                        <!-- KPI 패널 (통화별 미결 요약, 클릭 시 필터) -->
+                        <Panel id="kpiRowOpen">
+                            <FlexBox justifyContent="Start" alignItems="Stretch"
+                                     items="{path:'view>/openItemsKpiCards', templateShareable:false}">
+                                <VBox alignItems="Center" class="hbkOpenKpiCell hbkKpiClickable">
+                                    <ObjectNumber number="{view>totalWrbtrFmt}" unit="{view>fwaer}"
+                                                  emphasized="true"/>
+                                    <Text text="{= '전기  ' + ${view>totalDmbtrFmt} + ' 원'}"
+                                          class="hbkKpiKrw"/>
+                                    <Text text="{view>title}"    class="hbkKpiLbl"/>
+                                    <Text text="{view>subtitle}" class="hbkKpiSub"/>
+                                    <Text text="{view>evalPnlFmt}" class="{view>evalPnlClass}"/>
+                                    <HBox visible="{view>selected}" class="hbkKpiSelBar"/>
+                                    <Button text="" type="Transparent"
+                                            press="onKpiCardPress" class="hbkKpiOverlay">
+                                        <customData>
+                                            <core:CustomData key="fwaer" value="{view>fwaer}" />
+                                        </customData>
+                                    </Button>
+                                </VBox>
+                            </FlexBox>
+                        </Panel>
+
+                        <!-- 분석 차트: BP 노출도 + Aging -->
+                        <VBox class="hbkOpenAnalytics" visible="{view>/hasOpenItems}">
+                            <HBox class="hbkChartRow" alignItems="Stretch">
+                                <VBox class="hbkCard hbkBpChartCard">
+                                    <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="BP별 외화 리스크 노출도" level="H5" class="hbkCardTitle"/>
+                                            <Text text="미결 잔액 기준 KRW 평가 (상위 5 BP)" class="hbkCardSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <viz:VizFrame id="idBpExposureChart" height="240px" width="100%" />
+                                </VBox>
+                                <VBox class="hbkCard hbkAgingChartCard">
+                                    <HBox class="hbkCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="채권/채무 연령 분석 (Aging)" level="H5" class="hbkCardTitle"/>
+                                            <Text text="통화별 경과일 구간 KRW 평가금액" class="hbkCardSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <viz:VizFrame id="idAgingChart" height="240px" width="100%" />
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                        <!-- 최장 미결 전표 알림 -->
+                        <MessageStrip
+                            visible="{view>/oldestInvoice/visible}"
+                            text="{= '최장 미결 전표 :  ' + (${view>/oldestInvoice/Belnr}||'') + '  |  전기일: ' + (${view>/oldestInvoice/BudatFmt}||'') + '  |  경과 ' + (${view>/oldestInvoice/DaysOutstanding}||0) + ' 일  |  고객/업체: ' + (${view>/oldestInvoice/Kunnr}||'-')}"
+                            type="{= (${view>/oldestInvoice/DaysOutstanding}||0) > 90 ? 'Error' : 'Warning'}"
+                            showIcon="true" showCloseButton="false"
+                            class="fxOldestStrip"/>
+
+                        <!-- 통화 필터 버튼 -->
+                        <HBox class="fxCurrFilterBar" alignItems="Center">
+                            <Button text="전체" type="{view>/allBtnType}"
+                                    press="onAllFilterPress" />
+                            <FlexBox items="{path:'view>/openItemsKpiCards', templateShareable:false}"
+                                     class="sapUiTinyMarginBegin">
+                                <Button text="{view>fwaer}" type="{view>filterBtnType}"
+                                        press="onKpiCardPress">
+                                    <customData>
+                                        <core:CustomData key="fwaer" value="{view>fwaer}" />
+                                    </customData>
+                                </Button>
+                            </FlexBox>
+                        </HBox>
+
+                        <!-- BP 코드 / 전표번호 / 전표유형 필터 -->
+                        <HBox class="fxKunnrFilterBar" alignItems="Center" wrap="Wrap">
+                            <HBox class="fxFilterGroup" alignItems="Center">
+                                <Label text="BP 코드 :" design="Bold" class="sapUiSmallMarginEnd"/>
+                                <Input id="idPartnerFilter"
+                                       placeholder="BP 코드 검색"
+                                       width="140px"
+                                       showValueHelp="true"
+                                       valueHelpRequest="onPartnerValueHelp"
+                                       liveChange="onPartnerFilterChange"
+                                       class="sapUiSmallMarginEnd"/>
+                                <Button icon="sap-icon://clear-filter" type="Transparent"
+                                        press="onPartnerReset" tooltip="BP 코드 초기화"/>
+                            </HBox>
+                            <HBox class="fxFilterGroup" alignItems="Center">
+                                <Label text="전표번호 :" design="Bold" class="sapUiSmallMarginEnd"/>
+                                <Input id="idBelnrFilter"
+                                       placeholder="전표번호 검색"
+                                       width="140px"
+                                       liveChange="onBelnrFilterChange"
+                                       class="sapUiSmallMarginEnd"/>
+                                <Button icon="sap-icon://clear-filter" type="Transparent"
+                                        press="onBelnrReset" tooltip="전표번호 초기화"/>
+                            </HBox>
+                            <HBox class="fxFilterGroup" alignItems="Center">
+                                <Label text="전표유형 :" design="Bold" class="sapUiSmallMarginEnd"/>
+                                <SegmentedButton id="idBlartTypeFilter"
+                                                 selectedKey="{view>/blartTypeFilter}"
+                                                 selectionChange="onBlartTypeChange">
+                                    <items>
+                                        <SegmentedButtonItem key="ALL" text="전체" width="3.5rem"/>
+                                        <SegmentedButtonItem key="AR"  text="AR"   width="3rem" tooltip="고객 (Accounts Receivable)" />
+                                        <SegmentedButtonItem key="AP"  text="AP"   width="3rem" tooltip="공급업체 (Accounts Payable)" />
+                                    </items>
+                                </SegmentedButton>
+                            </HBox>
+                        </HBox>
+
+                        <!-- 필터 결과 합계 -->
+                        <MessageStrip
+                            visible="{= !!${view>/openItemsFilteredSummary}}"
+                            text="{view>/openItemsFilteredSummary}"
+                            type="Information" showIcon="true"
+                            class="fxFilteredSummaryStrip"/>
+
+                        <!-- 미결 전표 테이블 -->
+                        <ScrollContainer class="fxOpenItemsScroll" horizontal="true" vertical="false" width="100%">
+                        <Table id="idOpenItemsTable"
+                               items="{view>/openItemsPage}"
+                               alternateRowColors="true"
+                               noDataText="미결 전표가 없습니다."
+                               class="fxOpenItemsTable">
+                                <columns>
+                                    <Column width="6rem"><Text text="전표번호" /></Column>
+                                    <Column width="6rem"><Text text="전기일" /></Column>
+                                    <Column width="5rem" hAlign="Center"><Text text="경과일" /></Column>
+                                    <Column width="4rem"><Text text="유형" /></Column>
+                                    <Column width="4rem"><Text text="통화" /></Column>
+                                    <Column width="5rem"><Text text="BP 코드" /></Column>
+                                    <Column width="9rem" hAlign="End"><Text text="외화금액" /></Column>
+                                    <Column width="4.5rem" hAlign="End"><Text text="전기환율" /></Column>
+                                    <Column width="4.5rem" hAlign="End"><Text text="평가환율" /></Column>
+                                    <Column width="10rem" hAlign="End"><Text text="전기금액(KRW)" /></Column>
+                                    <Column width="10rem" hAlign="End"><Text text="평가금액(KRW)" /></Column>
+                                    <Column width="10rem" hAlign="End"><Text text="평가손익(KRW)" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                            <Text text="{view>Belnr}"          wrapping="false" />
+                                            <Text text="{view>BudatFmt}"       wrapping="false" />
+                                            <ObjectStatus
+                                                text="{view>OverdueFmt}"
+                                                state="{view>OverdueState}" />
+                                            <Text text="{view>Blart}"          wrapping="false" />
+                                            <Text text="{view>Fwaer}"          wrapping="false" />
+                                            <Text text="{view>Partner}"        wrapping="false" />
+                                            <Text text="{view>WrbtrFmt}"       wrapping="false" />
+                                            <Text text="{view>KursfFmt}"       wrapping="false" />
+                                            <Text text="{view>CurrentRateFmt}" wrapping="false" />
+                                            <Text text="{view>DmbtrFmt}"       wrapping="false" />
+                                            <Text text="{view>EvalAmtFmt}"     wrapping="false" />
+                                            <ObjectStatus
+                                                text="{view>EvalPnlFmt}"
+                                                state="{view>EvalPnlState}" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </ScrollContainer>
+
+                        <!-- 페이지네이션 -->
+                        <HBox justifyContent="Center" alignItems="Center" class="fxPaginationBar">
+                            <Button icon="sap-icon://navigation-left-arrow"
+                                    press="onPrevPage"
+                                    enabled="{= ${view>/page} &gt; 1}"
+                                    type="Transparent" />
+                            <Text text="{= ${view>/page} + ' / ' + ${view>/pageCount}}"
+                                  class="fxPageInfo" />
+                            <Button icon="sap-icon://navigation-right-arrow"
+                                    press="onNextPage"
+                                    enabled="{= ${view>/page} &lt; ${view>/pageCount}}"
+                                    type="Transparent" />
+                        </HBox>
+
+                    </IconTabFilter>
+
+                </items>
+            </IconTabBar>
+
+        </content>
+    </Page>
+</mvc:View>

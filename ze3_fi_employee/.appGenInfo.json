@@ -1,0 +1,23 @@
+{
+  "generationParameters": {
+    "generationDate": "Wed Jun 10 2026 14:06:12 GMT+0900 (한국 표준시)",
+    "generatorPlatform": "Visual Studio Code",
+    "serviceType": "SAP System (ABAP On-Premise)",
+    "metadataFilename": "",
+    "serviceUrl": "http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZGWE3CM0001_SRV",
+    "appName": "ze3_fi_employee",
+    "appTitle": "사원 마스터",
+    "appDescription": "사원 정보 등록 및 급여지급",
+    "appNamespace": "ze3_fi_employee",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.120.23",
+    "enableEslint": false,
+    "enableTypeScript": false,
+    "showMockDataInfo": true,
+    "generatorVersion": "1.20.2",
+    "template": "Basic V2",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [],
+    "launchText": "To launch the generated application, run the following from the generated application root folder:\n\n```\n    npm start\n```"
+  }
+}

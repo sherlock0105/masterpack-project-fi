@@ -1,0 +1,129 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ze3.qm.insp.ze3qminsp",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.2",
+      "toolsId": "cba66a79-e787-49f6-948c-b27fa36b6602"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZGWE3QM0001_SRV/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "ze3_qm_insp-display": {
+          "semanticObject": "ze3_qm_insp",
+          "action": "display",
+          "title": "{{ze3_qm_insp-display.flpTitle}}",
+          "subTitle": "{{ze3_qm_insp-display.flpSubtitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.viz": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ze3.qm.insp.ze3qminsp.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ze3.qm.insp.ze3qminsp.view",
+        "async": true,
+        "viewPath": "ze3.qm.insp.ze3qminsp.view"
+      },
+      "routes": [
+        {
+          "name": "RouteInspView",
+          "pattern": ":?query:",
+          "target": [
+            "TargetInspView"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetInspView": {
+          "id": "InspView",
+          "name": "InspView"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ze3.qm.insp.ze3qminsp.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

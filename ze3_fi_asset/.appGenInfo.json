@@ -1,0 +1,23 @@
+{
+  "generationParameters": {
+    "generationDate": "Wed Jun 10 2026 15:22:29 GMT+0900 (한국 표준시)",
+    "generatorPlatform": "Visual Studio Code",
+    "serviceType": "SAP System (ABAP On-Premise)",
+    "metadataFilename": "",
+    "serviceUrl": "http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E3_FI_0015_CDS",
+    "appName": "zpe3_fi_asset",
+    "appTitle": "고정자산 조회",
+    "appDescription": "고정자산 조회",
+    "appNamespace": "zpe3.fi.asset",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.120.23",
+    "enableEslint": false,
+    "enableTypeScript": false,
+    "showMockDataInfo": true,
+    "generatorVersion": "1.20.2",
+    "template": "Basic V2",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [],
+    "launchText": "To launch the generated application, run the following from the generated application root folder:\n\n```\n    npm start\n```"
+  }
+}

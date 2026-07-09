@@ -1,0 +1,137 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ze3.fi.post.search.ze3fipostsearch",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.2",
+      "toolsId": "65231b3d-9afc-45f0-bf46-c4ee7fb36ad8"
+    },
+    "dataSources": {
+      "ZCDS_E3_FI_0007_CDS_VAN": {
+        "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E3_FI_0007_CDS_VAN',Version='0001')/$value/",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "localService/mainService/ZCDS_E3_FI_0007_CDS_VAN.xml"
+        }
+      },
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_FI_0007_CDS/",
+        "type": "OData",
+        "settings": {
+          "annotations": ["ZCDS_E3_FI_0007_CDS_VAN"],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "itemService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_FI_0006_CDS/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "config": {
+      "fullwidth": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.export": {},
+        "sap.ui.layout": {},
+        "sap.viz": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ze3.fi.post.search.ze3fipostsearch.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      },
+      "itemService": {
+        "dataSource": "itemService",
+        "preload": false,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ze3.fi.post.search.ze3fipostsearch.view",
+        "async": true,
+        "viewPath": "ze3.fi.post.search.ze3fipostsearch.view"
+      },
+      "routes": [
+        {
+          "name": "RoutePostSearchView",
+          "pattern": ":?query:",
+          "target": ["TargetPostSearchView"]
+        }
+      ],
+      "targets": {
+        "TargetPostSearchView": {
+          "id": "PostSearchView",
+          "name": "PostSearchView"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ze3.fi.post.search.ze3fipostsearch.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

@@ -1,0 +1,82 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Dialog id="contractDialog"
+        title="근로계약서"
+        contentWidth="680px"
+        resizable="true"
+        draggable="true">
+        <content>
+            <ScrollContainer vertical="true" horizontal="false" height="78vh">
+                <VBox class="contractDoc">
+
+                    <!-- 헤더 -->
+                    <VBox alignItems="Center" class="contractHdr">
+                        <Text text="주 식 회 사  Masterpack" class="contractCo"/>
+                        <Text text="근  로  계  약  서" class="contractHdrTitle"/>
+                    </VBox>
+
+                    <!-- 사원 정보 -->
+                    <VBox class="contractInfoSection">
+                        <HBox class="contractRow">
+                            <Text text="사  원  번  호" class="contractLbl"/>
+                            <Text text="{contract>/Pernr}" class="contractVal"/>
+                        </HBox>
+                        <HBox class="contractRow">
+                            <Text text="성            명" class="contractLbl"/>
+                            <Text text="{contract>/Pernam}" class="contractVal"/>
+                        </HBox>
+                        <HBox class="contractRow">
+                            <Text text="부            서" class="contractLbl"/>
+                            <Text text="{contract>/Btrtl}" class="contractVal"/>
+                        </HBox>
+                        <HBox class="contractRow">
+                            <Text text="직            급" class="contractLbl"/>
+                            <Text text="{contract>/Grade}" class="contractVal"/>
+                        </HBox>
+                        <HBox class="contractRow">
+                            <Text text="입    사    일" class="contractLbl"/>
+                            <Text text="{contract>/Eindt}" class="contractVal"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- 급여 조건 -->
+                    <VBox class="contractSalaryBox">
+                        <Text text="[ 급  여  조  건 ]" class="contractSalaryHdr"/>
+                        <HBox class="contractRow">
+                            <Text text="급여 시작일" class="contractLblSm"/>
+                            <Text text="{contract>/Begda}" class="contractVal"/>
+                        </HBox>
+                        <HBox class="contractRow">
+                            <Text text="기  본  급" class="contractLblSm"/>
+                            <Text text="{contract>/BetrFormatted}" class="contractVal contractAmtVal"/>
+                        </HBox>
+                        <HBox class="contractRow">
+                            <Text text="코스트센터" class="contractLblSm"/>
+                            <Text text="{contract>/Kostl}" class="contractVal"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- 확인 문구 -->
+                    <VBox class="contractClauseBox" alignItems="Center">
+                        <Text text="위 사원에 대하여 아래와 같이 근로계약을 체결하였음을 확인합니다."/>
+                    </VBox>
+
+                    <!-- 계약일 -->
+                    <HBox class="contractDateRow" justifyContent="Center">
+                        <Text text="계  약  일 :  "/>
+                        <Text text="{contract>/ContractDate}" class="contractDateVal"/>
+                    </HBox>
+
+
+                </VBox>
+            </ScrollContainer>
+        </content>
+        <buttons>
+            <Button text="출력" icon="sap-icon://print" type="Emphasized" press=".onPrint"/>
+            <Button text="닫기" press=".onCloseDialog"/>
+        </buttons>
+    </Dialog>
+
+</core:FragmentDefinition>

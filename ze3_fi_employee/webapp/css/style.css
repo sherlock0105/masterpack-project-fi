@@ -1,0 +1,354 @@
+/* ══════════════════════════════════════════════════════
+   사원 마스터 — SAP Standard
+══════════════════════════════════════════════════════ */
+
+.psPageHeader.sapMVBox {
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #ede8e0;
+    justify-content: center;
+    background: url("../images/header.png") right center / cover no-repeat;
+}
+.psPageHeaderContent.sapMVBox {
+    position: relative;
+    z-index: 1;
+    gap: 0.2rem !important;
+}
+.psPageHeaderTitle.sapMTitle {
+    font-size: 1.375rem !important;
+    font-weight: 700 !important;
+    color: #1d2d3e !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.3 !important;
+}
+.psPageHeaderSub.sapMText {
+    font-size: 0.8rem !important;
+    color: #a8b4c0 !important;
+    margin-top: 0.1rem !important;
+}
+
+/* ── KPI 패널 컨테이너 ── */
+[id$="--kpiRow"],
+[id$="--kpiRow"].sapMPanel,
+[id$="--kpiRow"] .sapMPanelWrappingDiv {
+    background:    #f0f2f5 !important;
+    border:        none !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+    border-radius: 0 !important;
+    box-shadow:    none !important;
+    margin:        0 !important;
+}
+[id$="--kpiRow"] .sapMPanelContent,
+[id$="--kpiRow"] .sapMPanelBGSolid {
+    background: transparent !important;
+    padding:    0 !important;
+}
+
+/* ── KPI 카드 행 ── */
+.empKpiRow.sapMHBox {
+    gap:     0.75rem !important;
+    padding: 0.875rem 1rem !important;
+}
+.empKpiRow > .sapMFlexBoxItem {
+    flex: 1 1 0 !important;
+}
+
+/* ── KPI 카드 공통 ── */
+.empKpiCard.sapMVBox {
+    background:    #ffffff !important;
+    border:        1px solid #dde1e7 !important;
+    border-radius: 8px !important;
+    padding:       1rem 1.25rem !important;
+    gap:           0.25rem !important;
+    box-shadow:    0 2px 8px rgba(0,0,0,0.05) !important;
+    min-width:     0 !important;
+}
+.empKpiCard--blue.sapMVBox   { border-top: 3px solid #0070d2 !important; }
+.empKpiCard--green.sapMVBox  { border-top: 3px solid #107e3e !important; }
+.empKpiCard--red.sapMVBox    { border-top: 3px solid #bb0000 !important; }
+.empKpiCard--amber.sapMVBox  { border-top: 3px solid #e76500 !important; }
+
+/* ── KPI 카드 내부 요소 ── */
+.empKpiLabelRow.sapMHBox {
+    gap:         0.35rem !important;
+    align-items: center !important;
+    margin-bottom: 0.25rem !important;
+}
+.empKpiIcon.sapUiIcon    { font-size: 0.875rem !important; }
+.empKpiIcon--blue.sapUiIcon  { color: #0070d2 !important; }
+.empKpiIcon--green.sapUiIcon { color: #107e3e !important; }
+.empKpiIcon--red.sapUiIcon   { color: #bb0000 !important; }
+.empKpiIcon--amber.sapUiIcon { color: #e76500 !important; }
+
+.empKpiLabel.sapMText {
+    font-size:   0.75rem !important;
+    font-weight: 600 !important;
+    color:       #32363a !important;
+}
+.empKpiSub.sapMText {
+    font-size: 0.72rem !important;
+    color:     #6a7588 !important;
+}
+.empKpiCard .sapMObjectNumber .sapMObjectNumberText {
+    font-weight: 700 !important;
+    font-size:   1.625rem !important;
+    line-height: 1.1 !important;
+    color:       #1d2d3e !important;
+}
+.empKpiCard .sapMObjectNumber .sapMObjectNumberUnit {
+    font-size:   0.8125rem !important;
+    color:       #6a7588 !important;
+    font-weight: 600 !important;
+}
+
+/* ── 필터 툴바 ── */
+[id$="--filterBar"].sapMTB {
+    background:    #ffffff !important;
+    border-top:    none !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+    padding:       0.375rem 0.75rem !important;
+    min-height:    2.75rem !important;
+    gap:           0.5rem !important;
+}
+
+/* ── 다이얼로그 섹션 제목 ── */
+.empSectionTitle.sapMText {
+    display:        block !important;
+    font-size:      0.8125rem !important;
+    font-weight:    700 !important;
+    color:          #32363a !important;
+    padding:        12px 16px 2px 16px !important;
+    border-bottom:  1px solid #d9d9d9 !important;
+    margin-bottom:  4px !important;
+}
+
+/* ── 다이얼로그 바디 / 폼 ── */
+.empDlgBody.sapMVBox {
+    padding: 4px 0 8px 0 !important;
+}
+.empFormRow.sapMHBox {
+    flex-wrap: wrap !important;
+    gap:       8px 0 !important;
+    padding:   6px 8px !important;
+}
+.empFormCell.sapMVBox {
+    flex:       1 1 200px !important;
+    min-width:  180px !important;
+    padding:    4px 8px !important;
+    box-sizing: border-box !important;
+}
+.empFormCell .sapMLabel {
+    font-size:     0.75rem !important;
+    font-weight:   600 !important;
+    color:         #6a6d70 !important;
+    margin-bottom: 4px !important;
+    display:       block !important;
+}
+
+/* ── 페이지네이션 바 ── */
+.empPaginationBar.sapMTB {
+    border-top: 1px solid #d9d9d9 !important;
+    padding:    4px 16px !important;
+    min-height: 2.5rem !important;
+}
+
+/* ── 부서별 급여 탭 컨테이너 ── */
+.deptSalaryTabContent.sapMVBox {
+    background: #f0f2f5 !important;
+    padding:    0.75rem !important;
+    gap:        0.75rem !important;
+}
+
+/* ── 차트 카드 ── */
+.empChartCard.sapMVBox {
+    background:    #ffffff !important;
+    border:        1px solid #dde1e7 !important;
+    border-radius: 8px !important;
+    overflow:      hidden !important;
+    box-shadow:    0 2px 8px rgba(0,0,0,0.05) !important;
+}
+.empChartCardHdr.sapMHBox {
+    padding:       0.875rem 1rem 0.625rem !important;
+    border-bottom: 1px solid #e4e7eb !important;
+    background:    #fafbfc !important;
+    min-height:    3rem !important;
+    align-items:   center !important;
+}
+.empChartTitle.sapMTitle {
+    font-size:   0.9375rem !important;
+    font-weight: 700 !important;
+    color:       #1d2d3e !important;
+}
+.empChartSub.sapMText {
+    font-size:  0.75rem !important;
+    color:      #8d9cb0 !important;
+    margin-top: 0.125rem !important;
+}
+
+/* ── 테이블 카드 (부서별 / 직급별) ── */
+.deptSalaryTabContent .sapMList,
+.deptSalaryTabContent .sapMListBGTransparent {
+    background:    #ffffff !important;
+    border:        1px solid #dde1e7 !important;
+    border-radius: 8px !important;
+    overflow:      hidden !important;
+    box-shadow:    0 2px 8px rgba(0,0,0,0.05) !important;
+}
+.deptSalaryTabContent .sapMListHdr,
+.deptSalaryTabContent .sapMListHdrText {
+    background:  #fafbfc !important;
+    border-bottom: 1px solid #e4e7eb !important;
+}
+.deptSalaryTabContent .sapMListTblHeaderCell {
+    background:    #f5f7fa !important;
+    color:         #1d2d3e !important;
+    font-weight:   600 !important;
+    border-bottom: 2px solid #0070d2 !important;
+    font-size:     0.8125rem !important;
+}
+.deptSalaryTabContent .sapMText {
+    font-size: 0.875rem !important;
+}
+
+/* ── 직급별 테이블 ── */
+.gradeSalarySection.sapMList {
+    margin-top: 0 !important;
+    border-top: none !important;
+}
+
+/* ── ProgressIndicator (비중 컬럼) ── */
+.deptSalaryTabContent .sapMPI {
+    min-width:    5rem !important;
+    border-radius: 4px !important;
+}
+.deptSalaryTabContent .sapMPIBar {
+    background: #0070d2 !important;
+}
+.deptSalaryTabContent .sapMPIBarFull {
+    background: #0070d2 !important;
+}
+.deptSalaryTabContent .sapMPIBarRemaining {
+    background: #e8ecf0 !important;
+}
+
+/* ════════════════════════════════════════════
+   근로계약서 (인쇄용 — 기존 스타일 유지)
+════════════════════════════════════════════ */
+.contractDoc {
+    padding:    32px 40px;
+    background: #fff;
+}
+.contractHdr {
+    border-top:    4px solid #32363a;
+    border-bottom: 2px solid #32363a;
+    padding:       18px 0 14px;
+    margin-bottom: 28px;
+    gap:           6px;
+}
+.contractCo.sapMText {
+    font-size:      0.95rem;
+    color:          #32363a;
+    font-weight:    600;
+    letter-spacing: 0.12em;
+}
+.contractHdrTitle.sapMText {
+    font-size:      1.75rem;
+    font-weight:    700;
+    color:          #1a1a2e;
+    letter-spacing: 0.5em;
+}
+.contractInfoSection.sapMVBox {
+    margin-bottom:  24px;
+    padding-bottom: 20px;
+    border-bottom:  1px solid #d9d9d9;
+    gap:            10px;
+}
+.contractRow.sapMHBox {
+    align-items: center;
+    min-height:  32px;
+}
+.contractLbl.sapMText {
+    width:        110px;
+    font-size:    0.875rem;
+    font-weight:  600;
+    color:        #444;
+    border-right: 2px solid #32363a;
+    padding-right: 10px;
+    margin-right: 14px;
+    text-align:   center;
+    flex-shrink:  0;
+}
+.contractLblSm.sapMText {
+    width:        90px;
+    min-width:    90px;
+    font-size:    0.875rem;
+    font-weight:  600;
+    color:        #444;
+    border-right: 2px solid #32363a;
+    padding-right: 10px;
+    margin-right: 14px;
+    flex-shrink:  0;
+    white-space:  nowrap;
+}
+.contractVal.sapMText {
+    font-size:   0.9rem;
+    color:       #1a1a2e;
+    border-bottom: 1px dotted #b0b8c8;
+    min-width:   160px;
+    padding-bottom: 2px;
+}
+.contractAmtVal.sapMText {
+    font-weight: 700;
+    color:       #32363a;
+    font-size:   1rem;
+}
+.contractSalaryBox.sapMVBox {
+    background:    #f5f5f5;
+    border:        1px solid #d9d9d9;
+    border-left:   4px solid #32363a;
+    border-radius: 0 4px 4px 0;
+    padding:       16px 20px;
+    margin-bottom: 24px;
+    gap:           10px;
+}
+.contractSalaryHdr.sapMText {
+    font-size:      0.95rem;
+    font-weight:    700;
+    color:          #32363a;
+    margin-bottom:  4px;
+    letter-spacing: 0.05em;
+}
+.contractClauseBox.sapMVBox {
+    padding:       18px 0;
+    border-top:    1px dashed #b0b8c8;
+    border-bottom: 1px dashed #b0b8c8;
+    margin-bottom: 24px;
+}
+.contractClauseBox .sapMText {
+    font-size: 0.9rem;
+    color:     #555;
+}
+.contractDateRow.sapMHBox {
+    align-items:    center;
+    padding-bottom: 28px;
+    border-bottom:  1px dashed #b0b8c8;
+}
+.contractDateRow .sapMText { font-size: 0.9rem; color: #333; }
+.contractDateVal.sapMText  { font-weight: 600; color: #1a1a2e; }
+
+/* ── 계약서 인쇄 ── */
+@media print {
+    .sapMDialogBlockLayer,
+    .sapUiBlockLayer { display: none !important; }
+    .sapMDialog {
+        position: static !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        height: auto !important;
+        top: 0 !important; left: 0 !important;
+    }
+    .sapMDialogScrollCont { overflow: visible !important; height: auto !important; }
+    .sapMDialog-footer { display: none !important; }
+}

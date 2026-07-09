@@ -1,0 +1,138 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "ze3.qm.display.ze3qmdisplay",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.20.2",
+      "toolsId": "fe8c55d2-9952-4ecf-8243-bebd92a089be"
+    },
+    "dataSources": {
+      "ZCDS_E3_QM_0002_CDS_VAN": {
+        "uri": "/sap/opu/odata/IWFND/CATALOGSERVICE;v=2/Annotations(TechnicalName='ZCDS_E3_QM_0002_CDS_VAN',Version='0001')/$value/",
+        "type": "ODataAnnotation",
+        "settings": {
+          "localUri": "localService/mainService/ZCDS_E3_QM_0002_CDS_VAN.xml"
+        }
+      },
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_QM_0002_CDS/",
+        "type": "OData",
+        "settings": {
+          "annotations": ["ZCDS_E3_QM_0002_CDS_VAN"],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "qm0003Service": {
+        "uri": "/sap/opu/odata/sap/ZCDS_E3_QM_0003_CDS/",
+        "type": "OData",
+        "settings": {
+          "localUri": "localService/qm0003Service/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "config": {
+      "fullWidth": true
+    },
+    "dependencies": {
+      "minUI5Version": "1.120.23",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.viz": {},
+        "sap.ui.layout": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "ze3.qm.display.ze3qmdisplay.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      },
+      "qm0003": {
+        "dataSource": "qm0003Service",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ],
+      "js": []
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "ze3.qm.display.ze3qmdisplay.view",
+        "async": true,
+        "viewPath": "ze3.qm.display.ze3qmdisplay.view"
+      },
+      "routes": [
+        {
+          "name": "RouteQmDisplayView",
+          "pattern": ":?query:",
+          "target": ["TargetQmDisplayView"]
+        }
+      ],
+      "targets": {
+        "TargetQmDisplayView": {
+          "id": "QmDisplayView",
+          "name": "QmDisplayView"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "ze3.qm.display.ze3qmdisplay.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

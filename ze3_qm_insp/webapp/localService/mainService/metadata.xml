@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZGWE3QM0001_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="InspHeader" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Prueflos"/>
+                    <PropertyRef Name="PruefPos"/>
+                </Key>
+                <Property Name="Prueflos" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="검수번호"/>
+                <Property Name="PruefPos" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="검수 항목 번호"/>
+                <Property Name="InspType" Type="Edm.String" MaxLength="2" sap:unicode="false" sap:label="검수 유형"/>
+                <Property Name="Ebeln" Type="Edm.String" MaxLength="10" sap:unicode="false" sap:label="구매오더번호"/>
+                <Property Name="Aufnr" Type="Edm.String" MaxLength="12" sap:unicode="false" sap:label="생산 오더 번호"/>
+                <Property Name="Budat" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:label="검수 일"/>
+                <Property Name="Stats" Type="Edm.String" MaxLength="1" sap:unicode="false" sap:label="검수 상태"/>
+                <Property Name="Pernr" Type="Edm.String" MaxLength="8" sap:unicode="false" sap:label="사원 ID"/>
+                <Property Name="Matnr" Type="Edm.String" MaxLength="10" sap:unicode="false" sap:label="자재코드"/>
+                <Property Name="Charg" Type="Edm.String" MaxLength="10" sap:unicode="false" sap:label="배치번호"/>
+                <Property Name="Gltrp" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:label="생산 종료일"/>
+                <Property Name="QiQty" Type="Edm.Decimal" Precision="13" Scale="0" sap:unicode="false" sap:unit="Meins" sap:label="검사 대기"/>
+                <Property Name="PassQty" Type="Edm.Decimal" Precision="13" Scale="3" sap:unicode="false" sap:unit="Meins" sap:label="합격 수량"/>
+                <Property Name="FailQty" Type="Edm.Decimal" Precision="13" Scale="3" sap:unicode="false" sap:unit="Meins" sap:label="불합격 수량"/>
+                <Property Name="Meins" Type="Edm.String" MaxLength="3" sap:unicode="false" sap:label="단위" sap:semantics="unit-of-measure"/>
+                <Property Name="StatsTxt" Type="Edm.String" MaxLength="4" sap:unicode="false" sap:label="STATS_TXT"/>
+            </EntityType>
+            <EntityType Name="InspItem" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Prueflos"/>
+                    <PropertyRef Name="Matnr"/>
+                    <PropertyRef Name="InspCd"/>
+                </Key>
+                <Property Name="Prueflos" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="검수번호" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Matnr" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="자재코드" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="InspCd" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="검사 항목 코드" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="InspNm" Type="Edm.String" Nullable="false" MaxLength="20" sap:unicode="false" sap:label="항목명" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FailQty" Type="Edm.Decimal" Nullable="false" Precision="13" Scale="3" sap:unicode="false" sap:unit="Meins" sap:label="불합격 수량" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Meins" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="단위" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="unit-of-measure"/>
+                <Property Name="Erdat" Type="Edm.DateTime" Nullable="false" Precision="7" sap:unicode="false" sap:label="Created On" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Aedat" Type="Edm.DateTime" Nullable="false" Precision="7" sap:unicode="false" sap:label="Changed On" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Aenam" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="Changed By" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityContainer Name="ZGWE3QM0001_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="InspHeaderSet" EntityType="ZGWE3QM0001_SRV.InspHeader" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="InspItemSet" EntityType="ZGWE3QM0001_SRV.InspItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <atom:link rel="self" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZGWE3QM0001_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZGWE3QM0001_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

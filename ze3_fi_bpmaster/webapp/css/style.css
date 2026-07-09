@@ -1,0 +1,94 @@
+/* ════════════════════════════════════════════════════════════
+   BP 마스터 — SAP Standard
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 페이지 헤더 배너 ── */
+.psPageHeader.sapMVBox {
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #ede8e0;
+    justify-content: center;
+    background: url("../images/header.png") right center / cover no-repeat;
+}
+
+.psPageHeaderContent.sapMVBox {
+    position: relative;
+    z-index: 1;
+    gap: 0.2rem !important;
+}
+
+.psPageHeaderTitle.sapMTitle {
+    font-size: 1.375rem !important;
+    font-weight: 700 !important;
+    color: #1d2d3e !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.3 !important;
+}
+
+.psPageHeaderSub.sapMText {
+    font-size: 0.8rem !important;
+    color: #a8b4c0 !important;
+    margin-top: 0.1rem !important;
+}
+
+/* ── KPI 패널 ── */
+[id$="--kpiRow"],
+[id$="--kpiRow"].sapMPanel,
+[id$="--kpiRow"] .sapMPanelWrappingDiv {
+    background:    #ffffff !important;
+    border:        none !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+    border-radius: 0 !important;
+    box-shadow:    none !important;
+    margin:        0 !important;
+}
+[id$="--kpiRow"] .sapMPanelContent,
+[id$="--kpiRow"] .sapMPanelBGSolid {
+    background: transparent !important;
+    padding:    0 !important;
+}
+
+/* KPI 숫자 3개 묶음 */
+[id$="--kpiNums"] {
+    padding: 1rem 0 !important;
+}
+[id$="--kpiNums"] > .sapMFlexBoxItem {
+    padding:        0 2.5rem !important;
+    border-right:   1px solid #e4e7eb !important;
+    display:        flex !important;
+    flex-direction: column !important;
+    align-items:    center !important;
+    gap:            4px !important;
+}
+[id$="--kpiNums"] > .sapMFlexBoxItem:last-child { border-right: none !important; }
+[id$="--kpiNums"] .sapMObjectNumber .sapMObjectNumberText {
+    font-weight: 700 !important;
+    font-size:   1.75rem !important;
+    line-height: 1.15 !important;
+}
+[id$="--kpiNums"] .sapMObjectNumber .sapMObjectNumberUnit {
+    font-size: 0.875rem !important;
+}
+[id$="--kpiNums"] .sapMText {
+    font-size: 0.75rem !important;
+    color:     #6a7588 !important;
+}
+
+/* 국가별 분포 차트 영역 */
+.bpChartArea.sapMVBox {
+    border-left: 1px solid #e4e7eb !important;
+    padding:     0.5rem 1rem !important;
+    min-width:   0 !important;
+}
+
+/* ── 필터 툴바 ── */
+[id$="--filterBar"].sapMTB {
+    background:    #ffffff !important;
+    border-top:    none !important;
+    border-bottom: 1px solid #d9d9d9 !important;
+    padding:       0.375rem 0.75rem !important;
+    min-height:    2.75rem !important;
+    gap:           0.5rem !important;
+}

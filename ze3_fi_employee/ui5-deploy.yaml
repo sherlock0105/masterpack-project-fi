@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+
+specVersion: "4.0"
+metadata:
+  name: ze3fiemployee.ze3fiemployee
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          url: http://bgissap3.bgissap.co.kr:8000/
+          client: '100'
+        app:
+          name: ZE3_FI_EMPLOYEE
+          description: 재무상태표
+          package: ZPE3FI
+          transport: EFXK901652
+        exclude:
+          - /test/

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+
+specVersion: "4.0"
+metadata:
+  name: ze3.fi.post.search.ze3fipostsearch
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          url: http://bgissap3.bgissap.co.kr:8000/
+          client: '100'
+        app:
+          name: ZPE3_FI_POST
+          description: 전표 조회
+          package: ZPE3FI
+          transport: EFXK901652
+        exclude:
+          - /test/

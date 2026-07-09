@@ -1,0 +1,825 @@
+<mvc:View controllerName="zpe3.fi.financial.zpe3fifinancial.controller.FinancialView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:viz="sap.viz.ui5.controls"
+    xmlns:vizData="sap.viz.ui5.data"
+    xmlns:vizFeeds="sap.viz.ui5.controls.common.feeds"
+    xmlns:t="sap.ui.table"
+    displayBlock="true">
+
+    <Page id="page" showHeader="false"
+          busy="{view>/busy}" busyIndicatorDelay="0"
+          enableScrolling="true"
+          class="sapUiNoContentPadding fxPage">
+
+        <content>
+
+            <VBox class="psPageHeader">
+                <VBox class="psPageHeaderContent">
+                    <Title class="psPageHeaderTitle" text="재무제표 조회" level="H3"/>
+                    <Text class="psPageHeaderSub" text="Financial Statement — BS · PL · CF"/>
+                </VBox>
+            </VBox>
+
+            <!-- ══ 검색 바 ══ -->
+            <Toolbar id="idSearchBar" class="fxSearchBar">
+                <Label text="회사코드" design="Bold" class="fxFilterLabel"/>
+                <Input id="idBukrs" value="{view>/bukrs}" width="72px" maxLength="4"
+                       editable="false" class="sapUiTinyMarginEnd"/>
+                <Label text="회계연도" design="Bold" class="fxFilterLabel"/>
+                <Select id="selYear" selectedKey="{view>/gjahr}" change="onYearChange"
+                        items="{ path:'view>/years', templateShareable:false }">
+                    <core:Item key="{view>key}" text="{view>text}"/>
+                </Select>
+                <Button text="조회" type="Emphasized" press="onSearch"
+                        icon="sap-icon://search" class="sapUiTinyMarginBegin sapUiTinyMarginEnd"/>
+                <ToolbarSpacer/>
+                <Button text="Excel 저장" press="onExport"
+                        icon="sap-icon://excel-attachment" type="Ghost"
+                        enabled="{view>/hasData}"/>
+                <Button text="PDF 출력" press="onExportPdf"
+                        icon="sap-icon://pdf-attachment" type="Ghost"
+                        enabled="{view>/hasData}"/>
+                <ToggleButton id="idApproxToggle"
+                             text="≈ 조/억"
+                             icon="sap-icon://number-sign"
+                             press="onApproxToggle"
+                             pressed="{view>/showApprox}"
+                             enabled="{view>/hasData}"
+                             type="Ghost"/>
+                <ToolbarSeparator/>
+                <Button id="idAiBtn"
+                        text="AI 요약"
+                        press="onAiReport"
+                        icon="sap-icon://ai"
+                        type="Emphasized"
+                        enabled="{view>/hasData}"
+                        class="fxAiBtn"/>
+            </Toolbar>
+
+            <!-- ══ AI 분석 리포트 패널 ══ -->
+            <VBox id="idAiPanel"
+                  visible="{= ${view>/ai/visible} || ${view>/ai/busy}}"
+                  class="fxAiPanel">
+                <HBox class="fxAiPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                    <HBox alignItems="Center">
+                        <core:Icon src="sap-icon://ai" size="1.1rem" class="fxAiPanelIcon"/>
+                        <Title text="AI 재무 분석 리포트" level="H5" class="fxAiPanelTitle"/>
+                        <Text text="{= ${view>/gjahr} + '년  ·  회사코드 ' + ${view>/bukrs}}"
+                              class="fxAiPanelMeta"/>
+                    </HBox>
+                    <HBox alignItems="Center">
+                        <Button icon="sap-icon://print"
+                                type="Transparent" press="onAiPrint"
+                                tooltip="AI 요약 인쇄"
+                                visible="{= !${view>/ai/busy} &amp;&amp; !!${view>/ai/html}}"
+                                class="fxAiCloseBtn"/>
+                        <Button icon="{= ${view>/ai/collapsed} ? 'sap-icon://slim-arrow-down' : 'sap-icon://slim-arrow-up'}"
+                                type="Transparent" press="onAiToggle"
+                                tooltip="{= ${view>/ai/collapsed} ? '펼치기' : '접기'}"
+                                class="fxAiCloseBtn"/>
+                    </HBox>
+                </HBox>
+                <VBox class="fxAiPanelBody"
+                      visible="{= !${view>/ai/collapsed}}"
+                      busy="{view>/ai/busy}" busyIndicatorDelay="0">
+                    <FormattedText htmlText="{view>/ai/html}"
+                                   width="100%" class="fxAiText"/>
+                </VBox>
+            </VBox>
+
+            <!-- ══ 빈 상태 ══ -->
+            <VBox visible="{= !${view>/hasData} &amp;&amp; !${view>/busy}}"
+                  class="fxEmptyState" alignItems="Center" justifyContent="Center">
+                <core:Icon src="sap-icon://accounting-document-verification" size="3rem" class="fxEmptyIcon"/>
+                <Text text="회사코드와 회계연도를 입력하고 조회 버튼을 클릭하세요." class="fxEmptyText"/>
+            </VBox>
+
+            <!-- ══ 메인 탭 ══ -->
+            <VBox visible="{view>/hasData}" class="fxDashboard">
+                <IconTabBar id="idMainTab" select="onTabSelect" expandable="false">
+                    <items>
+
+                        <!-- ══════════════════════════════════════════
+                             BS  재무상태표
+                        ══════════════════════════════════════════ -->
+                        <IconTabFilter key="bs" text="재무상태표" icon="sap-icon://accounting-document-verification">
+
+                            <MessageStrip
+                                visible="{= ${view>/hasData} &amp;&amp; ${view>/balanced}}"
+                                text="{= '대차 일치  ✓   자산 합계 = 부채 + 자본  ( ' + ${view>/sumAssetFmt} + ' 원 )' }"
+                                type="Success" showIcon="true" class="fxBalanceStrip"/>
+
+                            <!-- KPI 4개 -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxKpiCard fxKpiCard--blue">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://home" class="fxKpiIcon fxKpiIcon--blue"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="자산 총계" class="fxKpiLabel"/>
+                                            <Text text="Total Assets" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/sumAssetFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/kpiAsset}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/assetDeltaText}"
+                                          class="{= ${view>/assetDeltaPos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/assetDeltaPos} === false ? 'fxDeltaNeg'
+                                                   :                                    'fxDeltaNone' }"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--orange">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://expense-report" class="fxKpiIcon fxKpiIcon--orange"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="부채 총계" class="fxKpiLabel"/>
+                                            <Text text="Total Liabilities" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/sumLiabFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/kpiLiab}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/liabDeltaText}"
+                                          class="{= ${view>/liabDeltaPos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/liabDeltaPos} === false ? 'fxDeltaNeg'
+                                                   :                                   'fxDeltaNone' }"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--green">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://trend-up" class="fxKpiIcon fxKpiIcon--green"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="자본 총계" class="fxKpiLabel"/>
+                                            <Text text="Total Equity" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/sumEquityFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/kpiEquity}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/equityDeltaText}"
+                                          class="{= ${view>/equityDeltaPos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/equityDeltaPos} === false ? 'fxDeltaNeg'
+                                                   :                                     'fxDeltaNone' }"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--purple">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://money-bills" class="fxKpiIcon fxKpiIcon--purple"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="순운전자본" class="fxKpiLabel"/>
+                                            <Text text="Net Working Capital" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/nwcFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/kpiNwc}}" class="fxKpiKrw"/>
+                                    <Text text="{= ${view>/nwcSign} ? '▲ 단기 지급 능력 충분' : '▼ 단기 지급 능력 부족'}"
+                                          class="{= ${view>/nwcSign} ? 'fxDeltaPos' : 'fxDeltaNeg'}"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 재무 비율 (부채비율 · 자기자본비율) -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxRatioCard fxRatioCard--orange">
+                                    <HBox class="fxRatioHdr" alignItems="Center">
+                                        <core:Icon src="sap-icon://expense-report" class="{= 'fxRatioIcon fxRatioIcon--orange' + (${view>/ratio/debtState/state} === 'Error' ? ' fxBlinkIcon' : '')}"/>
+                                        <VBox class="fxRatioTitleBox">
+                                            <Title text="부채비율" level="H6" class="fxRatioTitle"/>
+                                            <Text text="부채총계 ÷ 자본총계 × 100" class="fxRatioFormula"/>
+                                        </VBox>
+                                    </HBox>
+                                    <HBox class="fxRatioBody" justifyContent="SpaceBetween" alignItems="End">
+                                        <VBox>
+                                            <Text text="{= ${view>/gjahr} + '년 (당기)'}" class="fxRatioYearLabel"/>
+                                            <Text text="{view>/ratio/debtRatioC}" class="fxRatioBig"/>
+                                        </VBox>
+                                        <VBox alignItems="End">
+                                            <Text text="{= ${view>/prevYear} + '년 (전기)'}" class="fxRatioYearLabel"/>
+                                            <Text text="{view>/ratio/debtRatioP}" class="fxRatioSmall"/>
+                                        </VBox>
+                                    </HBox>
+                                    <HBox class="fxRatioFooter" justifyContent="SpaceBetween" alignItems="Center">
+                                        <Text text="≤100% 양호  ·  100~200% 주의  ·  &gt;200% 위험" class="fxRatioHint"/>
+                                        <ObjectStatus text="{view>/ratio/debtState/label}" state="{view>/ratio/debtState/state}"/>
+                                    </HBox>
+                                </VBox>
+                                <VBox class="fxCard fxRatioCard fxRatioCard--green">
+                                    <HBox class="fxRatioHdr" alignItems="Center">
+                                        <core:Icon src="sap-icon://trend-up" class="{= 'fxRatioIcon fxRatioIcon--green' + (${view>/ratio/eqState/state} === 'Error' ? ' fxBlinkIcon' : '')}"/>
+                                        <VBox class="fxRatioTitleBox">
+                                            <Title text="자기자본비율" level="H6" class="fxRatioTitle"/>
+                                            <Text text="자본총계 ÷ 자산총계 × 100" class="fxRatioFormula"/>
+                                        </VBox>
+                                    </HBox>
+                                    <HBox class="fxRatioBody" justifyContent="SpaceBetween" alignItems="End">
+                                        <VBox>
+                                            <Text text="{= ${view>/gjahr} + '년 (당기)'}" class="fxRatioYearLabel"/>
+                                            <Text text="{view>/ratio/eqRatioC}" class="fxRatioBig"/>
+                                        </VBox>
+                                        <VBox alignItems="End">
+                                            <Text text="{= ${view>/prevYear} + '년 (전기)'}" class="fxRatioYearLabel"/>
+                                            <Text text="{view>/ratio/eqRatioP}" class="fxRatioSmall"/>
+                                        </VBox>
+                                    </HBox>
+                                    <HBox class="fxRatioFooter" justifyContent="SpaceBetween" alignItems="Center">
+                                        <Text text="≥50% 양호  ·  30~50% 주의  ·  &lt;30% 위험" class="fxRatioHint"/>
+                                        <ObjectStatus text="{view>/ratio/eqState/label}" state="{view>/ratio/eqState/state}"/>
+                                    </HBox>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 도넛 -->
+                            <VBox class="fxCard fxCard--full">
+                                <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                    <VBox>
+                                        <Title text="유동자산 · 유동부채 세부 구성" level="H5" class="fxCardTitle"/>
+                                        <Text text="상위 5개 계정 비중  (단위 : 억원, 당기 기준)" class="fxCardSub"/>
+                                    </VBox>
+                                </HBox>
+                                <HBox wrap="Wrap" class="fxChartRow">
+                                    <VBox class="fxChartBox fxChartBox--half">
+                                        <Title text="유동자산 세부 구성" level="H6" class="fxChartSubTitle"/>
+                                        <viz:VizFrame id="idAssetDonut" vizType="donut" height="240px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/assetDonutData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="계정" value="{label}"/></vizData:dimensions>
+                                                    <vizData:measures><vizData:MeasureDefinition name="금액(억원)" value="{val}"/></vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="size"  type="Measure"   values="금액(억원)"/>
+                                                <vizFeeds:FeedItem uid="color" type="Dimension" values="계정"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                    <VBox class="fxChartBox fxChartBox--half">
+                                        <Title text="유동부채 세부 구성" level="H6" class="fxChartSubTitle"/>
+                                        <viz:VizFrame id="idLiabDonut" vizType="donut" height="240px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/liabDonutData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="계정" value="{label}"/></vizData:dimensions>
+                                                    <vizData:measures><vizData:MeasureDefinition name="금액(억원)" value="{val}"/></vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="size"  type="Measure"   values="금액(억원)"/>
+                                                <vizFeeds:FeedItem uid="color" type="Dimension" values="계정"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+
+                            <!-- 비교 차트 -->
+                            <VBox class="fxCard fxCard--full">
+                                <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                    <VBox>
+                                        <Title text="재무 비교 분석" level="H5" class="fxCardTitle"/>
+                                        <Text text="연간 누계 기준  (단위 : 억원)" class="fxCardSub"/>
+                                    </VBox>
+                                    <Text text="{= ${view>/gjahr} + '년 (당기)  vs  ' + ${view>/prevYear} + '년 (전기)'}" class="fxCardBadge"/>
+                                </HBox>
+                                <HBox wrap="Wrap" class="fxChartRow">
+                                    <VBox class="fxChartBox fxChartBox--large">
+                                        <Title text="자산 · 부채 · 자본 비교" level="H6" class="fxChartSubTitle"/>
+                                        <viz:VizFrame id="idCompChart" vizType="column" height="260px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/compChartData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="항목" value="{category}"/></vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="당기" value="{curr}"/>
+                                                        <vizData:MeasureDefinition name="전기" value="{prev}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="당기,전기"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="항목"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                    <VBox class="fxChartBox fxChartBox--small">
+                                        <Title text="자산 구성 비교" level="H6" class="fxChartSubTitle"/>
+                                        <viz:VizFrame id="idAssetChart" vizType="column" height="260px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/assetChartData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="구성" value="{category}"/></vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="당기" value="{curr}"/>
+                                                        <vizData:MeasureDefinition name="전기" value="{prev}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="당기,전기"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="구성"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                    <VBox class="fxChartBox fxChartBox--small">
+                                        <Title text="부채 구성 비교" level="H6" class="fxChartSubTitle"/>
+                                        <viz:VizFrame id="idLiabChart" vizType="column" height="260px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/liabChartData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="구성" value="{category}"/></vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="당기" value="{curr}"/>
+                                                        <vizData:MeasureDefinition name="전기" value="{prev}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="당기,전기"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="구성"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+
+                            <!-- 재고 카테고리 + 연도별 추이 → 같은 줄 -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxCard--half" visible="{view>/hasInvent}">
+                                    <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="재고 자산 카테고리별 비교" level="H5" class="fxCardTitle"/>
+                                            <Text text="원재료 · 제품 · 저장품  (단위 : 억원)" class="fxCardSub"/>
+                                        </VBox>
+                                        <Text text="{= ${view>/gjahr} + '년 (당기)  vs  ' + ${view>/prevYear} + '년 (전기)'}" class="fxCardBadge"/>
+                                    </HBox>
+                                    <VBox class="fxTrendChartWrap">
+                                        <viz:VizFrame id="idInventChart" vizType="bar" height="240px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/inventData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="카테고리" value="{cat}"/></vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="당기" value="{curr}"/>
+                                                        <vizData:MeasureDefinition name="전기" value="{prev}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="당기,전기"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="카테고리"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </VBox>
+                                <VBox class="fxCard fxCard--half" visible="{view>/hasTrend}">
+                                    <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="자산 · 부채 · 자본 연도별 추이" level="H5" class="fxCardTitle"/>
+                                            <Text text="단위 : 억원" class="fxCardSub"/>
+                                        </VBox>
+                                        <Text text="{view>/trendYearRange}" class="fxCardBadge"/>
+                                    </HBox>
+                                    <VBox class="fxTrendChartWrap">
+                                        <viz:VizFrame id="idTrendChart" vizType="line" height="240px" width="100%" uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/trendData}">
+                                                    <vizData:dimensions><vizData:DimensionDefinition name="연도" value="{year}"/></vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="자산" value="{asset}"/>
+                                                        <vizData:MeasureDefinition name="부채" value="{liab}"/>
+                                                        <vizData:MeasureDefinition name="자본" value="{equity}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="자산,부채,자본"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="연도"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 재무상태표 TreeTable -->
+                            <VBox class="fxCard fxCard--full">
+                                <t:TreeTable id="idBsTreeTable"
+                                    rows="{
+                                        path: 'tree>/bsTree',
+                                        parameters: { arrayNames: ['children'] }
+                                    }"
+                                    selectionMode="None"
+                                    visibleRowCountMode="Fixed"
+                                    visibleRowCount="10"
+                                    toggleOpenState="onBsToggle"
+                                    class="fxTable">
+                                    <t:rowSettingsTemplate>
+                                        <t:RowSettings highlight="{= ${tree>_lvl} === 0 ? 'Information' : 'None'}"/>
+                                    </t:rowSettingsTemplate>
+                                    <t:extension>
+                                        <OverflowToolbar>
+                                            <Title text="재무상태표 상세 내역" level="H5"/>
+                                            <ToolbarSpacer/>
+                                            <ObjectStatus text="{= '당기 ' + ${view>/gjahr} + '년  |  전기 ' + ${view>/prevYear} + '년'}"
+                                                          state="Information"/>
+                                            <ToolbarSeparator/>
+                                            <Button text="모두 펼치기" icon="sap-icon://expand-group"
+                                                    press="onBsExpandAll" type="Ghost"/>
+                                            <Button text="모두 접기"   icon="sap-icon://collapse-group"
+                                                    press="onBsCollapseAll" type="Ghost"/>
+                                        </OverflowToolbar>
+                                    </t:extension>
+                                    <t:columns>
+                                        <t:Column>
+                                            <Label text="계정과목"/>
+                                            <t:template><Text text="{tree>label}" wrapping="false"/></t:template>
+                                        </t:Column>
+                                        <t:Column hAlign="End" width="18rem">
+                                            <Label text="{= '전기 (' + ${view>/prevYear} + '년)  ' + (${view>/showApprox} ? '(근사)' : '(원)')}"/>
+                                            <t:template>
+                                                <Text text="{= ${view>/showApprox} ? ${tree>prevKpi} : ${tree>prevFmt} }" textAlign="End" wrapping="false" width="100%"/>
+                                            </t:template>
+                                        </t:Column>
+                                        <t:Column hAlign="End" width="18rem">
+                                            <Label text="{= '당기 (' + ${view>/gjahr} + '년)  ' + (${view>/showApprox} ? '(근사)' : '(원)')}"/>
+                                            <t:template>
+                                                <Text text="{= ${view>/showApprox} ? ${tree>currKpi} : ${tree>currFmt} }" textAlign="End" wrapping="false" width="100%"/>
+                                            </t:template>
+                                        </t:Column>
+                                    </t:columns>
+                                </t:TreeTable>
+                            </VBox>
+
+                            <VBox height="1.5rem"/>
+                        </IconTabFilter>
+
+                        <!-- ══════════════════════════════════════════
+                             PL  손익계산서
+                        ══════════════════════════════════════════ -->
+                        <IconTabFilter key="pl" text="손익계산서" icon="sap-icon://trend-up">
+
+                            <!-- PL KPI 4개 -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxKpiCard fxKpiCard--blue">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://sales-order" class="fxKpiIcon fxKpiIcon--blue"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="매출액" class="fxKpiLabel"/>
+                                            <Text text="Net Revenue" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/pl/revenueFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/pl/revenueKpi}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/pl/revDelta/text}"
+                                          class="{= ${view>/pl/revDelta/pos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/pl/revDelta/pos} === false ? 'fxDeltaNeg'
+                                                   :                                      'fxDeltaNone'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--green">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://chart-axis" class="fxKpiIcon fxKpiIcon--green"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="영업이익" class="fxKpiLabel"/>
+                                            <Text text="Operating Income" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/pl/opIncomeFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/pl/opIncomeKpi}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/pl/opDelta/text}"
+                                          class="{= ${view>/pl/opDelta/pos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/pl/opDelta/pos} === false ? 'fxDeltaNeg'
+                                                   :                                      'fxDeltaNone'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--purple">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://money-bills" class="fxKpiIcon fxKpiIcon--purple"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="당기순이익" class="fxKpiLabel"/>
+                                            <Text text="Net Income" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/pl/netIncomeFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/pl/netIncomeKpi}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/pl/netDelta/text}"
+                                          class="{= ${view>/pl/netDelta/pos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/pl/netDelta/pos} === false ? 'fxDeltaNeg'
+                                                   :                                      'fxDeltaNone'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--orange">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://measure" class="fxKpiIcon fxKpiIcon--orange"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="영업이익률" class="fxKpiLabel"/>
+                                            <Text text="Operating Margin" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{view>/pl/opMargin}" class="fxKpiValue"/>
+                                    <Text text="{= '전기 ' + ${view>/pl/opMarginPrev}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/pl/marginDelta/text}"
+                                          class="{= ${view>/pl/marginDelta/pos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/pl/marginDelta/pos} === false ? 'fxDeltaNeg'
+                                                   :                                          'fxDeltaNone'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--teal">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://factory" class="fxKpiIcon fxKpiIcon--teal"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="매출원가율" class="fxKpiLabel"/>
+                                            <Text text="COGS Ratio" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{view>/pl/cogsRatio}" class="fxKpiValue"/>
+                                    <Text text="{= '전기 ' + ${view>/pl/cogsRatioPrev}}" class="fxKpiKrw"/>
+                                    <Text text="{view>/pl/cogsRatioDelta/text}"
+                                          class="{= ${view>/pl/cogsRatioDelta/pos} === true  ? 'fxDeltaPos'
+                                                   : ${view>/pl/cogsRatioDelta/pos} === false ? 'fxDeltaNeg'
+                                                   :                                             'fxDeltaNone'}"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 차트 Row 1: 월별 추이 + 수익구조 Waterfall -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxCard--half">
+                                    <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="비용 구조 분석" level="H5" class="fxCardTitle"/>
+                                            <Text text="매출원가 · 판관비 · 기타비용  (당기 vs 전기, 억원)" class="fxCardSub"/>
+                                        </VBox>
+                                        <Text text="{= ${view>/gjahr} + '년  vs  ' + ${view>/prevYear} + '년'}" class="fxCardBadge"/>
+                                    </HBox>
+                                    <VBox class="fxChartBox">
+                                        <viz:VizFrame id="idPlMonthlyChart" vizType="column"
+                                                      height="300px" width="100%"
+                                                      uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/pl/costStructureData}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="구분" value="{label}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="당기" value="{curr}"/>
+                                                        <vizData:MeasureDefinition name="전기" value="{prev}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="당기,전기"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="구분"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </VBox>
+
+                                <VBox class="fxCard fxCard--half">
+                                    <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="수익 구조 분석 (Waterfall)" level="H5" class="fxCardTitle"/>
+                                            <Text text="매출 → 비용 → 이익 흐름  (단위 : 억원)" class="fxCardSub"/>
+                                        </VBox>
+                                        <Text text="{= ${view>/gjahr} + '년 기준'}" class="fxCardBadge"/>
+                                    </HBox>
+                                    <VBox class="fxChartBox">
+                                        <viz:VizFrame id="idPlWaterfall" vizType="waterfall"
+                                                      height="300px" width="100%"
+                                                      uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/pl/waterfallData}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="항목" value="{label}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="금액(억원)" value="{val}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="금액(억원)"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="항목"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 차트 Row 2: 판관비 Donut + YoY 비교 막대 -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxCard--half">
+                                    <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="판관비 세부 구성 (SG&amp;A)" level="H5" class="fxCardTitle"/>
+                                            <Text text="당기 판매비와관리비 계정 비중" class="fxCardSub"/>
+                                        </VBox>
+                                        <Text text="{= ${view>/gjahr} + '년 기준'}" class="fxCardBadge"/>
+                                    </HBox>
+                                    <VBox class="fxChartBox">
+                                        <viz:VizFrame id="idPlSgaDonut" vizType="donut"
+                                                      height="300px" width="100%"
+                                                      uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/pl/sgaDonutData}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="계정" value="{label}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="금액(억원)" value="{val}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="size"  type="Measure"   values="금액(억원)"/>
+                                                <vizFeeds:FeedItem uid="color" type="Dimension" values="계정"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </VBox>
+
+                                <VBox class="fxCard fxCard--half">
+                                    <HBox class="fxCardHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox>
+                                            <Title text="주요 지표 전년 대비 (YoY)" level="H5" class="fxCardTitle"/>
+                                            <Text text="매출액 · 영업이익 · 당기순이익  (단위 : 억원)" class="fxCardSub"/>
+                                        </VBox>
+                                        <Text text="{= ${view>/gjahr} + '년  vs  ' + ${view>/prevYear} + '년'}" class="fxCardBadge"/>
+                                    </HBox>
+                                    <VBox class="fxChartBox">
+                                        <viz:VizFrame id="idPlComboChart" vizType="column"
+                                                      height="300px" width="100%"
+                                                      uiConfig="{applicationSet:'fiori'}">
+                                            <viz:dataset>
+                                                <vizData:FlattenedDataset data="{view>/pl/comboData}">
+                                                    <vizData:dimensions>
+                                                        <vizData:DimensionDefinition name="구분" value="{label}"/>
+                                                    </vizData:dimensions>
+                                                    <vizData:measures>
+                                                        <vizData:MeasureDefinition name="당기" value="{curr}"/>
+                                                        <vizData:MeasureDefinition name="전기" value="{prev}"/>
+                                                    </vizData:measures>
+                                                </vizData:FlattenedDataset>
+                                            </viz:dataset>
+                                            <viz:feeds>
+                                                <vizFeeds:FeedItem uid="valueAxis"    type="Measure"   values="당기,전기"/>
+                                                <vizFeeds:FeedItem uid="categoryAxis" type="Dimension" values="구분"/>
+                                            </viz:feeds>
+                                        </viz:VizFrame>
+                                    </VBox>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 손익계산서 TreeTable -->
+                            <VBox class="fxCard fxCard--full">
+                                <t:TreeTable id="idPlTreeTable"
+                                    rows="{
+                                        path: 'tree>/plTree',
+                                        parameters: { arrayNames: ['children'] }
+                                    }"
+                                    selectionMode="None"
+                                    visibleRowCountMode="Fixed"
+                                    visibleRowCount="10"
+                                    toggleOpenState="onPlToggle"
+                                    class="fxTable">
+                                    <t:rowSettingsTemplate>
+                                        <t:RowSettings highlight="{= ${tree>isCalc} ? 'Success' : ${tree>isGroup} ? 'Information' : 'None'}"/>
+                                    </t:rowSettingsTemplate>
+                                    <t:extension>
+                                        <OverflowToolbar>
+                                            <Title text="손익계산서" level="H5"/>
+                                            <ToolbarSpacer/>
+                                            <Text text="{= ${view>/gjahr} + '년  vs  ' + ${view>/prevYear} + '년'}" class="fxCardBadge"/>
+                                            <ToolbarSeparator/>
+                                            <Button text="모두 펼치기" icon="sap-icon://expand-group"
+                                                    press="onPlExpandAll" type="Ghost"/>
+                                            <Button text="모두 접기"   icon="sap-icon://collapse-group"
+                                                    press="onPlCollapseAll" type="Ghost"/>
+                                        </OverflowToolbar>
+                                    </t:extension>
+                                    <t:columns>
+                                        <t:Column>
+                                            <Label text="과    목"/>
+                                            <t:template><Text text="{tree>label}" wrapping="false"/></t:template>
+                                        </t:Column>
+                                        <t:Column hAlign="End" width="18rem">
+                                            <Label text="{= '전기 (' + ${view>/prevYear} + '년)  ' + (${view>/showApprox} ? '(근사)' : '(원)')}"/>
+                                            <t:template>
+                                                <Text text="{= ${view>/showApprox} ? ${tree>prevKpi} : ${tree>prevFmt} }" textAlign="End" wrapping="false" width="100%"/>
+                                            </t:template>
+                                        </t:Column>
+                                        <t:Column hAlign="End" width="18rem">
+                                            <Label text="{= '당기 (' + ${view>/gjahr} + '년)  ' + (${view>/showApprox} ? '(근사)' : '(원)')}"/>
+                                            <t:template>
+                                                <Text text="{= ${view>/showApprox} ? ${tree>currKpi} : ${tree>currFmt} }" textAlign="End" wrapping="false" width="100%"/>
+                                            </t:template>
+                                        </t:Column>
+                                    </t:columns>
+                                </t:TreeTable>
+                            </VBox>
+
+                            <VBox height="1.5rem"/>
+                        </IconTabFilter>
+
+                        <!-- ══════════════════════════════════════════
+                             CF  현금흐름표 (간접법)
+                        ══════════════════════════════════════════ -->
+                        <IconTabFilter key="cf" text="현금흐름표" icon="sap-icon://money-bills">
+
+                            <!-- CF KPI 4개 -->
+                            <HBox wrap="Wrap" class="fxCardRow">
+                                <VBox class="fxCard fxKpiCard fxKpiCard--blue">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://simulate" class="fxKpiIcon fxKpiIcon--blue"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="영업활동 현금흐름" class="fxKpiLabel"/>
+                                            <Text text="Operating Cash Flow" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/cf/operatingFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/cf/operatingKpi}}" class="fxKpiKrw"/>
+                                    <Text text="{= ${view>/cf/operating} >= 0 ? '▲ 영업 현금 순유입' : '▼ 영업 현금 순유출'}"
+                                          class="{= ${view>/cf/operating} >= 0 ? 'fxDeltaPos' : 'fxDeltaNeg'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--orange">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://overlay" class="fxKpiIcon fxKpiIcon--orange"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="EBITDA" class="fxKpiLabel"/>
+                                            <Text text="영업이익 + 감가상각비" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/cf/ebitdaFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/cf/ebitdaKpi}}" class="fxKpiKrw"/>
+                                    <Text text="{= ${view>/cf/ebitda} >= 0 ? '▲ 수익창출 능력 양호' : '▼ 수익창출 능력 부진'}"
+                                          class="{= ${view>/cf/ebitda} >= 0 ? 'fxDeltaPos' : 'fxDeltaNeg'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--green">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://measure" class="fxKpiIcon fxKpiIcon--green"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="영업현금흐름 마진율" class="fxKpiLabel"/>
+                                            <Text text="OCF Margin" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{view>/cf/ocfMarginFmt}" class="fxKpiValue"/>
+                                    <Text text="영업CF ÷ 매출액 × 100" class="fxKpiKrw"/>
+                                    <Text text="{= ${view>/cf/ocfMargin} >= 10 ? '▲ 현금전환 효율 우수' : ${view>/cf/ocfMargin} >= 5 ? '— 현금전환 효율 보통' : '▼ 현금전환 효율 저조'}"
+                                          class="{= ${view>/cf/ocfMargin} >= 10 ? 'fxDeltaPos' : ${view>/cf/ocfMargin} >= 5 ? 'fxDeltaNone' : 'fxDeltaNeg'}"/>
+                                </VBox>
+                                <VBox class="fxCard fxKpiCard fxKpiCard--purple">
+                                    <HBox class="fxKpiTop" alignItems="Center">
+                                        <core:Icon src="sap-icon://sys-add" class="fxKpiIcon fxKpiIcon--purple"/>
+                                        <VBox class="fxKpiInfo">
+                                            <Text text="잉여현금흐름 (FCF)" class="fxKpiLabel"/>
+                                            <Text text="Free Cash Flow" class="fxKpiSub"/>
+                                        </VBox>
+                                    </HBox>
+                                    <Text text="{= ${view>/cf/fcfFmt} + ' 원'}" class="fxKpiValue"/>
+                                    <Text text="{= '≈ ' + ${view>/cf/fcfKpi}}" class="fxKpiKrw"/>
+                                    <Text text="{= ${view>/cf/fcf} >= 0 ? '▲ 투자 여력 충분' : '▼ 추가 자금 조달 필요'}"
+                                          class="{= ${view>/cf/fcf} >= 0 ? 'fxDeltaPos' : 'fxDeltaNeg'}"/>
+                                </VBox>
+                            </HBox>
+
+                            <!-- 현금흐름표 TreeTable (간접법) -->
+                            <VBox class="fxCard fxCard--full">
+                                <t:TreeTable id="idCfTreeTable"
+                                    rows="{
+                                        path: 'tree>/cfTree',
+                                        parameters: { arrayNames: ['children'] }
+                                    }"
+                                    selectionMode="None"
+                                    visibleRowCountMode="Fixed"
+                                    visibleRowCount="10"
+                                    toggleOpenState="onCfToggle"
+                                    class="fxTable">
+                                    <t:rowSettingsTemplate>
+                                        <t:RowSettings highlight="{= ${tree>isCalc} ? 'Success' : ${tree>isGroup} ? 'Information' : 'None'}"/>
+                                    </t:rowSettingsTemplate>
+                                    <t:extension>
+                                        <OverflowToolbar>
+                                            <Title text="현금흐름표 (간접법)" level="H5"/>
+                                            <ToolbarSpacer/>
+                                            <Text text="{= ${view>/gjahr} + '년 기준'}" class="fxCardBadge"/>
+                                            <ToolbarSeparator/>
+                                            <Button text="모두 펼치기" icon="sap-icon://expand-group"
+                                                    press="onCfExpandAll" type="Ghost"/>
+                                            <Button text="모두 접기"   icon="sap-icon://collapse-group"
+                                                    press="onCfCollapseAll" type="Ghost"/>
+                                        </OverflowToolbar>
+                                    </t:extension>
+                                    <t:columns>
+                                        <t:Column>
+                                            <Label text="과    목"/>
+                                            <t:template><Text text="{tree>label}" wrapping="false"/></t:template>
+                                        </t:Column>
+                                        <t:Column hAlign="End" width="18rem">
+                                            <Label text="{= '전기 (' + ${view>/prevYear} + '년)  ' + (${view>/showApprox} ? '(근사)' : '(원)')}"/>
+                                            <t:template>
+                                                <Text text="{= ${view>/showApprox} ? ${tree>prevKpi} : ${tree>prevFmt} }" textAlign="End" wrapping="false" width="100%"/>
+                                            </t:template>
+                                        </t:Column>
+                                        <t:Column hAlign="End" width="18rem">
+                                            <Label text="{= '당기 (' + ${view>/gjahr} + '년)  ' + (${view>/showApprox} ? '(근사)' : '(원)')}"/>
+                                            <t:template>
+                                                <Text text="{= ${view>/showApprox} ? ${tree>currKpi} : ${tree>currFmt} }" textAlign="End" wrapping="false" width="100%"/>
+                                            </t:template>
+                                        </t:Column>
+                                    </t:columns>
+                                </t:TreeTable>
+                            </VBox>
+
+                            <VBox height="1.5rem"/>
+                        </IconTabFilter>
+
+                    </items>
+                </IconTabBar>
+            </VBox>
+
+        </content>
+    </Page>
+</mvc:View>

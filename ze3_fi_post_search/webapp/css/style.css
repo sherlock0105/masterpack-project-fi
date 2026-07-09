@@ -1,0 +1,580 @@
+/* ════════════════════════════════════════════════════════════
+   FI 전표 조회 — SAP Standard
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Page 배경 ── */
+.psPage > .sapMPageScroll {
+  background: #f5f6f7 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   페이지 헤더 배너
+   ════════════════════════════════════════════════════════════ */
+.psPageHeader.sapMVBox {
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #ede8e0;
+  justify-content: center;
+  background: url("../images/header.png") right center / cover no-repeat;
+}
+
+.psPageHeaderContent.sapMVBox {
+  position: relative;
+  z-index: 1;
+  gap: 0.2rem !important;
+}
+
+.psPageHeaderTitle.sapMTitle {
+  font-size: 1.375rem !important;
+  font-weight: 700 !important;
+  color: #1d2d3e !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
+}
+
+.psPageHeaderSub.sapMText {
+  font-size: 0.8rem !important;
+  color: #a8b4c0 !important;
+  margin-top: 0.1rem !important;
+}
+
+/* ── 검색 바 ── */
+.psSearchBar.sapMTB {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  padding: 0.375rem 0.75rem !important;
+  flex-wrap: wrap !important;
+  height: auto !important;
+  min-height: 2.75rem !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+.psFilterLabel.sapMLabel {
+  font-weight: 600 !important;
+  color: #32363a !important;
+  margin-right: 0.25rem !important;
+}
+.psDateSep.sapMText {
+  margin: 0 0.25rem !important;
+  color: #8d9cb0 !important;
+  line-height: 2.25rem !important;
+}
+
+/* ── 탭 바 ── */
+.psTabBar.sapMITB {
+  background: #ffffff !important;
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+.psTabBar .sapMITBHead {
+  border-bottom: 1px solid #d9d9d9 !important;
+  background: #ffffff !important;
+}
+.psTabBar .sapMITBSelected .sapMITBText {
+  color: #0070d2 !important;
+  font-weight: 700 !important;
+}
+.psTabBar .sapMITBSelected {
+  border-bottom: 2px solid #0070d2 !important;
+}
+.psTabBar > .sapMITBContainerContent {
+  padding: 0 !important;
+}
+
+/* ── 상태 요약 스트립 ── */
+.psInfoStrip.sapMHBox {
+  padding: 0.4rem 0.875rem !important;
+  gap: 0.3rem !important;
+  flex-wrap: wrap !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e4e7eb !important;
+}
+.psInfoLabel.sapMText {
+  font-size: 0.8rem !important;
+  color: #6a7588 !important;
+  line-height: 1.75rem !important;
+}
+.psInfoVal.sapMText {
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  margin: 0 0.15rem !important;
+  line-height: 1.75rem !important;
+}
+.psInfoUnit.sapMText {
+  font-size: 0.8rem !important;
+  color: #6a7588 !important;
+  line-height: 1.75rem !important;
+}
+.psInfoSep.sapMText {
+  color: #c8d3de !important;
+  font-size: 0.8rem !important;
+  margin: 0 0.3rem !important;
+  line-height: 1.75rem !important;
+}
+.psInfoVal--blue.sapMText {
+  color: #0070d2 !important;
+}
+.psInfoVal--green.sapMText {
+  color: #107e3e !important;
+}
+.psInfoVal--orange.sapMText {
+  color: #e76500 !important;
+}
+.psInfoVal--red.sapMText {
+  color: #bb0000 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   패널 + 헤더 툴바
+   ════════════════════════════════════════════════════════════ */
+.psPanel.sapMPanel {
+  margin: 0.625rem !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #d9d9d9 !important;
+}
+.psHdrBar.sapMTB {
+  background: #f5f6f7 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+}
+.psHdrBar.sapMTB .sapMTitle {
+  color: #1d2d3e !important;
+  font-weight: 700 !important;
+}
+.psHdrBar.sapMTB .sapMText {
+  color: #6a7588 !important;
+}
+.psHdrBar.sapMTB .sapUiIcon {
+  color: #0070d2 !important;
+}
+
+.psItemPanel.sapMPanel {
+  margin-top: 0 !important;
+  border-top: none !important;
+  border-radius: 0 0 4px 4px !important;
+}
+.psItemHdrBar.sapMTB {
+  background: #f5f6f7 !important;
+  border-top: 2px solid #107e3e !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+}
+.psItemPanel .psHdrIcon.sapUiIcon {
+  color: #107e3e !important;
+}
+
+.psHdrIcon.sapUiIcon {
+  font-size: 1rem !important;
+  color: #0070d2 !important;
+}
+.psHdrTitle.sapMTitle {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #1d2d3e !important;
+}
+.psHdrCount.sapMText {
+  font-size: 0.82rem !important;
+  color: #6a7588 !important;
+  margin-right: 0.5rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   현황 탭 차트 패널
+   ════════════════════════════════════════════════════════════ */
+
+/* 차트 영역 외부 여백 — KPI 카드와 동일하게 맞춤 */
+.psChartArea.sapMVBox {
+  padding: 0.625rem !important;
+}
+
+/* ── 차트 패널 박스 ── */
+.psChartPanel.sapMPanel {
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+.psChartPanel .sapMPanelContent {
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+/* ── 차트 패널 헤더 (Toolbar 미사용, VBox 직접) ── */
+.psChartHdr.sapMHBox {
+  padding: 0.75rem 1rem 0.5rem 1rem !important;
+  border-bottom: 1px solid #e4e7eb !important;
+  min-height: 2.75rem !important;
+  background: #ffffff !important;
+  box-sizing: border-box !important;
+}
+
+/* ── 헤더 텍스트 ── */
+.psChartTitle.sapMTitle {
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  color: #1d2d3e !important;
+  line-height: 1.4 !important;
+}
+.psChartSub.sapMText {
+  font-size: 0.75rem !important;
+  color: #8d9cb0 !important;
+  margin-top: 0.2rem !important;
+  line-height: 1.4 !important;
+}
+.psChartDelta.sapMObjStatus {
+  font-size: 0.8rem !important;
+  margin-top: 0.25rem !important;
+  white-space: nowrap !important;
+}
+
+/* ── 연령 분석 드릴다운 힌트 아이콘 ── */
+.psAgingDrillHint.sapUiIcon {
+  color: #0070d2 !important;
+  font-size: 1.1rem !important;
+  cursor: default !important;
+  margin-top: 0.2rem !important;
+  align-self: flex-start !important;
+}
+
+/* ── 드릴다운 다이얼로그 테이블 ── */
+.psAgingDrillTable.sapMTable {
+  margin: 0 !important;
+  width: 100% !important;
+}
+.psAgingDrillTable .sapMListTblHeaderCell {
+  background: #f5f6f7 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: #32363a !important;
+  border-bottom: 2px solid #0070d2 !important;
+}
+.psAgingDrillTable .sapMText,
+.psAgingDrillTable .sapMObjStatusText {
+  font-size: 0.82rem !important;
+}
+.psAgingDrillTable .sapMListTblCell {
+  padding: 0.2rem 0.5rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   테이블
+   ════════════════════════════════════════════════════════════ */
+.psScrollCont.sapMScrollContainer {
+  width: 100% !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+.psScrollCont > .sapMScrollContainerScroll {
+  overflow-x: auto !important;
+}
+
+#idHeaderTable.sapMTable {
+  margin: 0 !important;
+  width: 100% !important;
+}
+#idItemTable.sapMTable {
+  margin: 0 !important;
+  min-width: max-content !important;
+}
+
+.psTable .sapMText,
+.psTable .sapMObjStatusText {
+  font-size: 0.82rem !important;
+}
+.psTable .sapMListTblCell {
+  padding: 0.2rem 0.5rem !important;
+}
+.psTable .sapMListTblHeaderCell {
+  background: #f5f6f7 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: #32363a !important;
+  border-bottom: 2px solid #0070d2 !important;
+  padding: 0.3rem 0.5rem !important;
+}
+.psTable .sapMListTblRow:hover .sapMListTblCell {
+  background: #f0f6ff !important;
+}
+
+.psBelnrCell.sapMText {
+  font-weight: 700 !important;
+  color: #0070d2 !important;
+}
+.psTable .sapMLIBHighlightInformation {
+  border-left: 3px solid #0070d2 !important;
+  background: #f0f6ff !important;
+}
+
+.psBlartText.sapMText {
+  font-size: 0.82rem !important;
+  color: #1d2d3e !important;
+}
+.psBPNum.sapMText {
+  font-size: 0.82rem !important;
+  color: #32363a !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   페이지네이션
+   ════════════════════════════════════════════════════════════ */
+.psPaginationBar.sapMHBox {
+  padding: 0.5rem 0 !important;
+  gap: 0.5rem !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e4e7eb !important;
+}
+.psPageInfo.sapMText {
+  font-size: 0.875rem !important;
+  min-width: 5rem !important;
+  text-align: center !important;
+  color: #32363a !important;
+  font-weight: 600 !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   현황 탭 — KPI 카드  (SAP Standard)
+   ════════════════════════════════════════════════════════════ */
+.psKpiRow.sapMFlexBox {
+  padding: 0.75rem 0.625rem 0 0.625rem !important;
+  gap: 0.625rem !important;
+  flex-wrap: wrap !important;
+  align-items: stretch !important;
+}
+.psKpiRow.sapMFlexBox > .sapMFlexItem {
+  flex: 1 1 0 !important;
+  min-width: 9.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.psKpiCard.sapMVBox {
+  background: #ffffff !important;
+  border: 1px solid #d9d9d9 !important;
+  border-top: 3px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  padding: 0.875rem 1rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  gap: 0.2rem !important;
+  flex: 1 1 auto !important;
+  min-height: 6.5rem !important;
+  box-sizing: border-box !important;
+}
+.psKpiCard--total.sapMVBox {
+  border-top-color: #0070d2 !important;
+}
+.psKpiCard--normal.sapMVBox {
+  border-top-color: #107e3e !important;
+}
+.psKpiCard--open.sapMVBox {
+  border-top-color: #e76500 !important;
+}
+.psKpiCard--cancel.sapMVBox {
+  border-top-color: #bb0000 !important;
+}
+.psKpiCard--lead.sapMVBox {
+  border-top-color: #0f828f !important;
+}
+
+.psKpiTop.sapMHBox {
+  gap: 0.375rem !important;
+  align-items: center !important;
+  margin-bottom: 0.25rem !important;
+}
+.psKpiIcon.sapUiIcon {
+  font-size: 1rem !important;
+  color: #6a7588 !important;
+}
+.psKpiCard--total .psKpiIcon.sapUiIcon {
+  color: #0070d2 !important;
+}
+.psKpiCard--normal .psKpiIcon.sapUiIcon {
+  color: #107e3e !important;
+}
+.psKpiCard--open .psKpiIcon.sapUiIcon {
+  color: #e76500 !important;
+}
+.psKpiCard--cancel .psKpiIcon.sapUiIcon {
+  color: #bb0000 !important;
+}
+.psKpiCard--lead .psKpiIcon.sapUiIcon {
+  color: #0f828f !important;
+}
+
+.psKpiLabel.sapMText {
+  font-size: 0.8rem !important;
+  color: #6a7588 !important;
+  font-weight: 400 !important;
+}
+.psKpiNumber.sapMText {
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  color: #32363a !important;
+  line-height: 1.2 !important;
+}
+.psKpiSub.sapMText {
+  font-size: 0.75rem !important;
+  color: #8d9cb0 !important;
+  margin-top: 0.125rem !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   현황 탭 — 전표유형 / 통화별 섹션  (SAP Standard)
+   ════════════════════════════════════════════════════════════ */
+.psStatRow.sapMHBox {
+  margin: 0.625rem 0.625rem 0 0.625rem !important;
+  gap: 0.625rem !important;
+}
+.psStatPanel.sapMVBox {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+}
+
+.psStatPanelHdr.sapMHBox {
+  padding: 0.5rem 0.875rem !important;
+  background: #f5f6f7 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  gap: 0.4rem !important;
+  min-height: 2.5rem !important;
+}
+.psStatHdrIcon.sapUiIcon {
+  font-size: 0.9rem !important;
+  color: #0070d2 !important;
+}
+.psStatHdrIcon--green.sapUiIcon {
+  color: #107e3e !important;
+}
+.psStatHdrTitle.sapMTitle {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #32363a !important;
+}
+
+.psStatGrid.sapMFlexBox {
+  padding: 0.75rem !important;
+  gap: 0.5rem !important;
+  flex-wrap: wrap !important;
+}
+
+/* 칩: 흰 배경 + 얇은 border (배경색 제거) */
+.psStatCard.sapMVBox {
+  background: #ffffff !important;
+  border: 1px solid #bcc3ca !important;
+  border-radius: 4px !important;
+  padding: 0.375rem 0.75rem !important;
+  min-width: 4.5rem !important;
+  align-items: center !important;
+  gap: 0.1rem !important;
+}
+.psStatCard--green.sapMVBox {
+  background: #ffffff !important;
+  border-color: #bcc3ca !important;
+}
+
+.psStatCode.sapMText {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #0070d2 !important;
+}
+.psStatCard--green .psStatCode.sapMText {
+  color: #107e3e !important;
+}
+.psStatName.sapMText {
+  font-size: 0.72rem !important;
+  color: #6a7588 !important;
+}
+.psStatCount.sapMText {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #32363a !important;
+}
+
+/* ── AR / AP KPI 카드 ── */
+.psKpiCard--ar.sapMVBox {
+  border-top-color: #0070d2 !important;
+}
+.psKpiCard--ap.sapMVBox {
+  border-top-color: #bb0000 !important;
+}
+.psKpiCard--ar .psKpiIcon.sapUiIcon {
+  color: #0070d2 !important;
+}
+.psKpiCard--ap .psKpiIcon.sapUiIcon {
+  color: #bb0000 !important;
+}
+.psKpiNumber--ar.sapMText {
+  color: #0070d2 !important;
+}
+.psKpiNumber--ap.sapMText {
+  color: #bb0000 !important;
+}
+
+/* ── 전표 아이템 팝업 다이얼로그 ── */
+.psDetailSubHdr.sapMTB {
+  padding: 0 0.75rem !important;
+  min-height: 2.25rem !important;
+  height: 2.25rem !important;
+  background: #f5f6f7 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+}
+
+/* 다이얼로그 내 컴팩트 테이블 */
+.psItemTableCompact.sapMTable {
+  width: 100% !important;
+}
+.psItemTableCompact .sapMListTblRow .sapMListTblCell {
+  padding: 0.15rem 0.5rem !important;
+}
+.psItemTableCompact .sapMListTblHeaderCell {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.77rem !important;
+  font-weight: 700 !important;
+  background: #f5f6f7 !important;
+  border-bottom: 2px solid #0070d2 !important;
+  white-space: nowrap !important;
+}
+.psItemTableCompact .sapMText {
+  font-size: 0.8rem !important;
+}
+/* 적요 컬럼은 줄여서 표시 */
+.psItemTableCompact .psSgtxtCell.sapMText {
+  max-width: 20rem !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: block !important;
+}
+
+/* ── 헤더 테이블 상태 LED ── */
+.psStatusLed.sapMObjStatus {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+/* ── 아이템 적요 셀 ── */
+.psSgtxtCell.sapMText {
+  font-size: 0.8rem !important;
+  color: #6a7588 !important;
+}
+
+/* ── 빈 상태 ── */
+.psEmptyState.sapMVBox {
+  padding: 3rem 1rem !important;
+  gap: 0.75rem !important;
+}
+.psEmptyIcon.sapUiIcon {
+  color: #c8d3de !important;
+}
+.psEmptyText.sapMText {
+  font-size: 0.9rem !important;
+  color: #8d9cb0 !important;
+}

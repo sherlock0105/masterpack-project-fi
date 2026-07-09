@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_AGGREGATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Aggregation.V1" Alias="Aggregation"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_ANALYTICS',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Analytics.v1" Alias="Analytics"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CAPABILITIES',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_CODELIST',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.CodeList.v1" Alias="SAP__CodeList"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMON',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Common.v1" Alias="Common"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_COMMUNICATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.Communication.v1" Alias="Communication"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_MEASURES',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_PERSONALDATA',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.PersonalData.v1" Alias="PersonalData"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_UI',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="com.sap.vocabularies.UI.v1" Alias="UI"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/iwfnd/catalogservice;v=2/Vocabularies(TechnicalName='%2FIWBEP%2FVOC_VALIDATION',Version='0001',SAP__Origin='LOCAL')/$value" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+        <edmx:Include Namespace="Org.OData.Validation.V1" Alias="Validation"/>
+    </edmx:Reference>
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZCDS_E3_FI_0015_CDS" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="AssetType" sap:label="[FI] 자산 마스터 CDS VIEW" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="p_gjahr"/>
+                    <PropertyRef Name="Bukrs"/>
+                    <PropertyRef Name="Anln1"/>
+                </Key>
+                <Property Name="p_gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:label="Fiscal Year"/>
+                <Property Name="Bukrs" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="UpperCase" sap:label="회사코드" sap:quickinfo="[FI] 회사코드"/>
+                <Property Name="Anln1" Type="Edm.String" Nullable="false" MaxLength="12" sap:display-format="UpperCase" sap:label="자산코드" sap:quickinfo="[CM] 자산코드"/>
+                <Property Name="Anlkl" Type="Edm.String" MaxLength="8" sap:display-format="UpperCase" sap:label="자산 클래스" sap:quickinfo="[CM] 자산클래스"/>
+                <Property Name="Anlnt" Type="Edm.String" MaxLength="50" sap:display-format="UpperCase" sap:label="자산명" sap:quickinfo="[CM] 자산명"/>
+                <Property Name="Waers" Type="Edm.String" MaxLength="5" sap:display-format="UpperCase" sap:label="통화" sap:quickinfo="[CM] 통화" sap:semantics="currency-code"/>
+                <Property Name="Aprice" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers" sap:label="자산취득가액" sap:quickinfo="[CM] 자산취득가액"/>
+                <Property Name="Accum" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers" sap:label="[CM] 감가누계액" sap:heading=""/>
+                <Property Name="BookValue" Type="Edm.Decimal" Precision="15" Scale="2" sap:unit="Waers"/>
+                <Property Name="Alife" Type="Edm.String" MaxLength="3" sap:display-format="NonNegative" sap:label="내용연수" sap:quickinfo="[CM] 내용연수"/>
+                <Property Name="Abudat" Type="Edm.DateTime" Precision="0" sap:display-format="Date" sap:label="자산취득일자" sap:quickinfo="[CM] 자산취득일자"/>
+                <Property Name="Abflg" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label=" 자산 처분 플래그" sap:quickinfo="[CM] 자산 처분 플래그"/>
+                <Property Name="Kostl" Type="Edm.String" MaxLength="10" sap:display-format="UpperCase" sap:label="코스트센터" sap:quickinfo="[CO] 코스트센터"/>
+                <Property Name="Abtyp" Type="Edm.String" MaxLength="1" sap:display-format="UpperCase" sap:label="[CM] 처분유형" sap:heading=""/>
+                <Property Name="Afasl" Type="Edm.String" MaxLength="4" sap:display-format="UpperCase" sap:label="감가상각방법" sap:quickinfo="[CM] 감가상각방법"/>
+                <Property Name="M01" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M02" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M03" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M04" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M05" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M06" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M07" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M08" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M09" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M10" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M11" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <Property Name="M12" Type="Edm.Decimal" Precision="16" Scale="3" sap:unit="Waers"/>
+                <NavigationProperty Name="Parameters" Relationship="ZCDS_E3_FI_0015_CDS.assoc_E3909A205ECB289BC5AD27EF9D9C90E1" FromRole="ToRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1" ToRole="FromRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="AssetParameters" sap:semantics="parameters" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="p_gjahr"/>
+                </Key>
+                <Property Name="p_gjahr" Type="Edm.String" Nullable="false" MaxLength="4" sap:display-format="NonNegative" sap:parameter="mandatory" sap:label="Fiscal Year" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="Set" Relationship="ZCDS_E3_FI_0015_CDS.assoc_E3909A205ECB289BC5AD27EF9D9C90E1" FromRole="FromRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1" ToRole="ToRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1"/>
+            </EntityType>
+            <Association Name="assoc_E3909A205ECB289BC5AD27EF9D9C90E1" sap:content-version="1">
+                <End Type="ZCDS_E3_FI_0015_CDS.AssetParameters" Multiplicity="1" Role="FromRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1"/>
+                <End Type="ZCDS_E3_FI_0015_CDS.AssetType" Multiplicity="*" Role="ToRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1"/>
+            </Association>
+            <EntityContainer Name="ZCDS_E3_FI_0015_CDS_Entities" m:IsDefaultEntityContainer="true" sap:message-scope-supported="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="AssetSet" EntityType="ZCDS_E3_FI_0015_CDS.AssetType" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="Asset" EntityType="ZCDS_E3_FI_0015_CDS.AssetParameters" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <AssociationSet Name="assoc_E3909A205ECB289BC5AD27EF9D9C90E1" Association="ZCDS_E3_FI_0015_CDS.assoc_E3909A205ECB289BC5AD27EF9D9C90E1" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="Asset" Role="FromRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1"/>
+                    <End EntitySet="AssetSet" Role="ToRole_assoc_E3909A205ECB289BC5AD27EF9D9C90E1"/>
+                </AssociationSet>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <Annotations Target="ZCDS_E3_FI_0015_CDS.ZCDS_E3_FI_0015_CDS_Entities" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                <Annotation Term="Common.ApplyMultiUnitBehaviorForSortingAndFiltering" Bool="true"/>
+            </Annotations>
+            <Annotations Target="ZCDS_E3_FI_0015_CDS.ZCDS_E3_FI_0015_CDS_Entities/Asset" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+                <Annotation Term="Capabilities.FilterRestrictions">
+                    <Record>
+                        <PropertyValue Property="NonFilterableProperties">
+                            <Collection>
+                                <PropertyPath>p_gjahr</PropertyPath>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+                <Annotation Term="Capabilities.NavigationRestrictions">
+                    <Record>
+                        <PropertyValue Property="RestrictedProperties">
+                            <Collection>
+                                <Record>
+                                    <PropertyValue Property="NavigationProperty" NavigationPropertyPath="Parameters"/>
+                                    <PropertyValue Property="FilterRestrictions">
+                                        <Record>
+                                            <PropertyValue Property="Filterable" Bool="false"/>
+                                        </Record>
+                                    </PropertyValue>
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+                <Annotation Term="Capabilities.SortRestrictions">
+                    <Record>
+                        <PropertyValue Property="NonSortableProperties">
+                            <Collection>
+                                <PropertyPath>p_gjahr</PropertyPath>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+            <atom:link rel="self" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E3_FI_0015_CDS/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://bgissap3.bgissap.co.kr:8000/sap/opu/odata/sap/ZCDS_E3_FI_0015_CDS/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

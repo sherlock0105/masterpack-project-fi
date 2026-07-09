@@ -1,0 +1,322 @@
+<mvc:View controllerName="zpe3.fi.asset.zpe3fiasset.controller.AssetView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:viz="sap.viz.ui5.controls">
+
+    <Page id="page" showHeader="false"
+          busy="{view>/busy}" busyIndicatorDelay="0"
+          enableScrolling="true"
+          class="sapUiNoContentPadding asPage">
+
+        <content>
+            <VBox class="psPageHeader">
+                <VBox class="psPageHeaderContent">
+                    <Title class="psPageHeaderTitle" text="고정자산 조회" level="H3"/>
+                    <Text class="psPageHeaderSub" text="Fixed Asset Overview"/>
+                </VBox>
+            </VBox>
+
+            <!-- ══ 검색 바 ══ -->
+            <Toolbar id="idSearchBar" class="asSearchBar">
+                <Label text="회계연도" design="Bold" class="asFilterLabel"/>
+                <Input id="idGjahr" width="68px" value="{view>/gjahr}" maxLength="4"
+                       submit="onSearch" class="sapUiTinyMarginEnd"/>
+                <Label text="자산분류" design="Bold" class="asFilterLabel"/>
+                <Select id="idAnlkl" selectedKey="{view>/selectedAnlkl}" width="160px"
+                        change=".onClassChange" class="sapUiTinyMarginEnd">
+                    <items>
+                        <core:Item key="" text="전체"/>
+                        <core:Item key="BD" text="건물 (BD)"/>
+                        <core:Item key="LD" text="토지 (LD)"/>
+                        <core:Item key="MC" text="기계장치 (MC)"/>
+                        <core:Item key="VH" text="운반구 (VH)"/>
+                        <core:Item key="FE" text="비품 (FE)"/>
+                    </items>
+                </Select>
+                <Button text="조회" type="Emphasized" press="onSearch"
+                        icon="sap-icon://search" class="sapUiTinyMarginEnd"/>
+                <Button text="초기화" type="Ghost" press="onReset"
+                        icon="sap-icon://clear-filter"/>
+                <ToolbarSpacer/>
+                <Button text="Excel 저장" press="onExport"
+                        icon="sap-icon://excel-attachment" type="Ghost"
+                        enabled="{view>/hasData}"/>
+            </Toolbar>
+
+            <!-- ══ 빈 상태 ══ -->
+            <VBox visible="{= !${view>/hasData} &amp;&amp; !${view>/busy}}"
+                  class="asEmptyState" alignItems="Center" justifyContent="Center">
+                <core:Icon src="sap-icon://building" size="3rem" class="asEmptyIcon"/>
+                <Text text="조회 버튼을 눌러 자산 데이터를 불러오세요." class="asEmptyText"/>
+            </VBox>
+
+            <!-- ══ 대시보드 ══ -->
+            <VBox visible="{view>/hasData}">
+
+                <!-- ══ 상각 완료 임박 알림 ══ -->
+                <MessageStrip
+                    visible="{view>/alerts/hasSoonExpiring}"
+                    text="{= '상각 완료 임박 자산  ' + ${view>/alerts/soonExpiring} + ' 건  (잔여 3개월 이내)  —  해당 자산의 향후 운용 계획을 검토하세요.'}"
+                    type="Warning"
+                    showIcon="true"
+                    class="asAlertStrip"/>
+
+                <l:Grid defaultSpan="L6 M12 S12" hSpacing="1" vSpacing="1"
+                        class="sapUiSmallMarginBeginEnd sapUiSmallMarginTop">
+
+                    <!-- ── Row 1: 클래스별 (L6) | 월별 (L6) ── -->
+
+                    <Panel class="sapUiNoContentPadding asPanel">
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                <VBox>
+                                    <Title text="자산 클래스별 장부가액" level="H5" class="asCardTitle"/>
+                                    <Text text="취득가액 · 장부가액 비교" class="asCardSub"/>
+                                </VBox>
+                            </HBox>
+                            <viz:VizFrame id="idClassChart" height="280px" width="100%"
+                                          uiConfig="{applicationSet:'fiori'}"/>
+                        </VBox>
+                    </Panel>
+
+                    <Panel class="sapUiNoContentPadding asPanel">
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                <VBox>
+                                    <Title text="월별 감가상각 합계" level="H5" class="asCardTitle"/>
+                                    <Text text="회계연도 월별 감가상각 현황" class="asCardSub"/>
+                                </VBox>
+                            </HBox>
+                            <viz:VizFrame id="idMonthChart" height="280px" width="100%"
+                                          uiConfig="{applicationSet:'fiori'}"/>
+                        </VBox>
+                    </Panel>
+
+                    <!-- ── Row 2: 코스트센터 도넛 (L6) | 감가방법 분포 (L3) | TOP5 (L3) ── -->
+
+                    <Panel class="sapUiNoContentPadding asPanel">
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                <VBox>
+                                    <Title text="코스트센터별 장부가액 비중" level="H5" class="asCardTitle"/>
+                                    <Text text="부서별 자산 보유 현황 (장부가액 기준, 5% 미만 → 기타)" class="asCardSub"/>
+                                </VBox>
+                            </HBox>
+                            <viz:VizFrame id="idKostlDonut" height="260px" width="100%"
+                                          uiConfig="{applicationSet:'fiori'}"/>
+                        </VBox>
+                    </Panel>
+
+                    <Panel class="sapUiNoContentPadding asPanel">
+                        <layoutData><l:GridData span="L3 M6 S12"/></layoutData>
+                        <VBox>
+                            <HBox class="asPanelHdr" alignItems="Start">
+                                <VBox>
+                                    <Title text="감가방법 분포" level="H5" class="asCardTitle"/>
+                                    <Text text="방법별 자산 건수 비중" class="asCardSub"/>
+                                </VBox>
+                            </HBox>
+                            <viz:VizFrame id="idAfaslDonut" height="260px" width="100%"
+                                          uiConfig="{applicationSet:'fiori'}"/>
+                        </VBox>
+                    </Panel>
+
+                    <Panel class="sapUiNoContentPadding asPanel">
+                        <layoutData><l:GridData span="L3 M6 S12"/></layoutData>
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="장부가액 TOP 5" level="H5" class="asCardTitle"/>
+                                <core:Icon src="sap-icon://sort-descending" class="asCardIconSm"/>
+                            </HBox>
+                            <List items="{view>/top5Data}" noDataText="데이터 없음"
+                                  showSeparators="Inner" backgroundDesign="Transparent">
+                                <CustomListItem type="Inactive">
+                                    <HBox class="asTop5Item" alignItems="Center">
+                                        <Text text="{view>rank}" class="asTop5Rank"/>
+                                        <VBox class="asTop5Info">
+                                            <Text text="{view>Anlnt}" class="asTop5Name" wrapping="false"/>
+                                            <Text text="{= ${view>AnlklName} + '  ·  ' + ${view>Anln1}}"
+                                                  class="asTop5Sub" wrapping="false"/>
+                                        </VBox>
+                                        <Text text="{= ${view>BookValueFmt} + ' 원'}"
+                                              class="asTop5Value" wrapping="false"/>
+                                    </HBox>
+                                </CustomListItem>
+                            </List>
+                        </VBox>
+                    </Panel>
+
+                    <!-- ── Row 3: KPI 요약 (L4) | 연도별 추이 (L8) ── -->
+
+                    <Panel class="sapUiNoContentPadding asPanel asPanelKpi">
+                        <layoutData><l:GridData span="L4 M12 S12"/></layoutData>
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="자산 현황 요약" level="H5" class="asCardTitle"/>
+                                <Text text="{view>/kpi/countText}" class="asCardBadge"/>
+                            </HBox>
+                            <VBox class="asKpiList">
+                                <HBox class="asKpiItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://building" class="asKpiIcon"/>
+                                    <VBox class="asKpiInfo">
+                                        <Text text="총 자산 수" class="asKpiLabel"/>
+                                        <Text text="{view>/kpi/countText}" class="asKpiValue"/>
+                                    </VBox>
+                                </HBox>
+                                <HBox class="asKpiItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://money-bills" class="asKpiIcon asKpiIcon--blue"/>
+                                    <VBox class="asKpiInfo">
+                                        <Text text="취득가액 합계" class="asKpiLabel"/>
+                                        <Text text="{= ${view>/kpi/apriceVal} + ' ' + ${view>/kpi/apriceScale}}" class="asKpiValue"/>
+                                    </VBox>
+                                </HBox>
+                                <HBox class="asKpiItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://trend-down" class="asKpiIcon asKpiIcon--orange"/>
+                                    <VBox class="asKpiInfo">
+                                        <Text text="감가누계 합계" class="asKpiLabel"/>
+                                        <Text text="{= ${view>/kpi/accumVal} + ' ' + ${view>/kpi/accumScale}}" class="asKpiValue"/>
+                                    </VBox>
+                                </HBox>
+                                <HBox class="asKpiItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://home" class="asKpiIcon asKpiIcon--green"/>
+                                    <VBox class="asKpiInfo">
+                                        <Text text="장부가액 합계" class="asKpiLabel"/>
+                                        <Text text="{= ${view>/kpi/bookVal} + ' ' + ${view>/kpi/bookScale}}" class="asKpiValue"/>
+                                    </VBox>
+                                </HBox>
+                                <HBox class="asKpiItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://alert" class="asKpiIcon asKpiIcon--warning"/>
+                                    <VBox class="asKpiInfo">
+                                        <Text text="상각 완료 임박" class="asKpiLabel"/>
+                                        <Text text="{= String(${view>/alerts/soonExpiring}) + ' 건  (3개월 이내)'}"
+                                              class="{= ${view>/alerts/hasSoonExpiring} ? 'asKpiValue asKpiValue--warning' : 'asKpiValue'}"/>
+                                    </VBox>
+                                </HBox>
+                                <HBox class="asKpiItem" alignItems="Center">
+                                    <core:Icon src="sap-icon://cancel-maintenance" class="asKpiIcon asKpiIcon--red"/>
+                                    <VBox class="asKpiInfo">
+                                        <Text text="처분 자산" class="asKpiLabel"/>
+                                        <Text text="{= String(${view>/alerts/disposed}) + ' 건'}" class="asKpiValue"/>
+                                    </VBox>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </Panel>
+
+                    <Panel class="sapUiNoContentPadding asPanel" visible="{view>/hasTrend}">
+                        <layoutData><l:GridData span="L8 M12 S12"/></layoutData>
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                <VBox>
+                                    <Title text="연도별 자산 추이" level="H5" class="asCardTitle"/>
+                                    <Text text="취득가액 · 장부가액 · 감가누계" class="asCardSub"/>
+                                </VBox>
+                            </HBox>
+                            <viz:VizFrame id="idTrendChart" height="240px" width="100%"
+                                          uiConfig="{applicationSet:'fiori'}"/>
+                        </VBox>
+                    </Panel>
+
+                    <!-- ── Row 4: 자산 목록 (L12) ── -->
+
+                    <Panel class="sapUiNoContentPadding asPanel">
+                        <layoutData><l:GridData span="L12 M12 S12"/></layoutData>
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                <VBox>
+                                    <Title text="자산 목록" level="H5" class="asCardTitle"/>
+                                    <Text text="상각 완료 임박 자산은 주황색으로 표시됩니다." class="asCardSub"/>
+                                </VBox>
+                                <Text text="{view>/kpi/countText}" class="asCardBadge"/>
+                            </HBox>
+                            <Table id="idAssetTable" items="{view>/tableItems}"
+                                   noDataText="데이터 없음"
+                                   alternateRowColors="true"
+                                   growing="true" growingThreshold="15"
+                                   class="asTable">
+                                <columns>
+                                    <Column width="9rem"><Text text="자산코드"/></Column>
+                                    <Column><Text text="자산명"/></Column>
+                                    <Column width="4.5rem"><Text text="클래스"/></Column>
+                                    <Column width="10rem" hAlign="End"><Text text="취득가액 (원)"/></Column>
+                                    <Column width="10rem" hAlign="End"><Text text="감가누계 (원)"/></Column>
+                                    <Column width="10rem" hAlign="End"><Text text="장부가액 (원)"/></Column>
+                                    <Column width="9rem"><Text text="취득일"/></Column>
+                                    <Column width="9rem"><Text text="상각 종료 예정일"/></Column>
+                                    <Column width="5.5rem" hAlign="Center"><Text text="잔여(개월)"/></Column>
+                                    <Column width="8rem"><Text text="코스트센터"/></Column>
+                                    <Column width="5.5rem"><Text text="감가방법"/></Column>
+                                    <Column width="4rem" hAlign="Center"><Text text="상태"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem highlight="{view>RowHighlight}">
+                                        <cells>
+                                            <Text text="{view>Anln1}"        wrapping="false"/>
+                                            <Text text="{view>Anlnt}"        wrapping="false"/>
+                                            <Text text="{view>AnlklName}"    wrapping="false"/>
+                                            <Text text="{view>ApriceFmt}"    wrapping="false" textAlign="End"/>
+                                            <Text text="{view>AccumFmt}"     wrapping="false" textAlign="End"/>
+                                            <Text text="{view>BookValueFmt}" wrapping="false" textAlign="End"/>
+                                            <Text text="{view>AbudatFmt}"    wrapping="false"/>
+                                            <Text text="{view>EndDateFmt}"   wrapping="false"/>
+                                            <ObjectStatus
+                                                text="{view>RemainDisp}"
+                                                state="{= ${view>RowHighlight} === 'Warning' ? 'Warning' : 'None'}"
+                                                textAlign="Center"/>
+                                            <Text text="{view>Kostl}"        wrapping="false"/>
+                                            <Text text="{view>Afasl}"        wrapping="false"/>
+                                            <ObjectStatus
+                                                text="{view>Status}"
+                                                state="{= ${view>Status} === '처분' ? 'Error' : 'Success'}"/>
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </VBox>
+                    </Panel>
+
+                    <!-- ── Row 5: 연도별 현황 테이블 (L12) ── -->
+
+                    <Panel class="sapUiNoContentPadding asPanel" visible="{view>/hasTrend}">
+                        <layoutData><l:GridData span="L12 M12 S12"/></layoutData>
+                        <VBox>
+                            <HBox class="asPanelHdr" justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="연도별 현황" level="H5" class="asCardTitle"/>
+                            </HBox>
+                            <Table items="{view>/yearlyTrend}" noDataText="데이터 없음"
+                                   alternateRowColors="true" class="asTable">
+                                <columns>
+                                    <Column width="7rem"><Text text="연도"/></Column>
+                                    <Column hAlign="End"><Text text="자산 건수"/></Column>
+                                    <Column hAlign="End"><Text text="취득가액 (원)"/></Column>
+                                    <Column hAlign="End"><Text text="감가누계 (원)"/></Column>
+                                    <Column hAlign="End"><Text text="장부가액 (원)"/></Column>
+                                    <Column hAlign="Center" width="8rem"><Text text="장부가 증감"/></Column>
+                                    <Column hAlign="Center" width="8rem"><Text text="취득가 증감"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem type="Inactive">
+                                        <cells>
+                                            <Text text="{view>yearLabel}" wrapping="false" class="asTrendYear"/>
+                                            <Text text="{= (${view>count}||0).toLocaleString()}" textAlign="End" wrapping="false"/>
+                                            <Text text="{view>apriceFmt}" textAlign="End" wrapping="false"/>
+                                            <Text text="{view>accumFmt}"  textAlign="End" wrapping="false"/>
+                                            <Text text="{view>bookFmt}"   textAlign="End" wrapping="false"/>
+                                            <ObjectStatus text="{view>bookDeltaFmt}"   state="{view>bookDeltaState}"   class="asDeltaBadge"/>
+                                            <ObjectStatus text="{view>apriceDeltaFmt}" state="{view>apriceDeltaState}" class="asDeltaBadge"/>
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </VBox>
+                    </Panel>
+
+                </l:Grid>
+                <VBox height="1rem"/>
+            </VBox>
+
+        </content>
+    </Page>
+</mvc:View>

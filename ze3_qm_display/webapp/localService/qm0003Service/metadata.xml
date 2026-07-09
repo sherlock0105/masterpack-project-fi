@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZCDS_E3_QM_0003_CDS" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="ZCDS_E3_QM_0003Type" sap:label="[QM] 완제품 검수 항목 저장" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="prueflos"/>
+                    <PropertyRef Name="matnr"/>
+                    <PropertyRef Name="insp_cd"/>
+                </Key>
+                <Property Name="prueflos" Type="Edm.String" Nullable="false" MaxLength="12" sap:display-format="UpperCase" sap:label="검수번호"/>
+                <Property Name="matnr"    Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="자재코드"/>
+                <Property Name="insp_cd"  Type="Edm.String" Nullable="false" MaxLength="10" sap:display-format="UpperCase" sap:label="검사항목코드"/>
+                <Property Name="insp_nm"  Type="Edm.String" MaxLength="60"  sap:label="검사항목명"/>
+                <Property Name="budat"    Type="Edm.DateTime" Precision="0"  sap:display-format="Date" sap:label="검수일"/>
+                <Property Name="charg"    Type="Edm.String" MaxLength="10"  sap:display-format="UpperCase" sap:label="배치번호"/>
+                <Property Name="fail_qty" Type="Edm.Decimal" Precision="13" Scale="3" sap:unit="meins" sap:label="불합격수량"/>
+                <Property Name="meins"    Type="Edm.String" MaxLength="3"   sap:label="단위" sap:semantics="unit-of-measure"/>
+                <Property Name="erdat"    Type="Edm.DateTime" Precision="0"  sap:display-format="Date" sap:label="생성일"/>
+                <Property Name="aedat"    Type="Edm.DateTime" Precision="0"  sap:display-format="Date" sap:label="변경일"/>
+                <Property Name="aenam"    Type="Edm.String" MaxLength="12"  sap:label="변경자"/>
+            </EntityType>
+            <EntityContainer Name="ZCDS_E3_QM_0003_CDS_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json">
+                <EntitySet Name="ZCDS_E3_QM_0003" EntityType="ZCDS_E3_QM_0003_CDS.ZCDS_E3_QM_0003Type"
+                           sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1"/>
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

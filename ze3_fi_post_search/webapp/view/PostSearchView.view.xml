@@ -1,0 +1,419 @@
+<mvc:View controllerName="ze3.fi.post.search.ze3fipostsearch.controller.PostSearchView"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:viz="sap.viz.ui5.controls">
+
+    <mvc:dependents>
+        <SelectDialog id="belnrVHDialog"
+            title="전표번호 선택"
+            noDataText="먼저 조회 버튼을 눌러 데이터를 불러오세요."
+            search="onBelnrVHSearch"
+            confirm="onBelnrVHConfirm"
+            items="{path: 'view>/belnrList', templateShareable: false}">
+            <StandardListItem title="{view>Belnr}" description="{view>Desc}" type="Active" />
+        </SelectDialog>
+        <SelectDialog id="blartVHDialog"
+            title="전표유형 선택"
+            search="onBlartVHSearch"
+            confirm="onBlartVHConfirm"
+            items="{path: 'view>/blartList', templateShareable: false}">
+            <StandardListItem title="{view>Blart}" description="{view>Kor}" type="Active" />
+        </SelectDialog>
+
+        <!-- ── 전표 아이템 상세 다이얼로그 ── -->
+        <Dialog id="idDetailDialog"
+                title="{= '전표 아이템  ·  ' + (${view>/selectedBelnr} || '')}"
+                contentWidth="80%"
+                contentHeight="60%"
+                busy="{view>/detailBusy}"
+                busyIndicatorDelay="0"
+                draggable="true"
+                resizable="true">
+            <subHeader>
+                <Toolbar class="psDetailSubHdr">
+                    <core:Icon src="sap-icon://document-text" class="psHdrIcon"/>
+                    <Text text="{= ${view>/selectedBltxt} || '전표 아이템 목록'}" class="psHdrCount"/>
+                    <ToolbarSpacer/>
+                    <Text text="{= ${view>/itemCount} + '건'}" class="psHdrCount"/>
+                </Toolbar>
+            </subHeader>
+            <content>
+                <Table id="idItemTable" items="{view>/items}"
+                       noDataText="조회 중..."
+                       alternateRowColors="true"
+                       sticky="ColumnHeaders"
+                       class="psTable psItemTable psItemTableCompact">
+                    <columns>
+                        <Column width="3.5rem" hAlign="Center"><Text text="#"/></Column>
+                        <Column width="8rem"><Text text="계정코드"/></Column>
+                        <Column width="5.5rem" hAlign="Center"><Text text="차/대변"/></Column>
+                        <Column width="10rem" hAlign="End"><Text text="내화금액(KRW)"/></Column>
+                        <Column width="10rem" hAlign="End"><Text text="외화금액"/></Column>
+                        <Column width="4rem" hAlign="Center"><Text text="통화"/></Column>
+                        <Column width="8rem"><Text text="BP"/></Column>
+                        <Column width="8rem"><Text text="정산전표"/></Column>
+                        <Column><Text text="적요"/></Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem>
+                            <cells>
+                                <Text text="{view>Buzei}" wrapping="false"/>
+                                <Text text="{view>Saknr}" wrapping="false"/>
+                                <ObjectStatus text="{view>_ShkzgText}" state="{view>_ShkzgState}"/>
+                                <Text text="{view>_Dmbtr}" wrapping="false"/>
+                                <Text text="{view>_Wrbtr}" wrapping="false"/>
+                                <Text text="{view>Waers}"  wrapping="false"/>
+                                <Text text="{= ${view>Kunnr} || ${view>Lifnr} || ''}"
+                                      wrapping="false" class="psBPNum"/>
+                                <Text text="{view>Augbl}"  wrapping="false"/>
+                                <Text text="{view>Sgtxt}"  wrapping="false" class="psSgtxtCell"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </content>
+            <endButton>
+                <Button text="닫기" press="onDetailDialogClose" type="Emphasized"/>
+            </endButton>
+        </Dialog>
+
+        <!-- ── 연령 분석 드릴다운 다이얼로그 ── -->
+        <Dialog id="agingDrillDialog"
+                title="{view>/agingDrill/title}"
+                contentWidth="800px"
+                contentHeight="60%"
+                draggable="true"
+                resizable="true">
+            <content>
+                <VBox>
+                    <MessageStrip
+                        text="{view>/agingDrill/subtitle}"
+                        type="{view>/agingDrill/stripType}"
+                        showIcon="true"
+                        class="sapUiSmallMarginBegin sapUiSmallMarginEnd sapUiSmallMarginTop"/>
+                    <ScrollContainer height="100%" horizontal="false" vertical="true">
+                        <Table id="idAgingDrillTable"
+                               items="{view>/agingDrill/items}"
+                               noDataText="해당 구간의 미결 전표가 없습니다."
+                               alternateRowColors="true"
+                               class="psTable psAgingDrillTable">
+                            <columns>
+                                <Column width="7.5rem"><Text text="전표번호"/></Column>
+                                <Column width="5.5rem" hAlign="Center"><Text text="전기일"/></Column>
+                                <Column width="4.5rem" hAlign="Center"><Text text="경과일"/></Column>
+                                <Column width="9rem"><Text text="전표유형"/></Column>
+                                <Column width="8rem"><Text text="BP"/></Column>
+                                <Column><Text text="전표텍스트"/></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem press="onDrillRowPress" type="Active"
+                                               tooltip="클릭 시 전표 조회 탭에서 해당 전표로 이동">
+                                    <cells>
+                                        <Text text="{view>Belnr}" wrapping="false" class="psBelnrCell"/>
+                                        <Text text="{view>_Budat}" wrapping="false"/>
+                                        <ObjectStatus text="{= ${view>Days} + '일'}"
+                                                      state="{view>DaysState}"/>
+                                        <Text text="{= (${view>Blart}||'') + '  ' + (${view>_BlartKor}||'')}"
+                                              wrapping="false"/>
+                                        <Text text="{view>BP}" wrapping="false" class="psBPNum"/>
+                                        <Text text="{view>Bltxt}" wrapping="false"/>
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </ScrollContainer>
+                </VBox>
+            </content>
+            <endButton>
+                <Button text="닫기" press="onAgingDrillClose"/>
+            </endButton>
+        </Dialog>
+    </mvc:dependents>
+
+    <Page id="page" showHeader="false"
+          busy="{view>/busy}" busyIndicatorDelay="0"
+          enableScrolling="true"
+          class="sapUiNoContentPadding psPage">
+
+        <content>
+            <!-- ══ 페이지 헤더 ══════════════════════════════════════════════ -->
+            <VBox class="psPageHeader">
+                <VBox class="psPageHeaderContent">
+                    <Title text="전표 조회 프로그램" level="H2" class="psPageHeaderTitle"/>
+                    <Text text="SAP FI  ·  전표 헤더 / 아이템 통합 조회" class="psPageHeaderSub"/>
+                </VBox>
+            </VBox>
+
+            <!-- ══ 검색 바 ════════════════════════════════════════════════ -->
+            <Toolbar id="searchToolbar" class="psSearchBar">
+                <Label text="회계연도" design="Bold" class="psFilterLabel" />
+                <Input id="idGjahr" width="68px"
+                       value="{view>/filters/Gjahr}"
+                       class="sapUiTinyMarginEnd" />
+
+                <Label text="전기일" design="Bold" class="psFilterLabel" />
+                <DatePicker id="idBudatFrom" displayFormat="yyyy-MM-dd"
+                            valueFormat="yyyyMMdd" width="130px" placeholder="From"
+                            class="sapUiTinyMarginEnd" />
+                <Text text="~" class="psDateSep" />
+                <DatePicker id="idBudatTo" displayFormat="yyyy-MM-dd"
+                            valueFormat="yyyyMMdd" width="130px" placeholder="To"
+                            class="sapUiTinyMarginEnd" />
+
+                <Label text="전표유형" design="Bold" class="psFilterLabel" />
+                <Input id="idBlart" width="68px" placeholder="KR"
+                       value="{view>/filters/Blart}"
+                       showValueHelp="true" valueHelpRequest="onBlartVH"
+                       class="sapUiTinyMarginEnd" />
+
+                <Label text="전표번호" design="Bold" class="psFilterLabel" />
+                <Input id="idBelnr" width="110px" placeholder="전표번호"
+                       value="{view>/filters/Belnr}" submit="onSearch"
+                       showValueHelp="true" valueHelpRequest="onBelnrVH"
+                       class="sapUiTinyMarginEnd" />
+
+                <Button text="조회" type="Emphasized" press="onSearch"
+                        icon="sap-icon://search" class="sapUiTinyMarginEnd" />
+                <Button text="초기화" type="Ghost" press="onReset"
+                        icon="sap-icon://clear-filter" />
+                <ToolbarSpacer />
+                <Button text="Excel 저장" press="onExport"
+                        icon="sap-icon://excel-attachment" type="Ghost"
+                        enabled="{view>/hasData}" />
+            </Toolbar>
+
+            <!-- ══ 탭 바 ══════════════════════════════════════════════════ -->
+            <IconTabBar id="idMainTab" expandable="false"
+                        class="sapUiNoContentPadding psTabBar">
+                <items>
+
+                    <!-- ── 탭 1: 전표 조회 ───────────────────────────────── -->
+                    <IconTabFilter text="전표 조회" icon="sap-icon://table-view" key="search">
+
+                        <!-- 상태 요약 스트립 -->
+                        <HBox visible="{view>/hasData}" class="psInfoStrip" alignItems="Center">
+                            <Text text="총 전표" class="psInfoLabel" />
+                            <Text text="{view>/kpi/total}" class="psInfoVal psInfoVal--blue" />
+                            <Text text="건" class="psInfoUnit" />
+                            <Text text="|" class="psInfoSep" />
+                            <Text text="정상" class="psInfoLabel" />
+                            <Text text="{view>/kpi/normal}" class="psInfoVal psInfoVal--green" />
+                            <Text text="건" class="psInfoUnit" />
+                            <Text text="|" class="psInfoSep" />
+                            <Text text="미결" class="psInfoLabel" />
+                            <Text text="{view>/kpi/open}" class="psInfoVal psInfoVal--orange" />
+                            <Text text="건" class="psInfoUnit" />
+                            <Text text="|" class="psInfoSep" />
+                            <Text text="역분개" class="psInfoLabel" />
+                            <Text text="{view>/kpi/cancelled}" class="psInfoVal psInfoVal--red" />
+                            <Text text="건" class="psInfoUnit" />
+                        </HBox>
+
+                        <!-- 전표 헤더 테이블 -->
+                        <Panel class="psPanel" expandable="false">
+                            <headerToolbar>
+                                <Toolbar class="psHdrBar" height="2.75rem">
+                                    <core:Icon src="sap-icon://document" class="psHdrIcon" />
+                                    <Title text="전표 헤더" level="H5" class="psHdrTitle" />
+                                    <ToolbarSpacer />
+                                    <Text text="{= '총 ' + ${view>/totalCount} + '건'}"
+                                          visible="{view>/hasData}" class="psHdrCount" />
+                                </Toolbar>
+                            </headerToolbar>
+                            <Table id="idHeaderTable" items="{view>/pageData}"
+                                   noDataText="조회 버튼을 눌러 데이터를 불러오세요."
+                                   alternateRowColors="true" class="psTable">
+                                <columns>
+                                    <Column width="4.5rem" hAlign="Center"><Text text="상태" /></Column>
+                                    <Column width="8rem"><Text text="전표번호" /></Column>
+                                    <Column width="4.5rem" hAlign="Center"><Text text="회계연도" /></Column>
+                                    <Column width="8.5rem"><Text text="전표유형" /></Column>
+                                    <Column width="5.5rem" hAlign="Center"><Text text="전표일자" /></Column>
+                                    <Column width="5.5rem" hAlign="Center"><Text text="전기일" /></Column>
+                                    <Column width="3.5rem" hAlign="Center"><Text text="월" /></Column>
+                                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="전표텍스트" /></Column>
+                                    <Column width="3.5rem" hAlign="Center"><Text text="통화" /></Column>
+                                    <Column width="5.5rem" hAlign="End"><Text text="환율" /></Column>
+                                    <Column width="7rem"><Text text="BP 번호" /></Column>
+                                    <Column width="7rem"><Text text="참조번호" /></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem type="Active" press="onRowPress"
+                                        highlight="{= ${view>__selected} ? 'Information' : 'None'}">
+                                        <cells>
+                                            <ObjectStatus
+                                                text="{view>_ClearText}"
+                                                state="{view>_ClearState}"
+                                                class="psStatusLed"/>
+                                            <Text text="{view>Belnr}"  wrapping="false" class="psBelnrCell" />
+                                            <Text text="{view>Gjahr}"  wrapping="false" />
+                                            <Text text="{= (${view>Blart}||'') + '  ' + (${view>_BlartKor}||'')}"
+                                                  wrapping="false" class="psBlartText" />
+                                            <Text text="{view>_Bldat}" wrapping="false" />
+                                            <Text text="{view>_Budat}" wrapping="false" />
+                                            <Text text="{view>Monat}"  wrapping="false" />
+                                            <Text text="{view>Bltxt}"  wrapping="true" maxLines="2" />
+                                            <Text text="{view>Waers}"  wrapping="false" />
+                                            <Text text="{view>_Kursf}" wrapping="false" />
+                                            <Text text="{view>_BP}"    wrapping="false" class="psBPNum" />
+                                            <Text text="{view>Xblnr}"  wrapping="false" />
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </Panel>
+
+                        <!-- 페이지네이션 -->
+                        <HBox justifyContent="Center" alignItems="Center"
+                              visible="{view>/hasData}" class="psPaginationBar">
+                            <Button icon="sap-icon://navigation-left-arrow" press="onPrevPage"
+                                    enabled="{= ${view>/page} &gt; 1}" type="Transparent" />
+                            <Text text="{= ${view>/page} + ' / ' + ${view>/pageCount}}" class="psPageInfo" />
+                            <Button icon="sap-icon://navigation-right-arrow" press="onNextPage"
+                                    enabled="{= ${view>/page} &lt; ${view>/pageCount}}" type="Transparent" />
+                        </HBox>
+
+                        <VBox height="1rem"/>
+                    </IconTabFilter>
+
+                    <!-- ── 탭 2: 현황 ─────────────────────────────────────── -->
+                    <IconTabFilter text="현황" icon="sap-icon://bar-chart" key="stat">
+
+                        <!-- 빈 상태 -->
+                        <VBox visible="{= !${view>/hasData}}" class="psEmptyState"
+                              alignItems="Center" justifyContent="Center">
+                            <core:Icon src="sap-icon://search-next" size="3rem" class="psEmptyIcon" />
+                            <Text text="먼저 조회 탭에서 전표를 조회해 주세요." class="psEmptyText" />
+                        </VBox>
+
+                        <!-- KPI 카드 6개 한 줄 -->
+                        <FlexBox visible="{view>/hasData}" wrap="Wrap" alignItems="Stretch"
+                                 class="psKpiRow">
+                            <VBox class="psKpiCard psKpiCard--total">
+                                <HBox alignItems="Center" class="psKpiTop">
+                                    <core:Icon src="sap-icon://documents" class="psKpiIcon"/>
+                                    <Text text="총 전표" class="psKpiLabel"/>
+                                </HBox>
+                                <Text text="{view>/kpi/total}" class="psKpiNumber"/>
+                                <Text text="전체 조회 건수" class="psKpiSub"/>
+                            </VBox>
+                            <VBox class="psKpiCard psKpiCard--normal">
+                                <HBox alignItems="Center" class="psKpiTop">
+                                    <core:Icon src="sap-icon://accept" class="psKpiIcon"/>
+                                    <Text text="정상 전표" class="psKpiLabel"/>
+                                </HBox>
+                                <Text text="{view>/kpi/normal}" class="psKpiNumber"/>
+                                <Text text="전기 완료" class="psKpiSub"/>
+                            </VBox>
+                            <VBox class="psKpiCard psKpiCard--open">
+                                <HBox alignItems="Center" class="psKpiTop">
+                                    <core:Icon src="sap-icon://alert" class="psKpiIcon"/>
+                                    <Text text="미결 전표" class="psKpiLabel"/>
+                                </HBox>
+                                <Text text="{view>/kpi/open}" class="psKpiNumber"/>
+                                <Text text="정산 대기 중" class="psKpiSub"/>
+                            </VBox>
+                            <VBox class="psKpiCard psKpiCard--cancel">
+                                <HBox alignItems="Center" class="psKpiTop">
+                                    <core:Icon src="sap-icon://cancel" class="psKpiIcon"/>
+                                    <Text text="역분개 전표" class="psKpiLabel"/>
+                                </HBox>
+                                <Text text="{view>/kpi/cancelled}" class="psKpiNumber"/>
+                                <Text text="역분개 처리됨" class="psKpiSub"/>
+                            </VBox>
+                            <VBox class="psKpiCard psKpiCard--ar">
+                                <HBox alignItems="Center" class="psKpiTop">
+                                    <core:Icon src="sap-icon://arrow-top" class="psKpiIcon"/>
+                                    <Text text="매출채권 (AR)" class="psKpiLabel"/>
+                                </HBox>
+                                <Text text="{view>/kpi/arCount}" class="psKpiNumber psKpiNumber--ar"/>
+                                <Text text="{= '미결 ' + (${view>/kpi/arOpen}||'0') + '건  ·  DR / DZ'}" class="psKpiSub"/>
+                            </VBox>
+                            <VBox class="psKpiCard psKpiCard--ap">
+                                <HBox alignItems="Center" class="psKpiTop">
+                                    <core:Icon src="sap-icon://arrow-bottom" class="psKpiIcon"/>
+                                    <Text text="매입채무 (AP)" class="psKpiLabel"/>
+                                </HBox>
+                                <Text text="{view>/kpi/apCount}" class="psKpiNumber psKpiNumber--ap"/>
+                                <Text text="{= '미결 ' + (${view>/kpi/apOpen}||'0') + '건  ·  KR / KZ / RE'}" class="psKpiSub"/>
+                            </VBox>
+                        </FlexBox>
+
+                        <!-- 차트 영역 -->
+                        <VBox visible="{view>/hasData}" class="psChartArea">
+                            <l:Grid defaultSpan="L6 M12 S12" hSpacing="1" vSpacing="1">
+
+                                <!-- Row 1 Left: 월별 전표 건수 -->
+                                <Panel class="sapUiNoContentPadding psChartPanel">
+                                    <VBox>
+                                        <HBox class="psChartHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                            <VBox>
+                                                <Title text="월별 전표 건수" level="H5" class="psChartTitle"/>
+                                                <Text text="월별 전표 발생 추이" class="psChartSub"/>
+                                            </VBox>
+                                            <ObjectStatus id="idMonthDeltaStatus" text="" state="None" class="psChartDelta"/>
+                                        </HBox>
+                                        <viz:VizFrame id="idMonthlyChart" vizType="column"
+                                                      height="260px" width="100%"/>
+                                    </VBox>
+                                </Panel>
+
+                                <!-- Row 1 Right: 전표유형별 현황 -->
+                                <Panel class="sapUiNoContentPadding psChartPanel">
+                                    <VBox>
+                                        <HBox class="psChartHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                            <VBox>
+                                                <Title text="전표유형별 현황" level="H5" class="psChartTitle"/>
+                                                <Text text="전표유형별 구성 비율" class="psChartSub"/>
+                                            </VBox>
+                                        </HBox>
+                                        <viz:VizFrame id="idBlartChart" vizType="donut"
+                                                      height="260px" width="100%"/>
+                                    </VBox>
+                                </Panel>
+
+                                <!-- Row 2 Left: 전표 상태 현황 -->
+                                <Panel class="sapUiNoContentPadding psChartPanel">
+                                    <VBox>
+                                        <HBox class="psChartHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                            <VBox>
+                                                <Title text="전표 상태 현황" level="H5" class="psChartTitle"/>
+                                                <Text text="정상 · 미결 · 역분개 분포" class="psChartSub"/>
+                                            </VBox>
+                                        </HBox>
+                                        <viz:VizFrame id="idStatusChart" vizType="donut"
+                                                      height="260px" width="100%"/>
+                                    </VBox>
+                                </Panel>
+
+                                <!-- Row 2 Right: 미결 전표 연령 분석 -->
+                                <Panel class="sapUiNoContentPadding psChartPanel">
+                                    <VBox>
+                                        <HBox class="psChartHdr" justifyContent="SpaceBetween" alignItems="Start">
+                                            <VBox>
+                                                <Title text="미결 전표 연령 분석" level="H5" class="psChartTitle"/>
+                                                <Text text="경과일 구간별 현황 (AR · AP · 기타)  ·  막대 클릭 시 상세 목록" class="psChartSub"/>
+                                            </VBox>
+                                            <core:Icon src="sap-icon://drill-down" class="psAgingDrillHint"
+                                                       tooltip="막대를 클릭하면 해당 구간의 전표 목록을 볼 수 있습니다."/>
+                                        </HBox>
+                                        <viz:VizFrame id="idAgingChart" vizType="column"
+                                                      height="260px" width="100%"
+                                                      selectData="onAgingSelect"/>
+                                    </VBox>
+                                </Panel>
+
+                            </l:Grid>
+                        </VBox>
+
+                        <VBox height="1rem" />
+                    </IconTabFilter>
+
+                </items>
+            </IconTabBar>
+
+        </content>
+    </Page>
+</mvc:View>
