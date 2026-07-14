@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZE3FI0002</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZE3FI0002</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 외화평가 및 환손익 분석</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool      ZE3FI0002</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 외화평가 프로그램</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="ze3fi0002_top.html">ZE3FI0002_TOP</a>.    " Global Data
+
+include <a href ="ze3fi0002_c01.html">ZE3FI0002_C01</a>.  " PBO-Modules
+include <a href ="ze3fi0002_o01.html">ZE3FI0002_O01</a>.  " PBO-Modules
+include <a href ="ze3fi0002_i01.html">ZE3FI0002_I01</a>.  " PAI-Modules
+include <a href ="ze3fi0002_f01.html">ZE3FI0002_F01</a>.  " FORM-Routines
+
+<font color ="#0000FF">*차트 다듬기 TOP 5</font>
+
+"사용 CDS VIEW
+<font color ="#0000FF">*ZCDS_E3_FI_0001</font>
+<font color ="#0000FF">*ZCDS_E3_FI_0004</font>
+
+"우측 그리드가 새로고침이 안된다. -&gt; 해결\
+"평가 전표랑 평가손익이 금액이 안맞음,,
+"실행할때 메세지하면 좋을듯
+"조회로 변경
+"환율 두개가 나옴?
+
+"특정 환입만 생기는 문제, select 문제일듯
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T0100 --&gt; [FI] 외화평가 및 환손익 분석</font>
+<font color ="#0000FF">* T0200 --&gt; [FI] 거래처 미결 차트</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMCE3</font>
+<font color ="#0000FF">*000   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

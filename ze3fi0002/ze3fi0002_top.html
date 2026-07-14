@@ -1,0 +1,322 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZE3FI0002_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZE3FI0002_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZE3FI0002_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZE3FI0002_TOP                        - Module Pool      ZE3FI0002</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM ze3fi0002 MESSAGE-ID zmce3.
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  공통 제어</font>
+<font color ="#0000FF">*======================================================================*</font>
+
+DATA: gv_sim_usd TYPE p DECIMALS 2,
+      gv_sim_eur TYPE p DECIMALS 2,
+      gv_sim_jpy TYPE p DECIMALS 2.
+
+DATA : gv_ar_cnt TYPE i,
+       gv_ap_cnt TYPE i.
+DATA gv_expand TYPE c.
+
+DATA : gcl_document_top_pop TYPE REF TO  cl_dd_document,
+       gcl_container_0103   TYPE REF TO cl_gui_custom_container.
+"TAB 3
+DATA : gt_sort TYPE lvc_t_sort.
+DATA : gt_sort_pop   TYPE lvc_t_sort,
+       gs_layout_pop TYPE lvc_s_layo,
+       gs_fcat_pop   TYPE lvc_s_fcat,
+       gt_fcat_pop   TYPE lvc_t_fcat.
+"예정 전표
+DATA: BEGIN OF gs_prev,
+        seq       TYPE i,
+        remark(5),
+        blart     TYPE zte3fi0002-blart,
+        budat     TYPE zte3fi0002-budat,
+        bltxt     TYPE zte3fi0002-bltxt,
+        saknr     TYPE zte3fi0003-saknr,
+        stext(30),
+        kostl     TYPE zte3fi0003-kostl,
+        shkzg     TYPE zte3fi0003-shkzg,
+        dmbtr_s   TYPE zte3fi0003-dmbtr,  " 차변
+        dmbtr_h   TYPE zte3fi0003-dmbtr,  " 대변
+        waers_s   TYPE zte3fi0003-waers,
+        waers_h   TYPE zte3fi0003-waers,
+        color     TYPE lvc_t_scol,
+      END OF gs_prev,
+      gt_prev LIKE TABLE OF gs_prev.
+
+DATA gt_fcat_prev TYPE lvc_t_fcat.
+DATA gs_fcat_prev TYPE lvc_s_fcat.
+DATA gcl_con_prev TYPE REF TO cl_gui_custom_container.
+DATA gcl_prev     TYPE REF TO cl_gui_alv_grid.
+
+DATA: BEGIN OF gs_hist,
+        budat TYPE zte3fi0002-budat,   " 평가기준일
+        bltxt TYPE zte3fi0002-bltxt,   " 적요
+        dmbtr TYPE zte3fi0003-dmbtr,   " 평가금액
+        waers TYPE zte3fi0003-waers,   " 통화
+        belnr TYPE zte3fi0002-belnr,   " 전표번호
+      END OF gs_hist.
+DATA gt_hist      LIKE TABLE OF gs_hist.
+DATA gt_fcat_hist TYPE lvc_t_fcat.
+
+DATA gcl_con_hist    TYPE REF TO cl_gui_custom_container.
+DATA gcl_hist        TYPE REF TO cl_gui_alv_grid.
+
+DATA : gv_butxt TYPE zte3cm0001-butxt.
+
+DATA: gv_bukrs           TYPE zte3fi0002-bukrs,
+      gv_month           TYPE sy-datum,
+      gv_evdat           TYPE sy-datum,
+      gv_usd             TYPE p DECIMALS 2,   " 시뮬 변동률(%)
+      gv_eur             TYPE p DECIMALS 2,
+      gv_jpy             TYPE p DECIMALS 2,
+      gv_okcode          TYPE sy-ucomm,
+      gv_eval_created(2),
+      gv_rev_created(2),
+      gv_check(2),
+      gv_answer_check(1),
+      gv_status          TYPE icon_d,
+      gv_sim             TYPE icon_d,
+      gv_status_text(10).
+
+"기존 환율
+DATA: gv_usd_text(10),
+      gv_eur_text(10),
+      gv_jpy_text(10).
+"시뮬 환율
+DATA: gv_usd_text2(10),
+      gv_eur_text2(10),
+      gv_jpy_text2(10).
+
+<font color ="#0000FF">*DATA: gv_base_usd TYPE p DECIMALS 0,</font>
+<font color ="#0000FF">*      gv_base_eur TYPE p DECIMALS 0,</font>
+<font color ="#0000FF">*      gv_base_jpy TYPE p DECIMALS 0.</font>
+
+DATA: gv_base_usd TYPE zte3fi0008-ukurs,
+      gv_base_eur TYPE zte3fi0008-ukurs,
+      gv_base_jpy TYPE zte3fi0008-ukurs.
+
+CONTROLS gc_tab TYPE TABSTRIP.
+DATA: gv_pressed TYPE sy-ucomm VALUE '1ST',
+      gv_screen  TYPE sy-dynnr VALUE '0101'.
+
+DATA: gs_layout  TYPE lvc_s_layo,
+      gs_variant TYPE disvariant,
+      gs_stable  TYPE lvc_s_stbl,
+      gs_fcat    TYPE lvc_s_fcat,
+      gt_event   TYPE cntl_simple_events,
+      gs_event   LIKE LINE OF gt_event.
+
+" 통화 목록 체크용 글로벌 테이블
+DATA: gt_curr TYPE TABLE OF waers.
+
+" 통화별 소계용 글로벌 구조 및 테이블
+DATA: BEGIN OF gs_curr_sum,
+        fwaer TYPE waers,
+        wrbtr TYPE wrbtr,
+      END OF gs_curr_sum,
+      gt_curr_sum LIKE TABLE OF gs_curr_sum.
+
+" 거래처별 소계용 글로벌 구조 및 테이블
+DATA: BEGIN OF gs_ptnr_sum,
+        fwaer TYPE waers,
+        ptnr  TYPE string,
+        wrbtr TYPE wrbtr,
+      END OF gs_ptnr_sum,
+      gt_ptnr_sum LIKE TABLE OF gs_ptnr_sum.
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  화면 상단 출력값</font>
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*-- 예금 보유액 (ZTE3FI0007)</font>
+DATA: gv_usd_wrbtr TYPE zte3fi0007-wrbtr,      " USD 외화잔액
+      gv_usd_krw   TYPE zte3fi0003-dmbtr,  " USD KRW
+      gv_eur_wrbtr TYPE zte3fi0007-wrbtr,
+      gv_eur_krw   TYPE zte3fi0003-dmbtr,
+<font color ="#0000FF">*      gv_jpy_wrbtr TYPE zte3fi0007-wrbtr,</font>
+      gv_jpy_wrbtr TYPE p DECIMALS 0,
+      gv_jpy_krw   TYPE zte3fi0003-dmbtr.
+
+
+<font color ="#0000FF">*AR 집계</font>
+DATA: gv_ar_krw_sum TYPE zte3fi0003-dmbtr,
+      gv_ar_profit  TYPE zte3fi0003-dmbtr,
+      gv_ar_loss    TYPE zte3fi0003-dmbtr,
+      gv_ar_net     TYPE zte3fi0003-dmbtr.
+
+<font color ="#0000FF">*AP 집계</font>
+DATA: gv_ap_krw_sum TYPE zte3fi0003-dmbtr,
+      gv_ap_profit  TYPE zte3fi0003-dmbtr,
+      gv_ap_loss    TYPE zte3fi0003-dmbtr,
+      gv_ap_net     TYPE zte3fi0003-dmbtr.
+
+<font color ="#0000FF">*시뮬 전/후</font>
+DATA: gv_before TYPE zte3fi0003-dmbtr,
+      gv_after  TYPE zte3fi0003-dmbtr,
+      gv_change TYPE zte3fi0003-dmbtr.
+
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  TAB 1 — 시뮬레이션 (screen 0101)</font>
+<font color ="#0000FF">*======================================================================*</font>
+DATA: gcl_con_tree  TYPE REF TO cl_gui_custom_container,
+      gcl_con_right TYPE REF TO cl_gui_custom_container,
+      gcl_con_chart TYPE REF TO cl_gui_custom_container,
+      gcl_tree      TYPE REF TO cl_gui_alv_tree,
+      gcl_grid_sim  TYPE REF TO cl_gui_alv_grid,
+      gcl_chart     TYPE REF TO cl_gui_chart_engine.
+
+DATA: gt_fcat      TYPE lvc_t_fcat,
+      gt_fcat_tree TYPE lvc_t_fcat,
+      gs_hierhdr   TYPE treev_hhdr.
+
+DATA: gv_all_node   TYPE lvc_nkey,
+      gv_ar_node    TYPE lvc_nkey,
+      gv_ap_node    TYPE lvc_nkey,
+      gv_sel_node   TYPE lvc_nkey,
+      gv_check_node TYPE lvc_nkey.
+
+DATA: BEGIN OF gs_data, "Fwaers, waers
+        icon            TYPE icon_d,
+        color           TYPE lvc_t_scol,
+        buzei           TYPE zte3fi0003-buzei,
+        eval_krw        TYPE zte3fi0003-dmbtr,
+        eval_diff       TYPE zte3fi0003-dmbtr,
+        ar_ap(2),
+        name1           TYPE zte3sd0001-name1,
+        stext           TYPE zte3fi0001-stext,
+        tcurr           TYPE p DECIMALS 0,
+        vennm           TYPE zte3mm0002-vennm,
+        stblg           TYPE zte3fi0002-stblg,
+        base_diff       TYPE zte3fi0003-dmbtr,
+        partner         TYPE zte3sd0001-kunnr,
+        xblnr           TYPE zte3fi0002-xblnr,
+<font color ="#0000FF">*        kunnr           TYPE zte3sd0001-kunnr,</font>
+        status(10),
+        node_type       TYPE char10,
+        status_text(10). " 손해/이익
+        include structure <a href ="zcds_e3_fi_0001/dictionary-zcds_e3_fi_0001.html">zcds_e3_fi_0001</a>.
+DATA:   END OF gs_data,
+
+gt_data      LIKE TABLE OF gs_data,
+  gt_data_disp LIKE TABLE OF gs_data.
+
+DATA: gcl_ixml          TYPE REF TO if_ixml,
+      gcl_ixml_sf       TYPE REF TO if_ixml_stream_factory,
+      gcl_ixml_data_doc TYPE REF TO if_ixml_document,
+      gcl_ostream       TYPE REF TO if_ixml_ostream,
+      gcl_encoding      TYPE REF TO if_ixml_encoding.
+
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  TAB 2 — 외화 보유현황 (screen 0102)</font>
+<font color ="#0000FF">*======================================================================*</font>
+DATA: gcl_con_hold  TYPE REF TO cl_gui_custom_container,
+      gcl_grid_hold TYPE REF TO cl_gui_alv_grid,
+      gt_fcat_hold  TYPE lvc_t_fcat,
+      gcl_chart2    TYPE REF TO cl_gui_chart_engine.
+
+DATA: gcl_con_chart2 TYPE REF TO cl_gui_custom_container.
+
+DATA: gv_usd_avg TYPE p DECIMALS 0,
+      gv_eur_avg TYPE p DECIMALS 0,
+      gv_jpy_avg TYPE p DECIMALS 0.
+
+DATA: BEGIN OF gs_hold,
+        color        TYPE lvc_t_scol,
+        category(10),
+        usd_avg      TYPE p DECIMALS 0,
+        eur_avg      TYPE p DECIMALS 0,
+        jpy_avg      TYPE p DECIMALS 0,
+        fwaer        TYPE zte3fi0003-fwaer,
+        waers        TYPE zte3fi0003-waers,
+        wrbtr        TYPE zte3fi0003-wrbtr,
+        dmbtr        TYPE zte3fi0003-dmbtr,
+<font color ="#0000FF">*        eval_krw     TYPE zte3fi0003-dmbtr,</font>
+<font color ="#0000FF">*        eval_diff    TYPE zte3fi0003-dmbtr,</font>
+        eval_krw     TYPE p DECIMALS 0,    " ← CURR → p DECIMALS 2
+        eval_diff    TYPE p DECIMALS 0,    " ← CURR → p DECIMALS 2
+<font color ="#0000FF">*        eval_diff    TYPE zte3fi0003-dmbtr,    " ← CURR → p DECIMALS 2</font>
+        ukurs        TYPE p DECIMALS 0,
+        tcurr        TYPE p DECIMALS 0.
+        include structure <a href ="zte3fi0001/dictionary-zte3fi0001.html">zte3fi0001</a>.
+DATA END OF    gs_hold.
+DATA gt_hold LIKE TABLE OF gs_hold.
+
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**======================================================================*</font>
+<font color ="#0000FF">**  TAB 4 — 환율현황 (screen 0104)</font>
+<font color ="#0000FF">**======================================================================*</font>
+
+DATA: BEGIN OF gs_rate_disp,
+        fcurr      TYPE zte3fi0008-fcurr,
+        gdatu_real TYPE zte3fi0008-gdatu,
+        gdatu      TYPE zte3fi0008-gdatu,
+        ukurs      TYPE zte3fi0008-ukurs,
+        sim_rate   TYPE zte3fi0008-ukurs,
+        prev_rate  TYPE zte3fi0008-ukurs,
+        diff       TYPE zte3fi0008-ukurs,
+        diff_pct   TYPE p DECIMALS 2,
+      END OF gs_rate_disp.
+DATA gt_rate_disp LIKE TABLE OF gs_rate_disp.
+
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  마스터 (set_init_master 1회)</font>
+<font color ="#0000FF">*======================================================================*</font>
+DATA: BEGIN OF gs_saknr,
+        saknr TYPE zte3fi0001-saknr,
+        stext TYPE zte3fi0001-stext,
+      END OF gs_saknr.
+DATA gt_saknr LIKE TABLE OF gs_saknr.
+
+DATA: BEGIN OF gs_kunnr,
+        kunnr TYPE zte3sd0001-kunnr,
+        name1 TYPE zte3sd0001-name1,
+      END OF gs_kunnr.
+DATA gt_kunnr LIKE TABLE OF gs_kunnr.
+
+DATA: BEGIN OF gs_lifnr,
+        lifnr TYPE zte3mm0002-lifnr,
+        vennm TYPE zte3mm0002-vennm,
+      END OF gs_lifnr.
+DATA gt_lifnr LIKE TABLE OF gs_lifnr.
+
+DATA: BEGIN OF gs_rate,
+        fcurr TYPE zte3fi0008-fcurr,
+        gdatu TYPE zte3fi0008-gdatu,
+        ukurs TYPE zte3fi0008-ukurs,
+        ffact TYPE zte3fi0008-ffact,
+        erdat TYPE zte3fi0008-erdat,
+      END OF gs_rate.
+DATA gt_rate     LIKE TABLE OF gs_rate.
+DATA gt_rate_all LIKE TABLE OF gs_rate.
+
+DATA: gt_tree_outtab LIKE gt_data.
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  MACRO</font>
+<font color ="#0000FF">*======================================================================*</font>
+DEFINE _popup_to_confirm.
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      titlebar              = &1
+      text_question         = &2
+      text_button_1         = '예'
+      icon_button_1         = '@01@'
+      text_button_2         = '아니오'
+      icon_button_2         = '@0W@'
+      default_button        = '1'
+      display_cancel_button = ' '
+    IMPORTING
+      answer                = &3.
+END-OF-DEFINITION.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0003</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0003</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 전표 조회 및 역분개 프로그램</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRE3FI0003</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zre3fi0003_top.html">zre3fi0003_top</a>.
+include <a href ="zre3fi0003_s01.html">zre3fi0003_s01</a>.
+include <a href ="zre3fi0003_c01.html">zre3fi0003_c01</a>.
+include <a href ="zre3fi0003_o01.html">zre3fi0003_o01</a>.
+include <a href ="zre3fi0003_i01.html">zre3fi0003_i01</a>.
+include <a href ="zre3fi0003_f01.html">zre3fi0003_f01</a>.
+
+INITIALIZATION.
+  PERFORM set_init_value. " 초기값 세팅
+
+AT SELECTION-SCREEN OUTPUT.
+  PERFORM control_screen. "1000번 스크린 값 막기
+  PERFORM f4_blart.       "리스트 박스
+
+AT SELECTION-SCREEN.
+  PERFORM fc_control. "전표생성으로 이동
+  PERFORM save_tab.   "메모리 아이디 기억
+  PERFORM data_range. "최대 조회 기간 3개월로 막아놓음.
+
+  PERFORM check_data. "유효성 검사
+  "미결부터 보여지고 최근 날짜로 보여지게 수정함.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR : so_belnr-low.
+  PERFORM f4_belnr.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR : so_belnr-high.
+  PERFORM f4_belnr.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR : so_kun-low.
+  PERFORM f4_kunnr.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR : so_kun-high.
+  PERFORM f4_kunnr.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR : so_lif-low.
+  PERFORM f4_lifnr.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR : so_lif-high.
+  PERFORM f4_lifnr.
+
+START-OF-SELECTION.
+  PERFORM get_header_data. "전표 header.
+  PERFORM set_style.
+
+  CALL SCREEN '0100'.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T0100 --&gt; [FI] 전표 조회 및 역분개 프로그램</font>
+<font color ="#0000FF">* T0101 --&gt; [FI] 역분개</font>
+<font color ="#0000FF">* T0100 --&gt; [FI] 전표 조회 및 역분개 프로그램</font>
+<font color ="#0000FF">* T0101 --&gt; [FI] 역분개</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 검색 조건</font>
+<font color ="#0000FF">* T02 조회 조건</font>
+<font color ="#0000FF">* T03 전표 상세</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_BLART         전표 유형</font>
+<font color ="#0000FF">* PA_BUK2 D       .</font>
+<font color ="#0000FF">* PA_BUK3 D       .</font>
+<font color ="#0000FF">* PA_BUKRS D       .</font>
+<font color ="#0000FF">* PA_GJA2 D       .</font>
+<font color ="#0000FF">* PA_GJA3 D       .</font>
+<font color ="#0000FF">* PA_GJAHR D       .</font>
+<font color ="#0000FF">* RB_ALL         전체 전표</font>
+<font color ="#0000FF">* RB_ALL2         전체 전표</font>
+<font color ="#0000FF">* RB_CLR         반제 전표</font>
+<font color ="#0000FF">* RB_CLR2         반제 전표</font>
+<font color ="#0000FF">* RB_OPN         미결 전표</font>
+<font color ="#0000FF">* RB_OPN2         미결 전표</font>
+<font color ="#0000FF">* SO_BELNR D       .</font>
+<font color ="#0000FF">* SO_BUD2 D       .</font>
+<font color ="#0000FF">* SO_BUD3 D       .</font>
+<font color ="#0000FF">* SO_BUDAT D       .</font>
+<font color ="#0000FF">* SO_EXPKZ         채널</font>
+<font color ="#0000FF">* SO_KUN D       .</font>
+<font color ="#0000FF">* SO_LIF D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMCE3</font>
+<font color ="#0000FF">*000   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

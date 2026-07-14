@@ -1,0 +1,287 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0003_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0003_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0003_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRE3FI0003_TOP                           - Report ZRE3FI0003</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zre3fi0003 MESSAGE-ID zmce3.
+
+TABLES: zte3fi0002, zte3fi0003, zte3cm0005,
+        sscrfields, zte3sd0001, zte3mm0002, zte3co0002.
+
+
+DATA : gv_min_gjahr TYPE zte3fi0002-gjahr.
+<font color ="#0000FF">*DATA : gv_butxt TYPE zte3cm0001-butxt.</font>
+"----------------------------------------------------------------------
+" 탭스트립 컨트롤 선언
+"----------------------------------------------------------------------
+CONTROLS gc_tab TYPE TABSTRIP.
+
+"----------------------------------------------------------------------
+" 탭 제어 변수
+"----------------------------------------------------------------------
+DATA: gv_tab          TYPE sy-ucomm,   " 현재 활성 탭 ID (COMM1/COMM2/COMM3)
+      gv_top_flag(10),                 " 상단 요약 도큐먼트 출력 기준 탭 ID
+      gv_tab_sub      TYPE sy-dynnr.   " 탭별 서브스크린 다이너 번호
+
+CONSTANTS gc_mem_tab TYPE char20 VALUE 'ZFI_TAB'. " MEMORY ID - 탭 상태 저장용
+
+"----------------------------------------------------------------------
+" 탭 타이틀 (선택화면 탭 라벨)
+"----------------------------------------------------------------------
+DATA: tab_all(10), " 전체 전표 탭 타이틀
+      tab_kur(10), " 고객 전표 탭 타이틀
+      tab_lif(10), " 공급업체 전표 탭 타이틀
+      tab_gl(10).  " GL 전표 탭 타이틀
+
+<font color ="#0000FF">*INCLUDE &lt;icon&gt;. " SAP 표준 아이콘 심볼 선언</font>
+
+"----------------------------------------------------------------------
+" 역분개 팝업 - 요청자 사원 정보
+"----------------------------------------------------------------------
+DATA: BEGIN OF gs_emp,
+        pernr  TYPE zte3cm0005-pernr,  " 사번
+        pernam TYPE zte3cm0005-pernam, " 성명
+        btrtl  TYPE zte3cm0005-btrtl,  " 부서
+        grade  TYPE zte3cm0005-grade,  " 직급
+      END OF gs_emp.
+
+DATA : gv_btrtl_text(10),
+       gv_grade_text(5).
+
+"----------------------------------------------------------------------
+" 역분개 팝업 - 사유 텍스트 / 역분개 처리일
+"----------------------------------------------------------------------
+DATA: gv_stgrd_txt TYPE char60,           " 역분개 사유 도메인 텍스트
+      gv_rev_date  TYPE zte3fi0002-rev_date. " 역분개 처리일
+
+"----------------------------------------------------------------------
+" 역분개 저장용 헤더 구조체
+"----------------------------------------------------------------------
+DATA gs_rev TYPE zte3fi0002. " 역분개 전표 헤더 (INSERT 대상)
+
+"----------------------------------------------------------------------
+" 팝업 차/대변 합계 (PDF 출력 및 팝업 표시용)
+"----------------------------------------------------------------------
+DATA: gv_popup_dmbtr_s TYPE zte3fi0003-dmbtr, " 차변 합계 (Debit)
+      gv_popup_dmbtr_h TYPE zte3fi0003-dmbtr. " 대변 합계 (Credit)
+
+"----------------------------------------------------------------------
+" 공통 변수
+"----------------------------------------------------------------------
+DATA: gv_dmbtr_s     TYPE zte3fi0003-dmbtr,    " 아이템 차변 누계
+      gv_dmbtr_h     TYPE zte3fi0003-dmbtr,    " 아이템 대변 누계
+      gv_popup_xblnr TYPE zte3fi0002-xblnr,    " 팝업용 참조번호
+      gv_stgrd       TYPE zte3fi0002-stgrd,    " 역분개 사유코드 (입력값)
+      gv_rev_confirm TYPE c LENGTH 1,          " 역분개 팝업 확인 플래그 ('X': 확인)
+      gv_mode(5),                              " 조회 모드 (ALL/AR_A/AR_O 등)
+      gv_okcode      TYPE sy-ucomm,            " 화면 OK-CODE
+      gv_text        TYPE sdydo_text_element,  " HTML 도큐먼트 텍스트 버퍼
+      gv_sel_belnr   TYPE zte3fi0002-belnr,    " 역분개 대상 전표번호
+      gv_sel_gjahr   TYPE zte3fi0002-gjahr,    " 역분개 대상 회계연도
+      gv_sel_bukrs   TYPE zte3fi0002-bukrs.    " 역분개 대상 회사코드
+
+DATA : gv_gjahr TYPE zte3fi0002-gjahr.
+DATA gv_amt_all TYPE zte3fi0003-dmbtr.         " 전체 금액 합계 (미사용 예비)
+
+"----------------------------------------------------------------------
+" 상단 요약 집계 변수
+"   - 전체 집계
+"   - 고객(AR) 집계
+"   - 공급업체(AP) 집계
+"   - 날짜 범위
+"----------------------------------------------------------------------
+DATA: gv_cnt_total     TYPE i,              " 전체 전표 건수
+      gv_amt_total     TYPE p DECIMALS 2,   " 전체 차변 합계 금액
+      gv_cnt_normal    TYPE i,   " 전체 차변 합계 금액
+
+      gv_cnt_temp      TYPE i,              " 임시 전표 건수 (예비)
+      gv_amt_temp      TYPE p DECIMALS 2,   " 임시 전표 금액 (예비)
+
+      gv_cnt_pending   TYPE i,              " 미결 전표 건수
+      gv_amt_pending   TYPE p DECIMALS 2,   " 미결 전표 금액
+
+      gv_cnt_cleared   TYPE i,              " 반제 전표 건수
+      gv_amt_cleared   TYPE p DECIMALS 2,   " 반제 전표 금액
+
+      gv_cnt_reverse   TYPE i,              " 역분개 전표 건수 (blart=AB)
+      gv_cnt_reversed  TYPE i,              " 역분개 당한 원본 전표 건수
+
+      " ── 고객(AR) 전표 집계
+      gv_cnt_kunner    TYPE i,              " 고객 전표 건수 (AB 제외)
+      gv_kunner_rev    TYPE i,              " 역분개 당한 고객 전표 건수
+      gv_amt_kunnr     TYPE p DECIMALS 2,   " 고객 전표 총금액
+      gv_amt_kunnr_pnd TYPE p DECIMALS 2,   " 고객 미결 금액
+
+      " ── 공급업체(AP) 전표 집계
+      gv_cnt_lifnr     TYPE i,              " 공급업체 전표 건수 (AB 제외)
+      gv_lifnr_rev     TYPE i,              " 역분개 당한 공급업체 전표 건수
+      gv_amt_lifnr     TYPE p DECIMALS 2,   " 공급업체 전표 총금액
+      gv_amt_lifnr_pnd TYPE p DECIMALS 2,   " 공급업체 미결 금액
+
+      " ── 조회 날짜 범위 (자동 산출)
+      gv_min_date      TYPE d,              " 조회 기간 시작일
+      gv_max_date      TYPE d.              " 조회 기간 종료일
+
+"----------------------------------------------------------------------
+" 헤더 내부 테이블 (ALV 출력용 확장 구조)
+"   - zte3fi0002 기본 필드 + 아이콘/색상/마스터명 추가
+"----------------------------------------------------------------------
+DATA: BEGIN OF gs_header,
+        icon          TYPE icon_d,          " LED 상태 아이콘
+        icon_text(10),
+        style         TYPE lvc_t_styl,      " ALV 셀 스타일 (버튼 등)
+        stat_txt(20),                       " 상태 텍스트 (bstat 원본)
+        stgrd_txt(50),                      " 역분개 사유 텍스트
+        blart_txt(50),                      " 전표유형 텍스트
+        pdf_down      TYPE icon_d,          " PDF 다운 버튼 아이콘
+        color         TYPE lvc_t_scol,      " 행 색상 (핫스팟 클릭 시 하이라이트)
+        name1         TYPE zte3sd0001-name1, " 고객명
+        vennm         TYPE zte3mm0002-vennm, " 공급업체명
+        expkz         TYPE zte3sd0001-expkz.
+        include structure <a href ="zte3fi0002/dictionary-zte3fi0002.html">zte3fi0002</a>.             " FI 전표 헤더 필드 전체 포함
+DATA: END OF gs_header.
+
+DATA gt_header LIKE TABLE OF gs_header. " 헤더 내부 테이블
+
+"----------------------------------------------------------------------
+" 아이템 내부 테이블 (원본 + 역분개 공용, ALV 출력용 확장 구조)
+"   - zte3fi0003 기본 필드 + 차대변 분리 컬럼 + 계정명 추가
+"----------------------------------------------------------------------
+DATA: BEGIN OF gs_item_data,
+        status          TYPE icon_d,           " LED 상태 아이콘 (초록/빨강)
+        status_text(10) ,           " LED 상태 아이콘 (초록/빨강)
+        shkzg_txt(2),
+        style           TYPE lvc_t_styl,       " ALV 셀 스타일
+        stblg           TYPE zte3fi0002-stblg, " 역분개 전표번호 (헤더에서 참조)
+        dmbtr_s         TYPE zte3fi0003-dmbtr, " 차변 금액 (Debit 분리)
+        dmbtr_h         TYPE zte3fi0003-dmbtr, " 대변 금액 (Credit 분리)
+        waers_s         TYPE zte3fi0003-waers, " 차/대변 통화키
+        waers_h         TYPE zte3fi0003-waers, " 차/대변 통화키
+        blart           TYPE zte3fi0002-blart, " 전표유형
+        blart_txt(20),                       " 전표유형 텍스트
+        saknr_txt(40).                       " 계정코드 텍스트 (계정명)
+        include structure <a href ="zte3fi0003/dictionary-zte3fi0003.html">zte3fi0003</a>.             " FI 전표 아이템 필드 전체 포함
+DATA: END OF gs_item_data.
+
+DATA: gt_item_data LIKE TABLE OF gs_item_data, " 아이템 출력 테이블 (헤더 클릭 시 로드)
+      gt_rev_item  LIKE TABLE OF gs_item_data. " 역분개 생성 아이템 테이블
+
+"----------------------------------------------------------------------
+" DB INSERT/UPDATE 전용 zte3fi0003 구조체
+"----------------------------------------------------------------------
+DATA: gs_item TYPE zte3fi0003,           " 아이템 단건 구조체
+      gt_item LIKE TABLE OF gs_item.    " 원본 아이템 테이블 (역분개 처리용)
+
+"----------------------------------------------------------------------
+" ALV 관련 객체 선언
+"   - Docking Container / Splitter / 헤더 Grid / 아이템 Grid
+"   - 상단 HTML Document
+"----------------------------------------------------------------------
+DATA: gcl_docking_container TYPE REF TO cl_gui_docking_container, " Docking 컨테이너
+      gcl_splitter          TYPE REF TO cl_gui_splitter_container, " 3행 Splitter
+      gcl_top_container     TYPE REF TO cl_gui_container,          " 상단 요약 영역
+      gcl_alv_container     TYPE REF TO cl_gui_container,          " 헤더 ALV 영역
+      gcl_bottom_container  TYPE REF TO cl_gui_container,          " 아이템 ALV 영역
+      gcl_grid              TYPE REF TO cl_gui_alv_grid,           " 헤더 ALV Grid
+      gcl_grid_bot          TYPE REF TO cl_gui_alv_grid,           " 아이템 ALV Grid
+      gcl_document_top      TYPE REF TO cl_dd_document.            " 상단 HTML 도큐먼트
+
+"----------------------------------------------------------------------
+" ALV 설정 데이터
+"----------------------------------------------------------------------
+DATA: gt_fcat    TYPE lvc_t_fcat,    " 헤더 ALV 필드카탈로그
+      gt_fcat2   TYPE lvc_t_fcat,    " 아이템 ALV 필드카탈로그
+      gs_fcat    TYPE lvc_s_fcat,    " 필드카탈로그 단건 작업용
+      gs_layout  TYPE lvc_s_layo,    " ALV 레이아웃
+      gs_variant TYPE disvariant,    " ALV 레이아웃 Variant
+      gs_stable  TYPE lvc_s_stbl,    " ALV 스크롤 안정화 옵션
+      gs_dyntxt  TYPE smp_dyntxt,    " 선택화면 아이콘 버튼 텍스트
+      gt_sort    TYPE lvc_t_sort.    " 아이템 ALV 정렬 기준
+
+"----------------------------------------------------------------------
+" 역분개 팝업 화면 관련 객체
+"----------------------------------------------------------------------
+DATA: gcl_container_pop    TYPE REF TO cl_gui_custom_container, " 팝업 커스텀 컨테이너
+      gcl_grid_pop         TYPE REF TO cl_gui_alv_grid,         " 팝업 ALV Grid (예비)
+      gt_fcat_pop          TYPE lvc_t_fcat,                     " 팝업 ALV 필드카탈로그 (예비)
+      gcl_document_top_pop TYPE REF TO cl_dd_document.          " 팝업 상단 HTML 도큐먼트
+
+"----------------------------------------------------------------------
+" OLE2 Excel 객체 선언 (PDF 다운 기능용)
+"----------------------------------------------------------------------
+DATA: gs_excel        TYPE ole2_object, " Excel Application 객체
+      gs_workbook     TYPE ole2_object, " Workbook 컬렉션
+      gs_books        TYPE ole2_object, " Workbooks (예비)
+      gs_book         TYPE ole2_object, " 단일 Workbook (예비)
+      gs_sheets       TYPE ole2_object, " Sheets 컬렉션 (예비)
+      gs_sheet        TYPE ole2_object, " 단일 Sheet
+      gs_activesheet  TYPE ole2_object, " 현재 활성 Sheet
+      gs_application  TYPE ole2_object, " Application 속성
+      gs_pagesetup    TYPE ole2_object, " PageSetup (예비)
+      gs_cells        TYPE ole2_object, " Cells 범위 (예비)
+      gs_entirecolumn TYPE ole2_object, " EntireColumn (예비)
+      gs_cell         TYPE ole2_object, " 개별 Cell
+      gs_row_e        TYPE ole2_object, " 행 객체 (예비)
+      gs_buffer       TYPE ole2_object, " 버퍼 (예비)
+      gs_font         TYPE ole2_object, " Font 속성 (예비)
+      gs_range        TYPE ole2_object, " Range 범위 (예비)
+      gs_borders      TYPE ole2_object, " Borders 속성 (예비)
+      gs_cell1        TYPE ole2_object, " 범위 시작 Cell (예비)
+      gs_cell2        TYPE ole2_object. " 범위 종료 Cell (예비)
+
+"----------------------------------------------------------------------
+" 파일 경로 및 OLE 파일 서비스 관련 변수
+"----------------------------------------------------------------------
+DATA: gcl_objfile          TYPE REF TO cl_gui_frontend_services, " FE 파일 서비스
+      gv_pickedfolder      TYPE string,              " 사용자가 선택한 저장 폴더
+      gv_initialfolder     TYPE string,              " 폴더 선택 초기 경로
+      gv_fullinfo          TYPE string,              " 전체 경로 정보 (예비)
+      gv_temp_filename     TYPE rlgrap-filename,     " 임시 XLS 파일 전체 경로
+      gv_temp_filename_pdf TYPE rlgrap-filename,     " 저장 PDF 파일 전체 경로
+      gv_form(40),                                   " SMW0 등록 템플릿 객체명
+      gv_pfolder           TYPE rlgrap-filename,     " 마지막으로 선택한 폴더 (세션 유지)
+      gv_filename          TYPE rlgrap-filename,     " XLS 파일명 (경로 제외)
+      gv_filename_pdf      TYPE rlgrap-filename,     " PDF 파일명 (경로 제외)
+      gv_file              TYPE rlgrap-filename.     " 다운로드 대상 파일 전체 경로
+
+
+DEFINE check_date_range.
+
+<font color ="#0000FF">*  IF &1-low IS INITIAL OR &1-high IS INITIAL.</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH '조회기간을 입력하세요' DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*    STOP.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+
+  IF &1-low IS NOT INITIAL OR &1-high IS NOT INITIAL.
+    CLEAR lv_limit.
+    CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+      EXPORTING
+        date      = &1-low
+        days      = 0
+        months    = 3
+        signum    = '+'
+        years     = 0
+      IMPORTING
+        calc_date = &2.
+
+    IF &1-high &gt; lv_limit.
+      MESSAGE s000 WITH '조회 기간은 최대 3개월까지만 가능합니다.' DISPLAY LIKE 'E'.
+      STOP.
+    ENDIF.
+  ENDIF.
+END-OF-DEFINITION.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

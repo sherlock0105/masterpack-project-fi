@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0003_S01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0003_S01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0003_S01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZRE3FI0003_S01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+SELECTION-SCREEN FUNCTION KEY 1.
+"TAB1
+SELECTION-SCREEN BEGIN OF SCREEN 1100 AS SUBSCREEN.
+
+  PARAMETERS:     pa_bukrs TYPE zte3fi0002-bukrs.
+  SELECTION-SCREEN COMMENT 42(15) gv_butxt.
+  PARAMETERS:     pa_gjahr TYPE zte3fi0002-gjahr.
+  PARAMETERS:     pa_blart TYPE zte3fi0002-blart AS LISTBOX VISIBLE LENGTH 17 OBLIGATORY.
+  SELECT-OPTIONS: so_belnr FOR zte3fi0002-belnr,
+                  so_budat FOR zte3fi0002-budat.
+
+SELECTION-SCREEN END OF SCREEN 1100.
+"TAB2 고객.
+SELECTION-SCREEN BEGIN OF SCREEN 1200 AS SUBSCREEN.
+
+  PARAMETERS:     pa_buk2 TYPE zte3fi0002-bukrs.
+  SELECTION-SCREEN COMMENT 42(15) gv_txt2.
+  PARAMETERS :     pa_gja2 TYPE zte3fi0002-gjahr.
+
+  SELECT-OPTIONS : so_bud2 FOR zte3fi0002-budat,
+                   so_kun  FOR zte3sd0001-kunnr.
+
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT 1(20) TEXT-t02.
+    SELECTION-SCREEN POSITION 35.
+    PARAMETERS: rb_all RADIOBUTTON GROUP gr2 DEFAULT 'X'.
+    SELECTION-SCREEN COMMENT (8) FOR FIELD rb_all.
+    SELECTION-SCREEN POSITION 54.
+    PARAMETERS: rb_opn RADIOBUTTON GROUP gr2.
+    SELECTION-SCREEN COMMENT (8) FOR FIELD rb_opn.
+    SELECTION-SCREEN POSITION 73.
+    PARAMETERS: rb_clr RADIOBUTTON GROUP gr2.
+    SELECTION-SCREEN COMMENT (8) FOR FIELD rb_clr.
+  SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN END OF SCREEN 1200.
+
+<font color ="#0000FF">*TAB3 공급업체</font>
+SELECTION-SCREEN BEGIN OF SCREEN 1300 AS SUBSCREEN.
+
+  PARAMETERS:     pa_buk3 TYPE zte3fi0002-bukrs.
+  SELECTION-SCREEN COMMENT 42(15) gv_txt3.
+  PARAMETERS:     pa_gja3 TYPE zte3fi0002-gjahr.
+  SELECT-OPTIONS: so_bud3 FOR zte3fi0002-budat,
+                  so_lif  FOR zte3mm0002-lifnr.
+  SELECTION-SCREEN BEGIN OF LINE.
+
+    SELECTION-SCREEN COMMENT 1(33) TEXT-t02.
+    SELECTION-SCREEN POSITION 35.
+    PARAMETERS: rb_all2 RADIOBUTTON GROUP gr3 DEFAULT 'X'.
+    SELECTION-SCREEN COMMENT (15)  FOR FIELD rb_all2.
+    SELECTION-SCREEN POSITION 54.
+    PARAMETERS: rb_opn2 RADIOBUTTON GROUP gr3.     "미결
+
+    SELECTION-SCREEN COMMENT (15)  FOR FIELD rb_opn2.
+    SELECTION-SCREEN POSITION 73.
+    PARAMETERS: rb_clr2 RADIOBUTTON GROUP gr3.     "반제
+    SELECTION-SCREEN COMMENT (15)  FOR FIELD rb_clr2.
+  SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN END OF SCREEN 1300.
+
+SELECTION-SCREEN BEGIN OF TABBED BLOCK tab_block FOR 5 LINES.
+
+  SELECTION-SCREEN TAB (10) tab1 USER-COMMAND comm1 DEFAULT SCREEN 1100.
+  SELECTION-SCREEN TAB (10) tab2 USER-COMMAND comm2 DEFAULT SCREEN 1200.
+  SELECTION-SCREEN TAB (10) tab3 USER-COMMAND comm3 DEFAULT SCREEN 1300.
+
+SELECTION-SCREEN END OF BLOCK tab_block.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0001</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0001</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 환율 API 받아오는 프로그램</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRE3FI0001</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zre3fi0001_top.html">zre3fi0001_top</a>.    " Global Data
+include <a href ="zre3fi0001_f01.html">zre3fi0001_f01</a>.  " FORM-Routines
+
+START-OF-SELECTION.
+
+  IF sy-uname NE 'NCODE-E-05'.
+    LEAVE PROGRAM.
+  ENDIF.
+
+  PERFORM get_api.    " API 데이터 수신
+  PERFORM save_data. " 필터링 및 DB 저장ZRE3FI0001
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   API 인증 오류: 키를 확인하세요.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

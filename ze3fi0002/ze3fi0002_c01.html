@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZE3FI0002_C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZE3FI0002_C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZE3FI0002_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          SAPMZE3FI0002_C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS lcl_event_handler DEFINITION FINAL.
+  PUBLIC SECTION.
+
+    CLASS-METHODS:
+      handle_node_click
+        FOR EVENT node_double_click OF cl_gui_alv_tree
+        IMPORTING node_key,
+
+      handle_toolbar                  " 우측 ALV 툴바
+        FOR EVENT toolbar OF cl_gui_alv_grid
+        IMPORTING e_object,
+
+      handle_user_command             " 우측 ALV 버튼
+        FOR EVENT user_command OF cl_gui_alv_grid
+        IMPORTING e_ucomm,
+
+      handle_subtotal_text FOR EVENT subtotal_text OF cl_gui_alv_grid
+        IMPORTING
+          es_subtottxt_info
+          ep_subtot_line
+          e_event_data,
+
+      handle_hotspot FOR EVENT hotspot_click OF cl_gui_alv_grid
+        IMPORTING
+          e_row_id
+          e_column_id.
+
+ENDCLASS.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Class (Implementation) lcl_event_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS lcl_event_handler IMPLEMENTATION.
+
+  METHOD handle_subtotal_text.
+    PERFORM handle_subtotal_text
+      USING es_subtottxt_info ep_subtot_line e_event_data.
+  ENDMETHOD.
+
+  METHOD handle_node_click.
+
+    PERFORM filter_detail USING node_key.
+
+  ENDMETHOD.
+
+  METHOD handle_hotspot.
+
+    PERFORM handle_hotspot USING e_row_id e_column_id.
+
+  ENDMETHOD.
+  METHOD handle_toolbar.
+
+    PERFORM handle_toolbar USING e_object-&gt;mt_toolbar.
+
+  ENDMETHOD.
+  METHOD handle_user_command.
+
+    PERFORM handle_user_command USING e_ucomm.
+
+  ENDMETHOD.
+
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

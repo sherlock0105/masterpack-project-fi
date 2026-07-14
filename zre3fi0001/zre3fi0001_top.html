@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0001_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0001_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0001_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRE3FI0001_TOP                           - Report ZRE3FI0001</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zre3fi0001.
+
+<font color ="#0000FF">*DATA: BEGIN OF gs_json,</font>
+<font color ="#0000FF">*        result     TYPE i,</font>
+<font color ="#0000FF">*        cur_unit   TYPE string,</font>
+<font color ="#0000FF">*        cur_nm     TYPE string,</font>
+<font color ="#0000FF">*        deal_bas_r TYPE string,</font>
+<font color ="#0000FF">*      END OF gs_json,</font>
+<font color ="#0000FF">*      gt_json LIKE TABLE OF gs_json.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*DATA: gt_save TYPE TABLE OF zte3fi0008,</font>
+<font color ="#0000FF">*      gs_save TYPE zte3fi0008.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*DATA: lo_http TYPE REF TO if_http_client,</font>
+<font color ="#0000FF">*      gv_url  TYPE string,</font>
+<font color ="#0000FF">*      gv_json TYPE string,</font>
+<font color ="#0000FF">*      gv_date TYPE zte3fi0008-gdatu.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*DATA: lv_rate  TYPE p DECIMALS 5.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*CONSTANTS: gc_key TYPE string VALUE 'BWgD9miFvpBC81MwODUO1q6SkTvDhbk7'.</font>
+
+" 1. API 수신용 구조체 및 인터널 테이블
+DATA: BEGIN OF gs_json,
+        result     TYPE i,          " 결과 코드 (1: 성공, 3: 인증오류 등)
+        cur_unit   TYPE string,     " 통화코드 (예: USD, JPY(100))
+        cur_nm     TYPE string,     " 국가/통화명
+        deal_bas_r TYPE string,     " 매매기준율 (문자열로 수신)
+      END OF gs_json,
+      gt_json LIKE TABLE OF gs_json.
+
+" 2. DB 저장용 구조체 및 인터널 테이블
+DATA: gt_save TYPE TABLE OF zte3fi0008, " 본인 테이블명
+      gs_save TYPE zte3fi0008.
+
+" 3. HTTP 통신 및 JSON 처리용 변수
+DATA: go_http_client TYPE REF TO if_http_client, " 변수명 통일
+      gv_url         TYPE string,
+      gv_json_data   TYPE string.
+
+" 4. 날짜 및 계산용 변수
+DATA: gv_date      TYPE d,              " API 조회용 실제 날짜
+      gv_gdatu_inv TYPE zte3fi0008-gdatu. " SAP 표준 인버전 날짜 (99999999-일자)
+
+" 5. 상수 선언
+CONSTANTS: gc_key   TYPE string VALUE 'BWgD9miFvpBC81MwODUO1q6SkTvDhbk7',
+           gc_kurst TYPE kurst  VALUE 'M',   " 환율 유형 (평균환율 등)
+           gc_tcurr TYPE tcurr  VALUE 'KRW'. " 대상 통화 (원화 고정)
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>
