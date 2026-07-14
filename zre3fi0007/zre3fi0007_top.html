@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0007_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0007_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0007_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRE3FI0007_TOP                           - Report ZRE3FI0007</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zre3fi0007 MESSAGE-ID zmce3.
+
+DATA: gs_data TYPE zte3cm0002, "자산 마스터
+      gt_data LIKE TABLE OF gs_data.
+
+DATA: gs_depr  TYPE zte3cm0007, "상각 이력
+      gt_depr  LIKE TABLE OF gs_depr,
+
+      gv_belnr TYPE zte3fi0002-belnr, "담을용
+      gv_pernr TYPE zte3cm0005-pernr, "담을용
+      gv_bukrs TYPE zte3fi0002-bukrs.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

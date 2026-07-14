@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0009_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0009_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0009_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRE3FI0009_TOP                           - Report ZRE3FI0009</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zre3fi0009.
+
+DATA: gv_bukrs  TYPE zte3fi0002-bukrs,
+      gv_evdat  TYPE sy-datum,        " 평가기준일 (월말)
+      gv_usd    TYPE p DECIMALS 2,
+      gv_eur    TYPE p DECIMALS 2,
+      gv_jpy    TYPE p DECIMALS 2,
+      gv_before TYPE zte3fi0003-dmbtr,
+      gv_after  TYPE zte3fi0003-dmbtr,
+      gv_check  TYPE c LENGTH 2.      " 배치잡은 항상 space (실전기)
+
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  환율 마스터</font>
+<font color ="#0000FF">*======================================================================*</font>
+DATA: BEGIN OF gs_rate,
+        fcurr TYPE zte3fi0008-fcurr,
+        gdatu TYPE zte3fi0008-gdatu,
+        ukurs TYPE zte3fi0008-ukurs,
+        ffact TYPE zte3fi0008-ffact,
+        erdat TYPE zte3fi0008-erdat,
+      END OF gs_rate.
+DATA gt_rate LIKE TABLE OF gs_rate.
+
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  계정 마스터</font>
+<font color ="#0000FF">*======================================================================*</font>
+DATA: BEGIN OF gs_saknr,
+        saknr TYPE zte3fi0001-saknr,
+        stext TYPE zte3fi0001-stext,
+      END OF gs_saknr.
+DATA gt_saknr LIKE TABLE OF gs_saknr.
+
+DATA: BEGIN OF gs_kunnr,
+        kunnr TYPE zte3sd0001-kunnr,
+        name1 TYPE zte3sd0001-name1,
+      END OF gs_kunnr.
+DATA gt_kunnr LIKE TABLE OF gs_kunnr.
+
+DATA: BEGIN OF gs_lifnr,
+        lifnr TYPE zte3mm0002-lifnr,
+        vennm TYPE zte3mm0002-vennm,
+      END OF gs_lifnr.
+DATA gt_lifnr LIKE TABLE OF gs_lifnr.
+
+<font color ="#0000FF">*======================================================================*</font>
+<font color ="#0000FF">*  미결 외화전표 데이터</font>
+<font color ="#0000FF">*======================================================================*</font>
+DATA: BEGIN OF gs_data,
+        eval_krw  TYPE zte3fi0003-dmbtr,
+        eval_diff TYPE zte3fi0003-dmbtr,
+        ar_ap(2),
+        name1     TYPE zte3sd0001-name1,
+        vennm     TYPE zte3mm0002-vennm,
+        partner   TYPE zte3sd0001-kunnr.
+        include structure <a href ="zcds_e3_fi_0001/dictionary-zcds_e3_fi_0001.html">zcds_e3_fi_0001</a>.
+DATA: END OF gs_data.
+DATA gt_data LIKE TABLE OF gs_data.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

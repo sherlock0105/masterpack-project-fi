@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0009</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0009</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 외화평가 BATCH</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRE3FI0009</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zre3fi0009_top.html">zre3fi0009_top</a>.    " Global Data
+
+include <a href ="zre3fi0009_s01.html">zre3fi0009_s01</a>.  " PBO-Modules
+include <a href ="zre3fi0009_f01.html">zre3fi0009_f01</a>.  " FORM-Routines
+
+INITIALIZATION.
+  " 기본값: 당월 말일
+  PERFORM check_name.
+  PERFORM set_date.
+
+START-OF-SELECTION.
+  PERFORM get_init_data.
+  PERFORM get_data.
+  PERFORM check_already_posted.
+  PERFORM sum_eval_diff.
+  PERFORM build_eval USING gv_check.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

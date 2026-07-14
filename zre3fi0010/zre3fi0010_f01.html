@@ -1,0 +1,1002 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0010_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0010_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0010_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZRE3FI0010_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_init</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_init .
+
+  pa_bukrs = '1000'.
+  pa_gjahr = '2026'.
+
+  SELECT SINGLE butxt
+   FROM zte3cm0001
+    INTO gv_butxt
+   WHERE bukrs = pa_bukrs.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form control_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM control_screen .
+
+  LOOP AT SCREEN.
+
+    IF screen-name EQ 'PA_BUKRS'.
+      screen-input = 0.
+      MODIFY SCREEN.
+
+    ENDIF.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_tree_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_tree_fcat .
+
+  gs_layout-zebra      = 'X'.
+  gs_layout-cwidth_opt = 'X'.
+  gs_layout-sel_mode   = 'D'.
+
+  PERFORM set_fcat USING:
+    'PREV_AMT'   '전기' 'ZTE3FI0003' 'DMBTR' '15',
+    'WAERS_PREV' '통화' 'ZTE3FI0003' 'WAERS' '7',
+    'CURR_AMT'   '당기' 'ZTE3FI0003' 'DMBTR' '15',
+    'WAERS'      '통화' 'ZTE3FI0003' 'WAERS' '7'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat  USING pv_field
+                    pv_text
+                    pv_ref_table
+                    pv_ref_field
+                    pv_len.
+
+  gs_fcat = VALUE #(
+    fieldname = pv_field
+    coltext   = pv_text
+    ref_table = pv_ref_table
+    ref_field = pv_ref_field
+    outputlen = pv_len
+  ).
+
+  CASE pv_field.
+    WHEN 'PREV_AMT'.
+      gs_fcat-cfieldname = 'WAERS_PREV'. " 전기 통화 연결
+      gs_fcat-do_sum     = 'X'.
+<font color ="#0000FF">*      gs_fcat-no_zero = 'X'.</font>
+    WHEN 'CURR_AMT'.
+      gs_fcat-cfieldname = 'WAERS'.      " 당기 통화 연결
+      gs_fcat-do_sum     = 'X'.
+<font color ="#0000FF">*      gs_fcat-no_zero = 'X'.</font>
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+
+  DATA: lcl_bottom_con  TYPE REF TO cl_gui_container,
+        lcl_lr_splitter TYPE REF TO cl_gui_splitter_container.
+
+  CREATE OBJECT gcl_container
+    EXPORTING
+      repid     = sy-repid
+      dynnr     = sy-dynnr
+      side      = gcl_container-&gt;dock_at_left
+      extension = 5000.
+
+  " 전체 상하 분할 (TOP 20% / 하단 80%)
+  CREATE OBJECT gcl_splitter_main
+    EXPORTING
+      parent  = gcl_container
+      rows    = 2
+      columns = 1
+    EXCEPTIONS
+      OTHERS  = 1.
+
+  gcl_splitter_main-&gt;get_container(
+    EXPORTING row = 1 column = 1
+    RECEIVING container = gcl_container_top ).
+  gcl_splitter_main-&gt;get_container(
+    EXPORTING row = 2 column = 1
+    RECEIVING container = lcl_bottom_con ).
+  gcl_splitter_main-&gt;set_row_height( id = 1 height = 15 ).
+  gcl_splitter_main-&gt;set_row_height( id = 2 height = 85 ).
+
+  " 하단 좌우 분할 (트리 40% / 우측 60%)
+  CREATE OBJECT lcl_lr_splitter
+    EXPORTING
+      parent  = lcl_bottom_con
+      rows    = 1
+      columns = 2
+    EXCEPTIONS
+      OTHERS  = 1.
+
+  lcl_lr_splitter-&gt;get_container(
+    EXPORTING row = 1 column = 1
+    RECEIVING container = gcl_container_tree ).
+
+  " 우측 임시 컨테이너
+  DATA: lcl_right_con TYPE REF TO cl_gui_container.
+  lcl_lr_splitter-&gt;get_container(
+    EXPORTING row = 1 column = 2
+    RECEIVING container = lcl_right_con ).
+
+  lcl_lr_splitter-&gt;set_column_width( id = 1 width = 41 ).
+
+  " 우측 상하 분할 (그리드 55% / 차트 45%)
+  CREATE OBJECT gcl_splitter_right
+    EXPORTING
+      parent  = lcl_right_con
+      rows    = 2
+      columns = 1
+    EXCEPTIONS
+      OTHERS  = 1.
+
+  gcl_splitter_right-&gt;get_container(
+    EXPORTING row = 1 column = 1
+    RECEIVING container = gcl_container_grid ).
+  gcl_splitter_right-&gt;get_container(
+    EXPORTING row = 2 column = 1
+    RECEIVING container = gcl_container_chart ).
+  gcl_splitter_right-&gt;set_row_height( id = 1 height = 55 ).
+<font color ="#0000FF">*  gcl_splitter_right-&gt;set_row_height( id = 2 height = 45 ).</font>
+
+  " 좌측: 트리
+  CREATE OBJECT gcl_tree
+    EXPORTING
+      parent              = gcl_container_tree
+      node_selection_mode = cl_gui_column_tree=&gt;node_sel_mode_multiple
+      item_selection      = space
+      no_html_header      = 'X'
+      no_toolbar          = space.
+
+  gs_variant-report = sy-repid.
+
+  CALL METHOD gcl_tree-&gt;set_table_for_first_display
+    EXPORTING
+      i_save              = 'A'
+      i_default           = 'X'
+      is_variant          = gs_variant
+      is_hierarchy_header = gs_hierhdr
+    CHANGING
+      it_outtab           = gt_data
+      it_fieldcatalog     = gt_fcat.
+
+  " 우측 상단: ALV 그리드
+  CREATE OBJECT gcl_grid
+    EXPORTING
+      i_parent = gcl_container_grid.
+
+  " 차트 오브젝트 생성
+  CREATE OBJECT gcl_chart
+    EXPORTING
+      parent = gcl_container_chart.
+
+  " 이벤트 등록
+  CALL METHOD gcl_tree-&gt;get_registered_events
+    IMPORTING
+      events = gt_event.
+
+  gs_event-eventid    = cl_gui_column_tree=&gt;eventid_node_double_click.
+  gs_event-appl_event = 'X'.
+  APPEND gs_event TO gt_event.
+
+  CALL METHOD gcl_tree-&gt;set_registered_events
+    EXPORTING
+      events = gt_event.
+
+  SET HANDLER lcl_event_handler=&gt;handle_node_click FOR gcl_tree.
+  SET HANDLER lcl_event_handler=&gt;handle_hotspot    FOR gcl_grid.
+
+  CALL METHOD gcl_grid-&gt;set_table_for_first_display
+    EXPORTING
+      i_save          = 'A'
+      i_default       = 'X'
+      is_variant      = gs_variant
+      is_layout       = gs_layout_gird
+    CHANGING
+      it_outtab       = gt_header
+      it_fieldcatalog = gt_grid_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_top_of_page</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_top_of_page .
+  " 문서 초기화
+  FREE gcl_dyndoc_id.
+  CREATE OBJECT gcl_dyndoc_id
+    EXPORTING
+      style = 'ALV_TO_HTML'.
+
+  gcl_dyndoc_id-&gt;add_text(
+    text         = | { pa_gjahr }년 재무상태표|
+    sap_fontsize = cl_dd_document=&gt;large
+    sap_emphasis = cl_dd_document=&gt;strong ).
+
+  gcl_dyndoc_id-&gt;new_line( ).
+  gcl_dyndoc_id-&gt;new_line( ).
+
+  " 2. 조회 조건 영역 (각 항목에 아이콘 배치)
+  " 회사코드
+  gcl_dyndoc_id-&gt;add_icon( 'ICON_DOC' ).
+  gcl_dyndoc_id-&gt;add_text( text = | 회사코드 : { pa_bukrs }  Masterpack | sap_emphasis = cl_dd_document=&gt;key ).
+  gcl_dyndoc_id-&gt;new_line( ).
+
+  " 조회일자
+  gcl_dyndoc_id-&gt;add_icon( 'ICON_DATE' ).
+  gcl_dyndoc_id-&gt;add_text( text = | 조회일자 : { sy-datum+0(4) }.{ sy-datum+4(2) }.{ sy-datum+6(2) }| sap_emphasis = cl_dd_document=&gt;key ).
+  " 문서 병합 및 출력
+  gcl_dyndoc_id-&gt;merge_document( ).
+  gcl_dyndoc_id-&gt;display_document(
+    EXPORTING
+      reuse_control = 'X'
+      parent        = gcl_container_top ).
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+
+  DATA: lv_curr_to TYPE dats,
+        lv_prev_to TYPE zcds_e3_fi_0011-gjahr.
+
+  DATA: BEGIN OF gs_master,
+          saknr       TYPE saknr,
+          stext       TYPE txt20,
+          major_class TYPE zte3fi0001-major_class,
+          minor_class TYPE zte3fi0001-minor_class,
+        END OF gs_master.
+  DATA: lt_master LIKE TABLE OF gs_master.
+
+  DATA: BEGIN OF gs_cds,
+          saknr    TYPE saknr,
+          curr_amt TYPE zte3fi0003-dmbtr,
+          prev_amt TYPE zte3fi0003-dmbtr,
+        END OF gs_cds.
+  DATA: lt_cds LIKE TABLE OF gs_cds.
+
+  REFRESH gt_data.
+
+<font color ="#0000FF">*  lv_curr_to = |{ pa_gjahr }1231|.</font>
+  lv_prev_to = |{ pa_gjahr - 1 }|.
+
+  " 계정 마스터 조회
+  SELECT saknr, stext, major_class, minor_class
+    FROM zte3fi0001
+   WHERE bukrs EQ @pa_bukrs
+    INTO CORRESPONDING FIELDS OF TABLE @lt_master.
+
+  " CDS 조회 (당기/전기 잔액)
+  SELECT *
+    FROM zcds_e3_fi_0011(
+           p_bukrs    = @pa_bukrs,
+           p_gjahr  = @pa_gjahr,
+           p_prev_gjahr = @lv_prev_to
+         )
+    INTO CORRESPONDING FIELDS OF TABLE @lt_cds.
+
+  SORT lt_cds BY saknr.
+
+  " 마스터 기준 LOOP
+  LOOP AT lt_master INTO gs_master.
+    CLEAR gs_data.
+
+    gs_data-saknr      = gs_master-saknr.
+    gs_data-stext      = gs_master-stext.
+    gs_data-waers      = 'KRW'.
+    gs_data-waers_prev = 'KRW'.
+
+    READ TABLE lt_cds INTO gs_cds
+      WITH KEY saknr = gs_master-saknr BINARY SEARCH.
+    IF sy-subrc EQ 0.
+      gs_data-curr_amt = gs_cds-curr_amt / 1000.
+      gs_data-prev_amt = gs_cds-prev_amt / 1000.
+    ENDIF.
+
+    CASE gs_master-minor_class.
+      WHEN '11'.
+        gs_data-fs_lv1  = '자산'.
+        gs_data-fs_lv2  = '유동자산'.
+        gs_data-fs_sort = '010'.
+      WHEN '13'.
+        gs_data-fs_lv1  = '자산'.
+        gs_data-fs_lv2  = '비유동자산'.
+        gs_data-fs_sort = '020'.
+      WHEN '21'.
+        gs_data-fs_lv1  = '부채'.
+        gs_data-fs_lv2  = '유동부채'.
+        gs_data-fs_sort = '030'.
+      WHEN '23'.
+        gs_data-fs_lv1  = '부채'.
+        gs_data-fs_lv2  = '비유동부채'.
+        gs_data-fs_sort = '040'.
+      WHEN '31'.
+        gs_data-fs_lv1  = '자본'.
+        gs_data-fs_lv2  = '납입자본'.
+        gs_data-fs_sort = '050'.
+      WHEN '32'.
+        gs_data-fs_lv1  = '자본'.
+        gs_data-fs_lv2  = '이익잉여금'.
+        gs_data-fs_sort = '051'.
+      WHEN '33'.
+        gs_data-fs_lv1  = '자본'.
+        gs_data-fs_lv2  = '기타포괄손익누계액'.
+        gs_data-fs_sort = '052'.
+      WHEN OTHERS.
+        CONTINUE.
+    ENDCASE.
+
+    APPEND gs_data TO gt_data.
+  ENDLOOP.
+
+  SORT gt_data BY fs_sort saknr.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form header_text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- GS_HIERHDR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM header_text  CHANGING pv_hierhdr TYPE treev_hhdr.
+
+  pv_hierhdr-heading = '재무상태표'.
+  pv_hierhdr-tooltip = '재무상태표'.
+  pv_hierhdr-width = 25.
+  pv_hierhdr-width_pix = space.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_hierarchy</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_hierarchy .
+
+  DATA: ls_empty        LIKE gs_data,
+        ls_folder       LIKE gs_data,
+        lt_data         LIKE TABLE OF gs_data,
+        lv_root_key     TYPE lvc_nkey,   " 전체 루트
+        lv_asset        TYPE lvc_nkey,
+        lv_liab         TYPE lvc_nkey,
+        lv_equity       TYPE lvc_nkey,
+        lv_level_1      TYPE lvc_nkey,
+        lv_level_2      TYPE lvc_nkey,
+        lv_node_key     TYPE lvc_nkey,
+        lv_cur_asset    TYPE lvc_nkey,
+        lv_noncur_asset TYPE lvc_nkey,
+        lv_cur_liab     TYPE lvc_nkey,
+        lv_noncur_liab  TYPE lvc_nkey,
+        lv_eq1          TYPE lvc_nkey,
+        lv_eq2          TYPE lvc_nkey,
+        lv_eq3          TYPE lvc_nkey,
+        lv_leaf         TYPE char80.
+
+  APPEND LINES OF gt_data TO lt_data.
+<font color ="#0000FF">*  REFRESH gt_data.</font>
+
+  " 전체 루트 폴더
+  CLEAR ls_folder.
+  PERFORM add_node USING ls_folder '전체' '' lv_root_key abap_true.
+
+  " 자산
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자산'.
+  PERFORM add_node USING ls_folder '자산' lv_root_key lv_asset abap_true.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자산'.
+  ls_folder-fs_lv2 = '유동자산'.
+  PERFORM add_node USING ls_folder '유동자산' lv_asset lv_level_1 abap_true.
+  lv_cur_asset = lv_level_1.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자산'.
+  ls_folder-fs_lv2 = '비유동자산'.
+  PERFORM add_node USING ls_folder '비유동자산' lv_asset lv_level_1 abap_true.
+  lv_noncur_asset = lv_level_1.
+
+  " 부채
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '부채'.
+  PERFORM add_node USING ls_folder '부채' lv_root_key lv_liab abap_true.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '부채'.
+  ls_folder-fs_lv2 = '유동부채'.
+  PERFORM add_node USING ls_folder '유동부채' lv_liab lv_level_1 abap_true.
+  lv_cur_liab = lv_level_1.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '부채'.
+  ls_folder-fs_lv2 = '비유동부채'.
+  PERFORM add_node USING ls_folder '비유동부채' lv_liab lv_level_1 abap_true.
+  lv_noncur_liab = lv_level_1.
+
+  " 자본
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자본'.
+  PERFORM add_node USING ls_folder '자본' lv_root_key lv_equity abap_true.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자본'.
+  ls_folder-fs_lv2 = '납입자본'.
+  PERFORM add_node USING ls_folder '납입자본' lv_equity lv_level_1 abap_true.
+  lv_eq1 = lv_level_1.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자본'.
+  ls_folder-fs_lv2 = '이익잉여금'.
+  PERFORM add_node USING ls_folder '이익잉여금' lv_equity lv_level_1 abap_true.
+  lv_eq2 = lv_level_1.
+
+  CLEAR ls_folder.
+  ls_folder-fs_lv1 = '자본'.
+  ls_folder-fs_lv2 = '기타포괄손익누계액'.
+  PERFORM add_node USING ls_folder '기타포괄손익누계액' lv_equity lv_level_1 abap_true.
+  lv_eq3 = lv_level_1.
+
+  " 계정 리프 노드
+  LOOP AT lt_data INTO gs_data.
+    lv_leaf = gs_data-stext.
+    CASE gs_data-fs_lv2.
+      WHEN '유동자산'.
+        lv_level_2 = lv_cur_asset.
+      WHEN '비유동자산'.
+        lv_level_2 = lv_noncur_asset.
+      WHEN '유동부채'.
+        lv_level_2 = lv_cur_liab.
+      WHEN '비유동부채'.
+        lv_level_2 = lv_noncur_liab.
+      WHEN '납입자본'.
+        lv_level_2 = lv_eq1.
+      WHEN '이익잉여금'.
+        lv_level_2 = lv_eq2.
+      WHEN '기타포괄손익누계액'.
+        lv_level_2 = lv_eq3.
+      WHEN OTHERS. CONTINUE.
+    ENDCASE.
+    PERFORM add_node USING gs_data lv_leaf lv_level_2 lv_node_key abap_false.
+  ENDLOOP.
+
+  " 루트만 펼치고 하위는 접힌 상태
+  CALL METHOD gcl_tree-&gt;expand_node
+    EXPORTING
+      i_node_key = lv_root_key.
+
+  gcl_tree-&gt;expand_node(
+  EXPORTING
+    i_node_key          =  lv_asset ).
+
+  gcl_tree-&gt;expand_node(
+    EXPORTING
+      i_node_key          =  lv_equity ).                " Node Key
+
+  gcl_tree-&gt;expand_node(
+    EXPORTING
+      i_node_key          =  lv_liab ).
+
+  CALL METHOD gcl_tree-&gt;update_calculations.
+  CALL METHOD gcl_tree-&gt;frontend_update.
+
+  " 초기 전체 데이터 그리드/차트 표시
+  PERFORM load_all_data.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form add_node</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LS_EMPTY</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; LV_ASSET</font>
+<font color ="#0000FF">*&      --&gt; ABAP_TRUE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM add_node  USING   ps_data     LIKE gs_data
+                       pv_text
+                       pv_relat    TYPE lvc_nkey
+                       pv_node_key TYPE lvc_nkey
+                       pv_folder   TYPE abap_bool.
+
+  DATA: lv_node_text TYPE lvc_value,
+        ls_layout    TYPE lvc_s_layn.
+
+  lv_node_text       = pv_text.
+  ls_layout-isfolder = pv_folder.
+
+  CALL METHOD gcl_tree-&gt;add_node
+    EXPORTING
+      i_relat_node_key = pv_relat
+      i_relationship   = cl_gui_column_tree=&gt;relat_last_child
+      i_node_text      = lv_node_text
+      is_node_layout   = ls_layout
+      is_outtab_line   = ps_data
+    IMPORTING
+      e_new_node_key   = pv_node_key.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_grid_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_grid_fcat .
+
+  gs_layout_gird = VALUE #(
+                        zebra        = 'X'
+                        cwidth_opt   = 'A'
+                        sel_mode     = 'D'
+                        totals_bef   = 'X'
+                         ).
+
+  PERFORM make_grid_fcat USING:
+  'X' 'SAKNR'  '계정코드' 'ZTE3FI0001' 'SAKNR',
+  ' ' 'STEXT'  '계정명'   'ZTE3FI0001' 'STEXT',
+  ' ' 'M01'    '1월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M02'    '2월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M03'    '3월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M04'    '4월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M05'    '5월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M06'    '6월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M07'    '7월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M08'    '8월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M09'    '9월'      'ZTE3FI0003' 'DMBTR',
+  ' ' 'M10'    '10월'     'ZTE3FI0003' 'DMBTR',
+  ' ' 'M11'    '11월'     'ZTE3FI0003' 'DMBTR',
+  ' ' 'M12'    '12월'     'ZTE3FI0003' 'DMBTR',
+  ' ' 'WAERS'  '통화'     'ZTE3FI0003' 'WAERS'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form filter_detail</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; NODE_KEY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM filter_detail  USING pv_node_key TYPE lvc_nkey.
+
+  DATA: ls_node_data  LIKE gs_data,
+        lr_saknr      TYPE RANGE OF zte3fi0001-saknr,
+        ls_saknr      LIKE LINE OF lr_saknr,
+        lv_prev_gjahr TYPE gjahr.
+
+  CALL METHOD gcl_tree-&gt;get_outtab_line
+    EXPORTING
+      i_node_key    = pv_node_key
+    IMPORTING
+      e_outtab_line = ls_node_data.
+
+  REFRESH: gt_header, gt_prev, lr_saknr.
+
+  " saknr RANGE 구성
+  IF ls_node_data-saknr IS NOT INITIAL.
+    ls_saknr-sign   = 'I'.
+    ls_saknr-option = 'EQ'.
+    ls_saknr-low    = ls_node_data-saknr.
+    APPEND ls_saknr TO lr_saknr.
+  ELSEIF ls_node_data-fs_lv2 IS NOT INITIAL.
+    LOOP AT gt_data INTO gs_data
+      WHERE fs_lv2 EQ ls_node_data-fs_lv2.
+      ls_saknr-sign   = 'I'.
+      ls_saknr-option = 'EQ'.
+      ls_saknr-low    = gs_data-saknr.
+      APPEND ls_saknr TO lr_saknr.
+    ENDLOOP.
+  ELSEIF ls_node_data-fs_lv1 IS NOT INITIAL.
+    LOOP AT gt_data INTO gs_data
+      WHERE fs_lv1 EQ ls_node_data-fs_lv1.
+      ls_saknr-sign   = 'I'.
+      ls_saknr-option = 'EQ'.
+      ls_saknr-low    = gs_data-saknr.
+      APPEND ls_saknr TO lr_saknr.
+    ENDLOOP.
+  ELSE.
+    LOOP AT gt_data INTO gs_data.
+      ls_saknr-sign   = 'I'.
+      ls_saknr-option = 'EQ'.
+      ls_saknr-low    = gs_data-saknr.
+      APPEND ls_saknr TO lr_saknr.
+    ENDLOOP.
+  ENDIF.
+
+  CHECK lr_saknr IS NOT INITIAL.
+
+  " 당기 조회
+  SELECT saknr, stext, waers,
+         m01, m02, m03, m04, m05, m06,
+         m07, m08, m09, m10, m11, m12
+    FROM zcds_e3_fi_0016(
+           p_bukrs = @pa_bukrs,
+           p_gjahr = @pa_gjahr
+         )
+    INTO CORRESPONDING FIELDS OF TABLE @gt_header
+   WHERE saknr IN @lr_saknr
+   ORDER BY saknr.
+
+  IF gt_header IS INITIAL.
+    MESSAGE s000 WITH '올해 데이터가 없습니다.'.
+    RETURN.
+  ENDIF.
+
+
+  " 전기 조회
+  lv_prev_gjahr = pa_gjahr - 1.
+
+  SELECT saknr, stext, waers,
+         m01, m02, m03, m04, m05, m06,
+         m07, m08, m09, m10, m11, m12
+    FROM zcds_e3_fi_0016(
+           p_bukrs = @pa_bukrs,
+           p_gjahr = @lv_prev_gjahr
+         )
+    INTO CORRESPONDING FIELDS OF TABLE @gt_prev
+   WHERE saknr IN @lr_saknr
+   ORDER BY saknr.
+
+
+  CALL METHOD gcl_grid-&gt;refresh_table_display
+    EXPORTING
+      i_soft_refresh = 'X'.
+
+  PERFORM set_chart.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_hotspot</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_ROW_ID</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN_ID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_hotspot    USING pv_row    TYPE lvc_s_row
+                             pv_column TYPE lvc_s_col.
+
+  DATA: ls_header LIKE gs_header.
+
+  READ TABLE gt_header INTO ls_header INDEX pv_row-index.
+  CHECK sy-subrc EQ 0.
+
+<font color ="#0000FF">*  " 전표번호 클릭 시 처리 (필요 시 확장)</font>
+<font color ="#0000FF">*  CASE pv_column-fieldname.</font>
+<font color ="#0000FF">**    WHEN 'BELNR'.</font>
+<font color ="#0000FF">**      CALL FUNCTION 'ZFE3FI0006'</font>
+<font color ="#0000FF">**        EXPORTING</font>
+<font color ="#0000FF">**          iv_belnr = ls_header-belnr                 " [FI] 전표 번호</font>
+<font color ="#0000FF">**          iv_bukrs = '1000'           " [FI] 회사코드</font>
+<font color ="#0000FF">**          iv_gjahr = ls_header-gjahr.                 " [FI] 회계연도</font>
+<font color ="#0000FF">**</font>
+<font color ="#0000FF">**    WHEN 'KUNNR'.</font>
+<font color ="#0000FF">**      CALL FUNCTION 'ZFE3FI0004'</font>
+<font color ="#0000FF">**        EXPORTING</font>
+<font color ="#0000FF">**          iv_kunnr = ls_header-kunnr.                " [SD] 고객번호</font>
+<font color ="#0000FF">**    WHEN 'LIFNR'.</font>
+<font color ="#0000FF">**      CALL FUNCTION 'ZFE3FI0005'</font>
+<font color ="#0000FF">**        EXPORTING</font>
+<font color ="#0000FF">**          iv_lifnr = ls_header-lifnr.                " [MM] 공급업체코드</font>
+<font color ="#0000FF">*  ENDCASE.</font>
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_grid_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_grid_fcat    USING   pv_key
+                               pv_field
+                               pv_text
+                               pv_ref_table
+                               pv_ref_field.
+
+
+  CLEAR gs_fcat.
+  gs_fcat-key       = pv_key.
+  gs_fcat-fieldname = pv_field.
+  gs_fcat-coltext   = pv_text.
+  gs_fcat-ref_table = pv_ref_table.
+  gs_fcat-ref_field = pv_ref_field.
+
+  CASE pv_field.
+    WHEN 'BELNR' OR 'KUNNR' OR 'LIFNR'.
+      gs_fcat-hotspot = 'X'.
+    WHEN 'M01' OR 'M02' OR 'M03' OR 'M04' OR 'M05' OR 'M06'
+      OR 'M07' OR 'M08' OR 'M09' OR 'M10' OR 'M11' OR 'M12'.
+      gs_fcat-cfieldname = 'WAERS'.
+<font color ="#0000FF">*      gs_fcat-do_sum     = 'X'.</font>
+      gs_fcat-no_zero    = 'X'.
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_grid_fcat.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh_grid .
+
+  CALL METHOD gcl_grid-&gt;refresh_table_display
+    EXPORTING
+      i_soft_refresh = space
+      is_stable      = gs_stable.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_chart</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_chart .
+
+  CHECK gcl_chart IS BOUND.
+
+  DATA: lv_xdata   TYPE xstring,
+        lv_xcustom TYPE xstring,
+        lv_val     TYPE string.
+
+  DATA: lv_root     TYPE REF TO if_ixml_element,
+        lv_cats     TYPE REF TO if_ixml_element,
+        lv_cat      TYPE REF TO if_ixml_element,
+        lv_ser_prev TYPE REF TO if_ixml_element,
+        lv_ser_curr TYPE REF TO if_ixml_element,
+        lv_point    TYPE REF TO if_ixml_element,
+        lv_value    TYPE REF TO if_ixml_element.
+
+  DATA: lo_ixml   TYPE REF TO if_ixml,
+        lo_sf     TYPE REF TO if_ixml_stream_factory,
+        lo_enc    TYPE REF TO if_ixml_encoding,
+        lo_doc_c  TYPE REF TO if_ixml_document,
+        lo_root_c TYPE REF TO if_ixml_element,
+        lo_global TYPE REF TO if_ixml_element.
+
+  " 자산/부채/자본 전기/당기 합계
+  DATA: lv_asset_prev  TYPE p DECIMALS 2,
+        lv_asset_curr  TYPE p DECIMALS 2,
+        lv_liab_prev   TYPE p DECIMALS 2,
+        lv_liab_curr   TYPE p DECIMALS 2,
+        lv_equity_prev TYPE p DECIMALS 2,
+        lv_equity_curr TYPE p DECIMALS 2.
+
+  " gt_data에서 집계 (트리 데이터 그대로 활용)
+  LOOP AT gt_data INTO gs_data.
+    CASE gs_data-fs_lv1.
+      WHEN '자산'.
+        lv_asset_prev  = lv_asset_prev  + abs( gs_data-prev_amt ).
+        lv_asset_curr  = lv_asset_curr  + abs( gs_data-curr_amt ).
+      WHEN '부채'.
+        lv_liab_prev   = lv_liab_prev   + abs( gs_data-prev_amt ).
+        lv_liab_curr   = lv_liab_curr   + abs( gs_data-curr_amt ).
+      WHEN '자본'.
+        lv_equity_prev = lv_equity_prev + abs( gs_data-prev_amt ).
+        lv_equity_curr = lv_equity_curr + abs( gs_data-curr_amt ).
+    ENDCASE.
+  ENDLOOP.
+
+  " ① Customizing XML (그룹 막대 - 전기/당기 나란히)
+  lo_ixml  = cl_ixml=&gt;create( ).
+  lo_sf    = lo_ixml-&gt;create_stream_factory( ).
+  lo_enc   = lo_ixml-&gt;create_encoding(
+               byte_order    = if_ixml_encoding=&gt;co_little_endian
+               character_set = 'utf-8' ).
+  lo_doc_c = lo_ixml-&gt;create_document( ).
+  lo_doc_c-&gt;set_encoding( lo_enc ).
+
+  lo_root_c = lo_doc_c-&gt;create_simple_element(
+                name = 'SAPChartCustomizing' parent = lo_doc_c ).
+  lo_root_c-&gt;set_attribute( name = 'version' value = '3.0' ).
+  lo_global = lo_doc_c-&gt;create_simple_element(
+                name = 'GlobalSettings' parent = lo_root_c ).
+  lo_doc_c-&gt;create_simple_element(
+    name   = 'ChartType'
+    parent = lo_global )-&gt;if_ixml_node~set_value( 'Columns' ).  " 그룹 세로막대
+
+  lo_doc_c-&gt;render( ostream = lo_sf-&gt;create_ostream_xstring( lv_xcustom ) ).
+  gcl_chart-&gt;set_customizing( xdata = lv_xcustom ).
+
+  " ② Data XML
+  gcl_ixml          = cl_ixml=&gt;create( ).
+  gcl_ixml_sf       = gcl_ixml-&gt;create_stream_factory( ).
+  gcl_ixml_data_doc = gcl_ixml-&gt;create_document( ).
+  gcl_encoding      = gcl_ixml-&gt;create_encoding(
+                        byte_order    = if_ixml_encoding=&gt;co_little_endian
+                        character_set = 'utf-8' ).
+  gcl_ixml_data_doc-&gt;set_encoding( gcl_encoding ).
+
+  lv_root = gcl_ixml_data_doc-&gt;create_simple_element(
+              name = 'ChartData' parent = gcl_ixml_data_doc ).
+  lv_cats = gcl_ixml_data_doc-&gt;create_simple_element(
+              name = 'Categories' parent = lv_root ).
+
+  " 시리즈: 전기 / 당기
+  lv_ser_prev = gcl_ixml_data_doc-&gt;create_simple_element(
+                  name = 'Series' parent = lv_root ).
+  lv_ser_prev-&gt;set_attribute( name = 'label'
+                               value = |전기({ pa_gjahr - 1 })| ).
+
+  lv_ser_curr = gcl_ixml_data_doc-&gt;create_simple_element(
+                  name = 'Series' parent = lv_root ).
+  lv_ser_curr-&gt;set_attribute( name = 'label'
+                               value = |당기({ pa_gjahr })| ).
+
+  " ③ 카테고리/포인트 매크로
+  DEFINE _add_col.
+    lv_cat = gcl_ixml_data_doc-&gt;create_simple_element(
+               name = 'Category' parent = lv_cats ).
+    lv_cat-&gt;if_ixml_node~set_value( &1 ).
+    " 전기
+    lv_val = |{ &2 * 100 NUMBER = RAW }|.
+    lv_point = gcl_ixml_data_doc-&gt;create_simple_element(
+                 name = 'Point' parent = lv_ser_prev ).
+    lv_value = gcl_ixml_data_doc-&gt;create_simple_element(
+                 name = 'Value' parent = lv_point ).
+    lv_value-&gt;set_attribute( name = 'type' value = 'y' ).
+    lv_value-&gt;if_ixml_node~set_value( lv_val ).
+    " 당기
+    lv_val = |{ &3 * 100 NUMBER = RAW }|.
+    lv_point = gcl_ixml_data_doc-&gt;create_simple_element(
+                 name = 'Point' parent = lv_ser_curr ).
+    lv_value = gcl_ixml_data_doc-&gt;create_simple_element(
+                 name = 'Value' parent = lv_point ).
+    lv_value-&gt;set_attribute( name = 'type' value = 'y' ).
+    lv_value-&gt;if_ixml_node~set_value( lv_val ).
+  END-OF-DEFINITION.
+
+  _add_col '자산' lv_asset_prev  lv_asset_curr.
+  _add_col '부채' lv_liab_prev   lv_liab_curr.
+  _add_col '자본' lv_equity_prev lv_equity_curr.
+
+  gcl_ixml_data_doc-&gt;render(
+    ostream = gcl_ixml_sf-&gt;create_ostream_xstring( lv_xdata ) ).
+
+  gcl_chart-&gt;set_data( xdata = lv_xdata ).
+  gcl_chart-&gt;render( ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form load_all_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM load_all_data .
+
+  DATA: lr_saknr      TYPE RANGE OF zte3fi0001-saknr,
+        ls_saknr      LIKE LINE OF lr_saknr,
+        lv_prev_gjahr TYPE gjahr.
+
+  REFRESH: gt_header, gt_prev, lr_saknr.
+
+  " 전체 계정 RANGE
+  LOOP AT gt_data INTO gs_data.
+    ls_saknr-sign   = 'I'.
+    ls_saknr-option = 'EQ'.
+    ls_saknr-low    = gs_data-saknr.
+    APPEND ls_saknr TO lr_saknr.
+  ENDLOOP.
+
+  CHECK lr_saknr IS NOT INITIAL.
+
+  " 당기
+  SELECT saknr, stext, waers,
+         m01, m02, m03, m04, m05, m06,
+         m07, m08, m09, m10, m11, m12
+    FROM zcds_e3_fi_0016(
+           p_bukrs = @pa_bukrs,
+           p_gjahr = @pa_gjahr
+         )
+    INTO CORRESPONDING FIELDS OF TABLE @gt_header
+   WHERE saknr IN @lr_saknr
+   ORDER BY saknr.
+
+  " 전기
+  lv_prev_gjahr = pa_gjahr - 1.
+  SELECT saknr, stext, waers,
+         m01, m02, m03, m04, m05, m06,
+         m07, m08, m09, m10, m11, m12
+    FROM zcds_e3_fi_0016(
+           p_bukrs = @pa_bukrs,
+           p_gjahr = @lv_prev_gjahr
+         )
+    INTO CORRESPONDING FIELDS OF TABLE @gt_prev
+   WHERE saknr IN @lr_saknr
+   ORDER BY saknr.
+
+  CALL METHOD gcl_grid-&gt;refresh_table_display
+    EXPORTING
+      i_soft_refresh = 'X'.
+
+  PERFORM set_chart.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0007_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0007_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0007_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZRE3FI0007_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form start_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM start_data . "감가상각 실행
+
+  DATA: lv_calc_depr TYPE p DECIMALS 4,
+        lv_gjahr     TYPE zte3fi0002-gjahr,
+        lv_monat     TYPE zte3fi0002-monat.
+
+  lv_gjahr = sy-datum(4).
+  lv_monat = sy-datum+4(2).
+
+  REFRESH: gt_data, gt_depr.
+
+  SELECT *
+    FROM zte3cm0002
+    INTO CORRESPONDING FIELDS OF TABLE @gt_data
+   WHERE bukrs = @gv_bukrs
+     AND afasl NE 'NONE'.
+
+  IF gt_data IS INITIAL.
+    MESSAGE s000 WITH '상각 대상 데이터가 존재하지 않습니다.'.
+    RETURN.
+  ENDIF.
+
+<font color ="#0000FF">*  당월 중복 실행 체크</font>
+  SELECT COUNT(*)
+    FROM zte3cm0007
+   WHERE bukrs = @gv_bukrs
+     AND gjahr = @lv_gjahr
+     AND monat = @lv_monat.
+
+  IF sy-dbcnt &gt; 0.
+    MESSAGE s000 WITH lv_gjahr '년' lv_monat '월 감가상각이 이미 처리되었습니다.'.
+    RETURN.
+  ENDIF.
+
+  " 감가상각 계산 루프
+  LOOP AT gt_data ASSIGNING FIELD-SYMBOL(&lt;ls_data&gt;).
+
+    CLEAR: lv_calc_depr, gs_depr.
+
+    " 상각방법별 계산
+    CASE &lt;ls_data&gt;-afasl.
+      WHEN 'LINR'. " 정액법: 취득원가 / 내용연수 / 12
+        IF &lt;ls_data&gt;-alife &gt; 0.
+          lv_calc_depr = &lt;ls_data&gt;-aprice / &lt;ls_data&gt;-alife / 12.
+        ENDIF.
+
+      WHEN 'DECL'. " 정률법: (취득원가 - 누계액) * (2 / 내용연수) / 12
+        IF &lt;ls_data&gt;-alife &gt; 0.
+          lv_calc_depr = ( &lt;ls_data&gt;-aprice - &lt;ls_data&gt;-accum ) * ( 2 / &lt;ls_data&gt;-alife ) / 12.
+        ENDIF.
+    ENDCASE.
+
+    " 잔액 초과 방지
+    IF &lt;ls_data&gt;-accum + lv_calc_depr &gt; &lt;ls_data&gt;-aprice.
+      lv_calc_depr = &lt;ls_data&gt;-aprice - &lt;ls_data&gt;-accum.
+    ENDIF.
+
+    " 이력 테이블
+    gs_depr-mandt = sy-mandt.
+    gs_depr-bukrs = &lt;ls_data&gt;-bukrs.
+    gs_depr-gjahr = lv_gjahr.
+    gs_depr-monat = lv_monat.
+    gs_depr-anln1 = &lt;ls_data&gt;-anln1.
+    gs_depr-depr  = lv_calc_depr.                     " 당월 상각액
+    gs_depr-accum = &lt;ls_data&gt;-accum + lv_calc_depr.   " 새로운 누계액
+    gs_depr-waers = &lt;ls_data&gt;-waers.
+    gs_depr-erdat = sy-datum.
+    gs_depr-erzet = sy-uzeit.
+    gs_depr-ernam = sy-uname.
+
+    APPEND gs_depr TO gt_depr.
+
+    " 마스터 테이블 갱신
+    &lt;ls_data&gt;-accum = gs_depr-accum.
+
+  ENDLOOP.
+
+  IF gt_depr IS NOT INITIAL.
+
+    MODIFY zte3cm0007 FROM TABLE gt_depr. " 이력 적재
+    MODIFY zte3cm0002 FROM TABLE gt_data. " 마스터 갱신
+
+    IF sy-subrc EQ 0.
+
+      "전표 생성
+      PERFORM post_document USING lv_gjahr lv_monat.
+
+      IF gv_belnr IS NOT INITIAL.
+        MESSAGE s000 WITH | { lv_monat } 월 감가상각 처리 완료 |.
+      ENDIF.
+
+    ELSE.
+      MESSAGE s000 WITH '데이터 저장 실패' DISPLAY LIKE 'E'.
+      ROLLBACK WORK.
+
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_uname</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_uname .
+
+  gv_bukrs = '1000'.
+  gv_pernr = '10000207'.
+
+  IF sy-uname NE 'NCODE-E-05'.
+    LEAVE PROGRAM.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form post_document</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LV_GJAHR</font>
+<font color ="#0000FF">*&      --&gt; LV_MONAT</font>
+<font color ="#0000FF">*&      --&gt; LV_BELNR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM post_document  USING    pv_gjahr TYPE zte3fi0002-gjahr
+                             pv_monat TYPE zte3fi0002-monat.
+
+
+  " 변수 선언 - LOOP 내 DATA() 인라인 금지
+  DATA: lt_item   TYPE TABLE OF zte3fi0003,
+        ls_item   TYPE zte3fi0003,
+        ls_depr   TYPE zte3cm0007,   " ← LOOP INTO 대상 선언
+        ls_master TYPE zte3cm0002,   " ← READ TABLE INTO 대상 선언
+        ls_header TYPE zte3fi0002,
+        lv_date   TYPE sy-datum.
+
+  CALL FUNCTION 'RP_LAST_DAY_OF_MONTHS'
+    EXPORTING
+      day_in            = sy-datum                " Key date
+    IMPORTING
+      last_day_of_month = lv_date.                 " Date of last day of the month from key  date
+
+
+  ls_header = VALUE zte3fi0002(
+                  bukrs = gv_bukrs
+                  blart = 'SA'
+                  waers = 'KRW'
+                  budat = lv_date   "월말일을 계산
+                  bldat = lv_date
+                  pernr = gv_pernr
+                  bltxt = |{ pv_gjahr }년 { pv_monat }월 감가상각|
+  ).
+
+  LOOP AT gt_depr INTO ls_depr WHERE depr &gt; 0.
+
+    READ TABLE gt_data INTO ls_master WITH KEY anln1 = ls_depr-anln1.
+    "차변
+    ls_item = VALUE #(
+      saknr = '5200000009' "감가상각비
+      shkzg = 'S'
+      dmbtr = ls_depr-depr
+      kostl = ls_master-kostl
+    ).
+    APPEND ls_item TO lt_item.
+    "대변
+    ls_item = VALUE #(
+      saknr = '1300000006' "감가상각누계액
+      shkzg = 'H'
+      dmbtr = ls_depr-depr
+      anln1 = ls_depr-anln1
+    ).
+    APPEND ls_item TO lt_item.
+
+  ENDLOOP.
+
+  CHECK lt_item IS NOT INITIAL.
+
+  zcl_e3_fi_document=&gt;post_document(
+      EXPORTING is_header = ls_header
+                it_items  = lt_item
+      IMPORTING
+                ev_belnr  = gv_belnr
+                ).
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

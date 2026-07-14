@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0007</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0007</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 감가상각 배치잡 프로그램</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRE3FI0007</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 감가상각 배치잡 프로그램</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zre3fi0007_top.html">zre3fi0007_top</a>.    " Global Data
+include <a href ="zre3fi0007_f01.html">zre3fi0007_f01</a>.  " FORM-Routines
+
+INITIALIZATION.
+  PERFORM check_uname.
+
+START-OF-SELECTION.
+
+  PERFORM start_data.
+
+  " 배치잡 완료 6월 30일부터
+
+
+<font color ="#0000FF">* LINR = 정액법 (Straight-Line) "</font>
+<font color ="#0000FF">*  " 정액법: 취득원가 / 내용연수 / 12</font>
+<font color ="#0000FF">*  "건물, 구축물 등</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** DECL = 정률법 (Declining Balance) " 정률법: 장부가액 × (2/내용연수) / 12</font>
+<font color ="#0000FF">*  " 기계장치 등</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMCE3</font>
+<font color ="#0000FF">*000   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

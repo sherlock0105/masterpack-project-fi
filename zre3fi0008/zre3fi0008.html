@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0008</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0008</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 감가상각 및 자산관리 프로그램</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZRE3FI0008</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 자산 조회 및 생성 프로그램</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="zre3fi0008_top.html">zre3fi0008_top</a>.    " Global Data
+
+include <a href ="zre3fi0008_s01.html">zre3fi0008_s01</a>.  " PBO-MODULES
+include <a href ="zre3fi0008_c01.html">zre3fi0008_c01</a>.  " PBO-MODULES
+include <a href ="zre3fi0008_o01.html">zre3fi0008_o01</a>.  " PBO-MODULES
+include <a href ="zre3fi0008_i01.html">zre3fi0008_i01</a>.  " PAI-MODULES
+include <a href ="zre3fi0008_f01.html">zre3fi0008_f01</a>.  " FORM-ROUTines
+
+INITIALIZATION.
+  PERFORM set_init_value.
+
+AT SELECTION-SCREEN OUTPUT.
+  PERFORM control_screen. "1000번 스크린 값 막기
+  PERFORM listbox_anlkl.
+  ""전표 번호 넣기 참조번호에
+
+START-OF-SELECTION.
+  PERFORM get_data.    "zcds_e3_cm_0001
+  PERFORM set_pop_data. "데이터 변경
+  PERFORM set_sort.
+
+  CALL SCREEN '0100'.
+
+  "매핑하기 전표번호
+
+<font color ="#0000FF">*감가상각누계액</font>
+  "누적 감가상각비용 합계 취득원가 − 잔존가치(또는 장부가액)  자산 차감계정으로 표시
+<font color ="#0000FF">*장부가액</font>
+  "자산의 현재 장부상 가치  취득원가 − 감가상각누계액  자산(순장부가액)으로 표시
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T0101 --&gt; 자산 정보</font>
+<font color ="#0000FF">* T0102 --&gt; [FI] 자산 생성</font>
+<font color ="#0000FF">* T0103 --&gt; 자산 처분</font>
+<font color ="#0000FF">*  T0100 --&gt; [FI] 감가상각 및 자산관리 프로그램</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 조회 조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_ANLKL D       .</font>
+<font color ="#0000FF">* PA_BUKRS D       .</font>
+<font color ="#0000FF">* PA_CHECK         No top of page</font>
+<font color ="#0000FF">* PA_GJAHR D       .</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMCE3</font>
+<font color ="#0000FF">*000   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

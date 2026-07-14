@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0008_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0008_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0008_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZRE3FI0008_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit_0100 INPUT.
+
+  gcl_dock_container-&gt;free( ).
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+
+  CASE gv_okcode.
+    WHEN 'REFRESH'.
+      CLEAR gv_okcode.
+      PERFORM get_data.
+      PERFORM get_item_data.
+      PERFORM make_hierarchy.
+      PERFORM set_pop_data.
+      PERFORM refresh_grid.
+
+    WHEN 'CREATE'.
+      CLEAR gv_okcode.
+
+      PERFORM create_asset.
+      PERFORM refresh_grid.
+    WHEN 'DELETE'.
+      CLEAR gv_okcode.
+      PERFORM delete_popup.
+      PERFORM set_chart.
+      PERFORM refresh_grid.
+
+    WHEN 'DE'. "감가상각
+      CLEAR gv_okcode.
+      PERFORM start_de.
+
+    WHEN OTHERS.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT_0101  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit_0101 INPUT.
+
+  CALL METHOD gcl_container_pop-&gt;free.
+  CLEAR : gcl_container_pop, gcl_grid_pop.
+
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT_0102  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit_0102 INPUT.
+
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0102  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0102 INPUT.
+
+  CASE gv_okcode.
+
+    WHEN 'SAVE'.
+      CLEAR gv_okcode.
+      PERFORM save_data.
+
+    WHEN 'UPLOAD'.
+      CLEAR gv_okcode.
+      PERFORM upload_pdf.
+
+    WHEN 'MOD2'.
+      CLEAR gv_okcode.
+      PERFORM list_anlkl.
+
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  F4_ANLKL  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE list_anlkl INPUT.
+
+  PERFORM list_anlkl.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_FIELDS  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_fields INPUT.
+
+  PERFORM check_fields.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0103  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0103 INPUT.
+
+  CASE gv_okcode.
+    WHEN 'DELETE_ASS'.
+      CLEAR gv_okcode.
+      PERFORM delete_asset.
+
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT_0103  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit_0103 INPUT.
+
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

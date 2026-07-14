@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0008_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0008_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0008_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRE3FI0008_TOP                           - Report ZRE3FI0008</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zre3fi0008 MESSAGE-ID zmce3.
+
+TABLES : zte3cm0002.
+
+
+DATA : gr_anlkl TYPE RANGE OF zte3cm0002-anlkl.
+<font color ="#0000FF">*DATA : gv_butxt TYPE zte3cm0001-butxt.</font>
+DATA : gr_anln1 TYPE RANGE OF zte3cm0002-anln1.
+<font color ="#0000FF">*       gr_anlkl TYPE RANGE OF zte3cm0002-anlkl.</font>
+
+DATA : gv_check(1),
+       gv_belnr     TYPE zte3cm0002-belnr,
+       gv_text(10),  " 감가상각방법 매핑
+       gv_text2(10). "사원 이름 매핑
+
+"파일 업로드 및 업로드된 파일 확인?
+CONSTANTS : gc_typeid TYPE srgbtbrel-typeid_a VALUE 'ZE3FI03', "임의로 모듈별로 정한다
+            gc_catid  TYPE srgbtbrel-catid_a  VALUE 'BO'.
+DATA: gv_filename TYPE sood-objdes.
+
+
+DATA : gv_book TYPE zte3cm0002-aprice.
+DATA : BEGIN OF gs_data,
+         icon    TYPE icon_d,
+         attache TYPE icon_d,
+         bukrs   TYPE zte3cm0002-bukrs,
+         anln1   TYPE zte3cm0002-anln1,
+         anlnt   TYPE zte3cm0002-anlnt,
+         anlkl   TYPE zte3cm0002-anlkl,
+         afasl   TYPE zte3cm0002-afasl,
+         alife   TYPE zte3cm0002-alife,
+         abudat  TYPE zte3cm0002-abudat,
+         aprice  TYPE zte3cm0002-aprice,
+         accum   TYPE zte3cm0002-accum,
+         waers   TYPE zte3cm0002-waers,
+         book    TYPE zte3cm0002-aprice,
+         belnr   TYPE zte3cm0002-belnr,
+         gjahr   TYPE zte3cm0002-gjahr,
+
+         kostl   TYPE zte3cm0002-kostl,
+       END OF gs_data,
+
+       gt_data      LIKE TABLE OF gs_data,     " 트리
+       gt_make_tree LIKE TABLE OF gs_data,     " 트리 데이터 담을 루프
+       gt_data_disp LIKE TABLE OF gs_data,     " 우측 ALV 표시용
+       gt_data_pop  LIKE TABLE OF gs_data.     " 우측 ALV 표시용
+
+DATA : gs_item TYPE zcds_e3_cm_0001,           "cds 사용
+       gt_item LIKE TABLE OF gs_item.
+
+" 입력 구조체
+DATA: BEGIN OF gs_asset,
+        anln1  TYPE zte3cm0002-anln1,
+        anlkl  TYPE zte3cm0002-anlkl,   " 자산분류
+        anlnt  TYPE zte3cm0002-anlnt,   " 자산명
+        aprice TYPE zte3cm0002-aprice,
+        waers  TYPE zte3cm0002-waers,
+        abudat TYPE zte3cm0002-abudat,  " 취득일자
+        alife  TYPE zte3cm0002-alife,
+        afasl  TYPE zte3cm0002-afasl,
+        pernr  TYPE zte3cm0002-pernr,
+        kunnr  TYPE zte3cm0002-kunnr,
+        belnr  TYPE zte3cm0002-belnr,
+        kostl  TYPE zte3co0002-kostl,
+      END OF gs_asset.
+
+DATA: gv_all_node TYPE lvc_nkey,
+      gv_sel_node TYPE lvc_nkey,
+      gv_okcode   TYPE sy-ucomm.
+
+DATA: gcl_dock_container TYPE REF TO cl_gui_docking_container,
+      gcl_splitter       TYPE REF TO cl_gui_splitter_container,
+      gcl_top_con        TYPE REF TO cl_gui_container, "TOP OF PAGE
+      gcl_tree_con       TYPE REF TO cl_gui_container,
+      gcl_right_con      TYPE REF TO cl_gui_container,   " 우측 ALV
+      gcl_grid           TYPE REF TO cl_gui_alv_grid,     " 우측 ALV
+      gcl_tree           TYPE REF TO cl_gui_alv_tree,
+      gcl_doc_top        TYPE REF TO cl_dd_document,
+      "POPUP
+      gcl_container_pop  TYPE REF TO cl_gui_custom_container,
+      gcl_grid_pop       TYPE REF TO cl_gui_custom_alv_grid.
+
+"POPUP
+DATA : gc_ab_sale  TYPE c VALUE 'S',   " 매각
+       gc_ab_scrap TYPE c VALUE 'P',   " 폐기
+       gc_ab_trans TYPE c VALUE 'T'.   " 기타
+
+DATA: BEGIN OF gs_dispose,
+        abtyp TYPE zte3cm0002-abtyp,     " 처분유형
+        abdat TYPE zte3cm0002-abdat,     " 처분일자
+        abamt TYPE zte3cm0002-abamt,     " 매각금액 (매각만)
+        kunnr TYPE zte3sd0001-kunnr,     " 고객번호 (매각만)
+        kostl TYPE zte3co0002-kostl,
+        pernr TYPE zte3cm0005-pernr,
+<font color ="#0000FF">*        abreason TYPE text50,  " 사유 (기타만)</font>
+      END OF gs_dispose.
+DATA gs_dispose_item LIKE gs_item.
+
+DATA: gt_fcat_tree  TYPE lvc_t_fcat,
+      gt_fcat       TYPE lvc_t_fcat,
+      gt_fcat_pop   TYPE lvc_t_fcat, "팝업
+      gs_fcat       TYPE lvc_s_fcat,
+      gs_layout     TYPE lvc_s_layo,
+      gs_layout_pop TYPE lvc_s_layo,
+      gs_variant    TYPE disvariant,
+      gs_stable     TYPE lvc_s_stbl,
+      gs_sort       TYPE lvc_s_sort,
+      gt_sort       TYPE lvc_t_sort,
+      gt_event      TYPE cntl_simple_events,
+      gs_event      LIKE LINE OF gt_event.
+
+"abap chart
+DATA: gcl_chart_con TYPE REF TO cl_gui_container,
+      gcl_chart     TYPE REF TO cl_gui_chart_engine.
+
+DATA: gcl_ixml          TYPE REF TO if_ixml,
+      gcl_ixml_sf       TYPE REF TO if_ixml_stream_factory,
+      gcl_ixml_data_doc TYPE REF TO if_ixml_document,
+      gcl_ostream       TYPE REF TO if_ixml_ostream,
+      gcl_encoding      TYPE REF TO if_ixml_encoding.
+
+DEFINE _popup_to_confirm.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+  EXPORTING
+    titlebar              = &1     "제목
+    text_question         = &2
+    text_button_1         = '예'
+    icon_button_1         = '@01@'      "ICON_CHECKED
+    text_button_2         = '아니오'
+    icon_button_2         = '@0W@'      "ICON_CANCEL
+    default_button        = '1'         "1로두면 예가 Default
+    display_cancel_button = ' '         "빈값이면 취소 버튼 없어짐
+  IMPORTING
+    answer                = &3.
+
+END-OF-DEFINITION.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

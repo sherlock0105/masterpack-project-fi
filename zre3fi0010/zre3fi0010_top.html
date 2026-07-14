@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZRE3FI0010_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZRE3FI0010_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZRE3FI0010_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include ZRE3FI0010_TOP                           - Report ZRE3FI0010</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zre3fi0010 MESSAGE-ID zmce3.
+
+TABLES : zte3fi0001, zte3fi0003.
+
+DATA : gv_logo TYPE sdydo_value.
+
+DATA: BEGIN OF gs_data,
+        saknr      TYPE saknr,
+        stext      TYPE txt20,
+        prev_amt   TYPE zte3fi0003-dmbtr,   " 전기 잔액
+        curr_amt   TYPE zte3fi0003-dmbtr,   " 당기 잔액
+        waers      TYPE waers,
+        waers_prev TYPE waers,
+        fs_lv1     TYPE char20,             " 대분류: 자산/부채/자본
+        fs_lv2     TYPE char20,             " 중분류: 유동자산 등
+        fs_sort    TYPE char3,              " 표시 순서
+      END OF gs_data.
+DATA: gt_data   LIKE TABLE OF gs_data,
+      gv_okcode TYPE sy-ucomm.
+
+DATA : BEGIN OF gs_header.
+         include structure <a href ="zcds_e3_fi_0016/dictionary-zcds_e3_fi_0016.html">zcds_e3_fi_0016</a>.
+DATA : END OF gs_header,
+
+gt_header LIKE TABLE OF gs_header,
+  gs_prev   LIKE LINE OF gt_header,
+  gt_prev   LIKE TABLE OF gs_header. "작년
+
+<font color ="#0000FF">* Tree ALV 컨테이너</font>
+DATA: gcl_container       TYPE REF TO cl_gui_docking_container,
+      gcl_splitter_main   TYPE REF TO cl_gui_splitter_container,
+      gcl_splitter_right  TYPE REF TO cl_gui_splitter_container,   " 우측 상하 분할
+      gcl_container_top   TYPE REF TO cl_gui_container,
+      gcl_container_tree  TYPE REF TO cl_gui_container,
+      gcl_container_grid  TYPE REF TO cl_gui_container,
+      gcl_container_chart TYPE REF TO cl_gui_container,             " 차트 컨테이너
+      gcl_dyndoc_id       TYPE REF TO cl_dd_document,
+      gcl_tree            TYPE REF TO cl_gui_alv_tree,
+      gcl_grid            TYPE REF TO cl_gui_alv_grid,
+      gcl_chart           TYPE REF TO cl_gui_chart_engine,          " 차트 오브젝트
+      gs_fcat             TYPE lvc_s_fcat,
+      gt_fcat             TYPE lvc_t_fcat,
+      gt_fcat_grid        TYPE lvc_t_fcat,
+      gt_grid_fcat        TYPE lvc_t_fcat,
+      gs_layout           TYPE lvc_s_layo,
+      gs_layout_gird      TYPE lvc_s_layo,
+      gs_stable           TYPE lvc_s_stbl,
+      gt_event            TYPE cntl_simple_events,
+      gs_event            LIKE LINE OF gt_event,
+      gs_variant          TYPE disvariant.
+
+<font color ="#0000FF">* ixml (차트 데이터 XML 생성용)</font>
+DATA: gcl_ixml          TYPE REF TO if_ixml,
+      gcl_ixml_sf       TYPE REF TO if_ixml_stream_factory,
+      gcl_ixml_data_doc TYPE REF TO if_ixml_document,
+      gcl_encoding      TYPE REF TO if_ixml_encoding.
+
+<font color ="#0000FF">* TOP OF PAGE</font>
+DATA: gt_list_commentary TYPE slis_t_listheader,
+      gs_hierhdr         TYPE treev_hhdr.
+
+DEFINE _popup_to_confirm.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+  EXPORTING
+    titlebar              = &1     "제목
+    text_question         = &2
+    text_button_1         = '예'
+    icon_button_1         = '@01@'      "ICON_CHECKED
+    text_button_2         = '아니오'
+    icon_button_2         = '@0W@'      "ICON_CANCEL
+    default_button        = '1'         "1로두면 예가 Default
+    display_cancel_button = ' '         "빈값이면 취소 버튼 없어짐
+  IMPORTING
+    answer                = &3.
+
+END-OF-DEFINITION.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>
