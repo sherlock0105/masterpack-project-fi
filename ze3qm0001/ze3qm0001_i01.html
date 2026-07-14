@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZE3QM0001_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZE3QM0001_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZE3QM0001_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          SAPMZE3QM0001_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit_0100 INPUT.
+
+  IF gcl_grid IS BOUND.
+    CALL METHOD gcl_grid-&gt;free.
+    FREE gcl_grid.
+  ENDIF.
+
+  IF gcl_html IS BOUND.
+    CALL METHOD gcl_html-&gt;free.
+    FREE gcl_html.
+  ENDIF.
+
+  IF gcl_con_alv IS BOUND.
+    CALL METHOD gcl_con_alv-&gt;free.
+    FREE gcl_con_alv.
+  ENDIF.
+
+  IF gcl_con_html IS BOUND.
+    CALL METHOD gcl_con_html-&gt;free.
+    FREE gcl_con_html.
+  ENDIF.
+
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+
+  CASE gv_okcode.
+
+    WHEN 'GO_FIORI'.
+      CLEAR gv_okcode.
+      PERFORM go_fiori.
+
+    WHEN 'EXCEL_TEM'. "엑셀 템플릿
+      CLEAR gv_okcode.
+      PERFORM excel_tem.
+
+    WHEN 'EXCEL'.     "엑셀 검수
+      PERFORM get_fname.
+      PERFORM upload_file.
+      PERFORM set_style.
+
+      PERFORM refresh_grid.
+      CLEAR gv_okcode.
+
+    WHEN 'REFRESH'.
+      CLEAR gv_okcode.
+<font color ="#0000FF">*      PERFORM set_date.</font>
+      PERFORM get_header_data USING 'ALL'.
+<font color ="#0000FF">*      PERFORM search_data.</font>
+      PERFORM set_style.
+      PERFORM refresh_grid.
+
+      MESSAGE s000 WITH '새로고침 되었습니다.'.
+
+    WHEN 'SEARCH'.
+      CLEAR gv_okcode.
+
+      PERFORM check_data.
+<font color ="#0000FF">*      CHECK sy-subrc EQ 0.</font>
+      CHECK   gv_error NE 'X'.
+      PERFORM search_data.
+      PERFORM set_style.
+      PERFORM refresh_grid.
+
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0101  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0101 INPUT.
+
+  CASE gv_okcode.
+    WHEN 'SEARCH'.
+      CLEAR gv_okcode.
+
+      PERFORM check_data.
+<font color ="#0000FF">*      CHECK sy-subrc EQ 0.</font>
+      CHECK   gv_error NE 'X'.
+      PERFORM search_data.
+      PERFORM set_style.
+      PERFORM refresh_grid.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  F4_AUFNR  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE f4_aufnr INPUT.
+
+  PERFORM f4_aufnr.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  F4_MATNR  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE f4_matnr INPUT.
+
+  PERFORM f4_matnr.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  F4_CHARG  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE f4_charg INPUT.
+
+  PERFORM f4_charg.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  F4_INSP_TYPE  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE f4_insp_type INPUT.
+
+  PERFORM f4_insp_type.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT_0200  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit_0200 INPUT.
+
+  LEAVE TO SCREEN 0.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0200  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0200 INPUT.
+
+<font color ="#0000FF">*  CASE gv_okcode.</font>
+<font color ="#0000FF">*    WHEN 'SAVE'.</font>
+<font color ="#0000FF">*      IF gcl_grid_popup IS BOUND.</font>
+<font color ="#0000FF">*        gcl_grid_popup-&gt;check_changed_data( ).</font>
+<font color ="#0000FF">*      ENDIF.</font>
+<font color ="#0000FF">*    WHEN OTHERS.</font>
+<font color ="#0000FF">*  ENDCASE.</font>
+
+  DATA: lv_answer  TYPE c,
+        lv_chk_cnt TYPE i.
+
+  " ALV 그리드의 변경사항을 인터널 테이블에 반영
+  IF gcl_grid_popup IS BOUND.
+    gcl_grid_popup-&gt;check_changed_data( ).
+  ENDIF.
+
+  CASE sy-ucomm.
+    WHEN 'SAVE'.
+      " 1) 체크된 항목이 있는지 검사
+      CLEAR lv_chk_cnt.
+      LOOP AT gt_upload_pop TRANSPORTING NO FIELDS WHERE mark = 'X'.
+        lv_chk_cnt = lv_chk_cnt + 1.
+      ENDLOOP.
+
+      IF lv_chk_cnt = 0.
+        MESSAGE s000 WITH '선택된 검수 항목이 없습니다.' DISPLAY LIKE 'W'.
+        CLEAR sy-ucomm.
+        EXIT. " 화면을 닫지 않고 빠져나감
+      ENDIF.
+
+      " 2) 0200 화면이 떠 있는 상태에서 확인 팝업 호출
+      CALL FUNCTION 'POPUP_TO_CONFIRM'
+        EXPORTING
+          titlebar              = '검사 결과 저장'
+          text_question         = |선택하신 { lv_chk_cnt }건의 검사 결과를 저장하시겠습니까?|
+          text_button_1         = '예'
+          icon_button_1         = '@01@'
+          text_button_2         = '아니오'
+          icon_button_2         = '@0W@'
+          default_button        = '1'
+          display_cancel_button = ' '
+        IMPORTING
+          answer                = lv_answer.
+
+      " 3) 팝업 응답 처리
+      IF lv_answer EQ '1'.
+        " '예'를 누르면 확인 코드를 세팅하고 0200 팝업 종료
+        gv_okcode = 'SAVE'.
+        LEAVE TO SCREEN 0.
+      ELSE.
+        " '아니오'를 누르면 아무 동작 없이 0200 화면 유지
+        MESSAGE s000 WITH '저장이 취소되었습니다.' DISPLAY LIKE 'S'.
+        CLEAR sy-ucomm.
+      ENDIF.
+
+    WHEN 'CANC' OR 'EXIT' OR 'BACK'.
+      " 0200 팝업창 닫기 버튼 클릭 시
+      gv_okcode = 'CANC'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

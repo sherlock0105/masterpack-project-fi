@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>LZFGE3CO01TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: LZFGE3CO01TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [CO] 완제품 배치 정보 팝업 500번 스크린</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">* regenerated at 2026.04.06 10:36:27</font>
+FUNCTION-POOL zfge3co01                  MESSAGE-ID sv.
+
+DATA :gv_iv_charg TYPE zte3mm0003-charg,
+      gv_matnr    TYPE zte3mm0003-matnr,
+      gv_maktx    TYPE zte3mm0001-maktx,
+      gv_charg    TYPE zte3mm0003-charg,
+      gv_lgort    TYPE zte3mm0003-lgort,
+      gv_ltypt    TYPE zte3mm0005-ltypt,
+      gv_vfdat    TYPE zte3mm0003-vfdat,
+      gv_aufnr    TYPE zte3pp0005-aufnr,
+      gv_gamng    TYPE zte3pp0005-gamng,
+      gv_gmein    TYPE zte3pp0005-gmein,
+      gv_gstrp    TYPE zte3pp0005-gstrp,
+      gv_gltrp    TYPE zte3pp0005-gltrp,
+      gv_prueflos TYPE zte3qm0001-prueflos,
+      gv_budat    TYPE zte3qm0001-budat,
+      gv_pass_qty TYPE zte3qm0002-pass_qty,
+      gv_fail_qty TYPE zte3qm0002-fail_qty,
+      gv_meins    TYPE zte3qm0002-meins,
+      gv_meins2   TYPE zte3qm0002-meins.
+
+DATA: gt_pop_fcat TYPE lvc_t_fcat,
+      gs_pop_fcat TYPE lvc_s_fcat,
+      gs_pop_layo TYPE lvc_s_layo.
+
+DATA: gcl_pop_con  TYPE REF TO cl_gui_custom_container,
+      gcl_pop_grid TYPE REF TO cl_gui_alv_grid.
+
+DATA : BEGIN OF gs_mm,
+         matnr      TYPE zte3mm0001-matnr,
+         mtart      TYPE zte3mm0001-mtart,
+         maktx      TYPE zte3mm0001-maktx,
+         groes      TYPE zte3mm0001-groes,
+         eisbe      TYPE zte3mm0001-eisbe,
+         target_qty TYPE zte3mm0001-target_qty,
+         meins      TYPE zte3mm0001-meins,
+         meins_2    TYPE zte3mm0001-meins,
+         meins_3    TYPE zte3mm0001-meins,
+         z_life     TYPE zte3mm0001-z_life,
+         z_unit     TYPE zte3mm0001-z_unit,
+         spec       TYPE zte3mm0001-spec,
+         z_spec     TYPE zte3mm0001-z_spec,
+       END OF gs_mm.
+
+
+<font color ="#0000FF">**********************************************************************</font>
+<font color ="#0000FF">*--- 간접비 구성 팝업 (0606) ---</font>
+DATA: BEGIN OF gs_pop_il,
+        gubun(4),
+        s_ktext(40),
+        kstar       TYPE zte3co0005-kstar,
+        kstar_txt   TYPE text40,
+        wtgbtr      TYPE zte3co0005-wtgbtr,
+        waers       TYPE zte3co0005-waers,
+      END OF gs_pop_il.
+DATA: gt_pop_il LIKE TABLE OF gs_pop_il.
+
+DATA: gs_fcat_il   TYPE lvc_s_fcat,
+      gt_fcat_il   TYPE lvc_t_fcat,
+      gs_layout_il TYPE lvc_s_layo.
+
+DATA: gcl_con_il      TYPE REF TO cl_gui_custom_container,
+      gcl_splitter_il TYPE REF TO cl_gui_splitter_container,
+      gcl_con_top_il  TYPE REF TO cl_gui_container,
+      gcl_con_grid_il TYPE REF TO cl_gui_container,
+      gcl_grid_il     TYPE REF TO cl_gui_alv_grid,
+      gcl_top_il      TYPE REF TO cl_dd_document.
+
+<font color ="#0000FF">*--- 팝업 TOP 표시용 (송신CC 정보) ---</font>
+DATA: gv_il_bukrs TYPE zte3co0005-bukrs,
+      gv_il_gjahr TYPE zte3co0005-gjahr,
+      gv_il_perid TYPE zte3co0005-perid,
+      gv_il_kostl TYPE zte3co0005-s_kostl,
+      gv_il_ktext TYPE zte3co0002-kostl_txt,
+      gv_il_total TYPE zte3co0005-wtgbtr.
+
+DATA: gv_il_stage.
+
+DATA gv_iv_belnr.
+
+
+
+
+DATA: gv_co_belnr TYPE zte3co0004-belnr,
+      gv_iv_bukrs TYPE zte3co0004-bukrs,
+      gv_iv_gjahr TYPE zte3co0004-gjahr.
+
+DATA: gv_zykl_txt  TYPE zte3co0006-zykl_txt,
+      gv_usnam_txt TYPE zte3cm0005-pernam.
+
+DATA: gv_belnr     TYPE zte3co0004-belnr,
+      gv_bldat     TYPE zte3co0004-bldat,
+      gv_co_budat  TYPE zte3co0004-budat,
+      gv_perid     TYPE zte3co0004-perid,
+      gv_awtyp     TYPE zte3co0004-awtyp,
+      gv_awtyp_txt TYPE sdydo_text_element,
+      gv_awref     TYPE zte3co0004-awref,
+      gv_usnam     TYPE zte3co0004-usnam,
+      gv_stblg     TYPE zte3co0004-stblg,
+      gv_stjah     TYPE zte3co0004-stjah,
+      gv_stflg     TYPE zte3co0004-stflg,
+      gv_stflg_txt TYPE sdydo_text_element.
+
+DATA: BEGIN OF gs_co_item,
+        buzei         TYPE zte3co0005-buzei,
+        kstar         TYPE zte3co0005-kstar,
+        kstar_txt     TYPE zte3co0003-kstar_txt,
+        sndrcv_txt(4),
+        s_kostl       TYPE zte3co0005-s_kostl,
+        s_ktext       TYPE zte3co0002-kostl_txt,
+        recv_key(20),                            " 수신처 (r_kostl 또는 aufnr)
+        recv_txt(40),                            " 수신처명
+        prctr         TYPE zte3co0005-prctr,
+        wtgbtr_s      TYPE zte3co0005-wtgbtr,
+        wtgbtr_r      TYPE zte3co0005-wtgbtr,
+        waers         TYPE zte3co0005-waers,
+        wtgbtr        TYPE zte3co0005-wtgbtr,        " 원본(부호판정용, 화면 숨김)
+        r_kostl       TYPE zte3co0005-r_kostl,
+        aufnr         TYPE zte3co0005-aufnr,
+      END OF gs_co_item.
+DATA gt_co_item LIKE TABLE OF gs_co_item.
+
+DATA: gcl_con_co_item  TYPE REF TO cl_gui_custom_container,
+      gcl_grid_co_item TYPE REF TO cl_gui_alv_grid,
+      gcl_con_top_0503 TYPE REF TO cl_gui_custom_container,
+      gcl_top_document TYPE REF TO cl_dd_document.
+
+DATA: gt_fcat_0503   TYPE lvc_t_fcat,
+      gs_layout_0503 TYPE lvc_s_layo,
+      gt_sort_0503   TYPE lvc_t_sort.
+
+
+
+<font color ="#0000FF">* INCLUDE LZFGE3CO01D...                     " Local class definition</font>
+INCLUDE lsvimdat                                . "general data decl.
+INCLUDE lzfge3co01t00                           . "view rel. data dcl.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

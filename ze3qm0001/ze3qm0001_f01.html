@@ -1,0 +1,2847 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZE3QM0001_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZE3QM0001_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZE3QM0001_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          SAPMZE3QM0001_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form upload_file</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM upload_file .
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  DATA: lt_excel     TYPE TABLE OF alsmex_tabline,</font>
+<font color ="#0000FF">*        ls_excel     TYPE alsmex_tabline,</font>
+<font color ="#0000FF">*        lv_begin_row TYPE i VALUE 1,</font>
+<font color ="#0000FF">*        lv_row       TYPE kcd_ex_row_n VALUE 0,</font>
+<font color ="#0000FF">*        lt_ins_table TYPE TABLE OF zte3qm0004,</font>
+<font color ="#0000FF">*        ls_ins_table TYPE zte3qm0004,</font>
+<font color ="#0000FF">*        lv_skip_cnt  TYPE i,</font>
+<font color ="#0000FF">*        lv_lot_cnt   TYPE i,</font>
+<font color ="#0000FF">*        lv_msg       TYPE string,</font>
+<font color ="#0000FF">*        lv_answer    TYPE c.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 헤더 한글 텍스트 체크용 구조체</font>
+<font color ="#0000FF">*  DATA: ls_hdr       TYPE alsmex_tabline.</font>
+<font color ="#0000FF">*  " 사용자가 체크 해제한(MARK = 빈칸) 검수 로트 번호 수집</font>
+<font color ="#0000FF">*  DATA: lt_del_lot TYPE TABLE OF zte3qm0004-prueflos.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CLEAR: gs_data.</font>
+<font color ="#0000FF">*  REFRESH: gt_data.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  IF gv_fname IS INITIAL.</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH '파일을 선택해주세요' DISPLAY LIKE 'E'. RETURN.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 1. 엑셀 데이터 로드</font>
+<font color ="#0000FF">*  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      filename    = gv_fname</font>
+<font color ="#0000FF">*      i_begin_col = 1</font>
+<font color ="#0000FF">*      i_begin_row = lv_begin_row</font>
+<font color ="#0000FF">*      i_end_col   = 7</font>
+<font color ="#0000FF">*      i_end_row   = 10000</font>
+<font color ="#0000FF">*    TABLES</font>
+<font color ="#0000FF">*      intern      = lt_excel</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      OTHERS      = 3.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CLEAR : gv_fname.</font>
+<font color ="#0000FF">*  IF sy-subrc NE 0 OR lt_excel IS INITIAL.</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH '데이터가 없거나 파일을 읽을 수 없습니다.' DISPLAY LIKE 'E'. RETURN.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  "헤더검사</font>
+<font color ="#0000FF">*  SORT lt_excel BY row col.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  READ TABLE lt_excel INTO ls_hdr WITH KEY row = 1 col = 1.</font>
+<font color ="#0000FF">*  IF ls_hdr-value &lt;&gt; '검수번호'.</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH '검수결과 업로드 양식이 아닙니다. 지정된 양식을 사용하세요.' DISPLAY LIKE 'E'. RETURN.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  READ TABLE lt_excel INTO ls_hdr WITH KEY row = 1 col = 2.</font>
+<font color ="#0000FF">*  IF ls_hdr-value &lt;&gt; '자재코드'.</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH '검수결과 업로드 양식이 아닙니다. 지정된 양식을 사용하세요.' DISPLAY LIKE 'E'. RETURN.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 2. 데이터 파싱 루프</font>
+<font color ="#0000FF">*  LOOP AT lt_excel INTO ls_excel.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 1행 헤더 타이틀은 스킵</font>
+<font color ="#0000FF">*    IF ls_excel-row = 1.</font>
+<font color ="#0000FF">*      CONTINUE.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*    IF lv_row &lt;&gt; 0 AND lv_row &lt;&gt; ls_excel-row.</font>
+<font color ="#0000FF">*      IF gs_data-prueflos IS NOT INITIAL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        " 마스터 테이블 존재 여부 검사</font>
+<font color ="#0000FF">*        SELECT SINGLE matnr INTO @DATA(lv_matnr_chk)</font>
+<font color ="#0000FF">*          FROM zte3qm0002</font>
+<font color ="#0000FF">*         WHERE prueflos = @gs_data-prueflos.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        IF sy-subrc &lt;&gt; 0.</font>
+<font color ="#0000FF">*          MESSAGE s000 WITH |행({ lv_row }): 존재하지 않는 검사 ({ gs_data-prueflos }) 번호입니다.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*          RETURN.</font>
+<font color ="#0000FF">*        ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        IF lv_matnr_chk &lt;&gt; gs_data-matnr.</font>
+<font color ="#0000FF">*          MESSAGE s000 WITH |행({ lv_row }): { gs_data-prueflos }의 자재정보가 일치하지 않습니다.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*          RETURN.</font>
+<font color ="#0000FF">*        ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        " 에러가 없으면 무조건 추가</font>
+<font color ="#0000FF">*        APPEND gs_data TO gt_data.</font>
+<font color ="#0000FF">*      ENDIF.</font>
+<font color ="#0000FF">*      CLEAR gs_data.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    lv_row = ls_excel-row.</font>
+<font color ="#0000FF">*    CONDENSE ls_excel-value.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    CASE ls_excel-col.</font>
+<font color ="#0000FF">*      WHEN 1. gs_data-prueflos = |{ ls_excel-value ALPHA = IN }|.</font>
+<font color ="#0000FF">*      WHEN 2. gs_data-matnr    = |{ ls_excel-value ALPHA = IN }|.</font>
+<font color ="#0000FF">*      WHEN 3. gs_data-insp_cd  = ls_excel-value.</font>
+<font color ="#0000FF">*      WHEN 4. gs_data-insp_nm  = ls_excel-value.</font>
+<font color ="#0000FF">*      WHEN 5. " 수량: 음수 체크 및 숫자 체크</font>
+<font color ="#0000FF">*        " 1) 음수(-) 기호가 포함되어 있는지 확인</font>
+<font color ="#0000FF">*        IF ls_excel-value CA '-'.</font>
+<font color ="#0000FF">*          MESSAGE s000 WITH |행({ lv_row }): 폐기 수량에 음수({ ls_excel-value })를 입력할 수 없습니다.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*          RETURN.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          " 2) 정상적인 숫자/소수점인지 확인</font>
+<font color ="#0000FF">*        ELSEIF ls_excel-value CO '0123456789. '.</font>
+<font color ="#0000FF">*          gs_data-fail_qty = ls_excel-value.</font>
+<font color ="#0000FF">*        ELSE.</font>
+<font color ="#0000FF">*          MESSAGE s000 WITH |행({ lv_row }): 수량에 올바른 숫자를 입력하세요.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*          RETURN.</font>
+<font color ="#0000FF">*        ENDIF.</font>
+<font color ="#0000FF">*      WHEN 6. gs_data-meins    = ls_excel-value.</font>
+<font color ="#0000FF">*      WHEN 7. " 사번: 숫자 체크</font>
+<font color ="#0000FF">*        IF ls_excel-value CO '0123456789 '.</font>
+<font color ="#0000FF">*          gs_data-pernr = |{ ls_excel-value ALPHA = IN }|.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          " 1. 해당 검수번호(로트)의 검사유형 조회</font>
+<font color ="#0000FF">*          SELECT SINGLE insp_type</font>
+<font color ="#0000FF">*            INTO @DATA(lv_up_insp_type)</font>
+<font color ="#0000FF">*            FROM zte3qm0001</font>
+<font color ="#0000FF">*           WHERE prueflos = @gs_data-prueflos.</font>
+<font color ="#0000FF">*          " 2. 검사 유형에 따른 부서(BTRTL) 결정</font>
+<font color ="#0000FF">*          DATA: lv_up_team TYPE zte3cm0005-btrtl.</font>
+<font color ="#0000FF">*          IF lv_up_insp_type = '02'.</font>
+<font color ="#0000FF">*            lv_up_team = 'QM_QA'. " ★ 반품 부서</font>
+<font color ="#0000FF">*          ELSE.</font>
+<font color ="#0000FF">*            lv_up_team = 'QM_QC'. " ★ 일반 검수 부서</font>
+<font color ="#0000FF">*          ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          SELECT SINGLE pernr</font>
+<font color ="#0000FF">*            INTO @DATA(lv_up_chk)</font>
+<font color ="#0000FF">*            FROM zte3cm0005</font>
+<font color ="#0000FF">*           WHERE pernr = @gs_data-pernr</font>
+<font color ="#0000FF">*             AND btrtl = @lv_up_team.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          IF sy-subrc NE 0.</font>
+<font color ="#0000FF">*            MESSAGE s000 WITH |행({ lv_row }): 잘못된 사번({ ls_excel-value })입니다.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*            RETURN.</font>
+<font color ="#0000FF">*          ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        ELSE.</font>
+<font color ="#0000FF">*          MESSAGE s000 WITH |행({ lv_row }): 사번에 올바른 숫자를 입력하세요.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*          RETURN.</font>
+<font color ="#0000FF">*        ENDIF.</font>
+<font color ="#0000FF">*    ENDCASE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 마지막 행 처리</font>
+<font color ="#0000FF">*  IF gs_data-prueflos IS NOT INITIAL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    SELECT SINGLE matnr INTO @DATA(lv_last_chk)</font>
+<font color ="#0000FF">*      FROM zte3qm0002</font>
+<font color ="#0000FF">*     WHERE prueflos = @gs_data-prueflos.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    IF sy-subrc &lt;&gt; 0.</font>
+<font color ="#0000FF">*      MESSAGE s000 WITH |마지막 행({ lv_row }): 존재하지 않는 검사 번호입니다.| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*      RETURN.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    IF lv_last_chk &lt;&gt; gs_data-matnr.</font>
+<font color ="#0000FF">*      MESSAGE s000 WITH |마지막 행({ lv_row }): 검사로트 정보 오류| DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*      RETURN.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    APPEND gs_data TO gt_data.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 3. 키 값 기준 중복 제거 및 완료 건(stats = '3') 필터링</font>
+<font color ="#0000FF">*  SORT gt_data BY prueflos insp_cd.</font>
+<font color ="#0000FF">*  DELETE ADJACENT DUPLICATES FROM gt_data COMPARING prueflos insp_cd.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  IF gt_data IS NOT INITIAL.</font>
+<font color ="#0000FF">*    " 3-1. 엑셀에 있는 검수번호 중 이미 완료('3')된 번호만 한 번에 DB에서 조회</font>
+<font color ="#0000FF">*    SELECT prueflos</font>
+<font color ="#0000FF">*      INTO TABLE @DATA(lt_completed)</font>
+<font color ="#0000FF">*      FROM zte3qm0001</font>
+<font color ="#0000FF">*       FOR ALL ENTRIES IN @gt_data</font>
+<font color ="#0000FF">*     WHERE prueflos = @gt_data-prueflos</font>
+<font color ="#0000FF">*       AND stats = '3'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 3-2. 완료된 건이 존재하면 gt_data에서 안전하게 일괄 삭제</font>
+<font color ="#0000FF">*    IF sy-subrc = 0 AND lt_completed IS NOT INITIAL.</font>
+<font color ="#0000FF">*      " 삭제 건수 정확히 카운트하기 위해 중복 제거</font>
+<font color ="#0000FF">*      SORT lt_completed BY prueflos.</font>
+<font color ="#0000FF">*      DELETE ADJACENT DUPLICATES FROM lt_completed COMPARING prueflos.</font>
+<font color ="#0000FF">*      lv_skip_cnt = lines( lt_completed ).</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      " 별도로 수집한 완료 리스트(lt_completed)를 기준으로 메인 데이터에서 지움</font>
+<font color ="#0000FF">*      LOOP AT lt_completed INTO DATA(ls_comp).</font>
+<font color ="#0000FF">*        DELETE gt_data WHERE prueflos = ls_comp-prueflos.</font>
+<font color ="#0000FF">*      ENDLOOP.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 3-3. ★ 방어 로직: 엑셀 파일 안의 모든 건이 이미 완료 처리되어 남은 데이터가 없다면?</font>
+<font color ="#0000FF">*  IF gt_data IS INITIAL.</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH |업로드한 파일의 모든 항목이 이미 검수 완료되었습니다.| DISPLAY LIKE 'I'.</font>
+<font color ="#0000FF">*    RETURN. " 빈 팝업을 띄우지 않고 종료</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  REFRESH gt_upload_pop.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 1) 엑셀 상세 아이템(gt_data)에서 고유한 검수번호(PRUEFLOS) 목록만 추출</font>
+<font color ="#0000FF">*  DATA(lt_tmp_lot) = gt_data.</font>
+<font color ="#0000FF">*  SORT lt_tmp_lot BY prueflos.</font>
+<font color ="#0000FF">*  DELETE ADJACENT DUPLICATES FROM lt_tmp_lot COMPARING prueflos.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 2) DB에서 기본 정보(총수량, 자재코드 등)만 가져오기</font>
+<font color ="#0000FF">*  IF lt_tmp_lot IS NOT INITIAL.</font>
+<font color ="#0000FF">*    SELECT a~prueflos, a~insp_type, a~aufnr, a~budat, a~stats,</font>
+<font color ="#0000FF">*           b~matnr,    b~charg,     b~qi_qty,  b~meins,</font>
+<font color ="#0000FF">*           c~gltrp</font>
+<font color ="#0000FF">*      INTO CORRESPONDING FIELDS OF TABLE @gt_upload_pop</font>
+<font color ="#0000FF">*      FROM zte3qm0001 AS a</font>
+<font color ="#0000FF">*     INNER JOIN zte3qm0002 AS b ON a~prueflos = b~prueflos</font>
+<font color ="#0000FF">*      LEFT OUTER JOIN zte3pp0005 AS c ON a~aufnr = c~aufnr</font>
+<font color ="#0000FF">*       FOR ALL ENTRIES IN @lt_tmp_lot</font>
+<font color ="#0000FF">*     WHERE a~prueflos = @lt_tmp_lot-prueflos</font>
+<font color ="#0000FF">*       AND b~pruef_pos = '0001'.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 3) 엑셀에서 입력받은 항목(gt_data)의 폐기 수량을 합산하여 팝업에 반영</font>
+<font color ="#0000FF">*  LOOP AT gt_upload_pop ASSIGNING FIELD-SYMBOL(&lt;fs_pop&gt;).</font>
+<font color ="#0000FF">*    &lt;fs_pop&gt;-mark = ' '. " 기본 전체 선택 해제</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 폐기 수량 누적 변수 초기화</font>
+<font color ="#0000FF">*    &lt;fs_pop&gt;-fail_qty = 0.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 해당 검수번호(로트)의 엑셀 데이터(gt_data)를 순회하며 폐기 수량 누적</font>
+<font color ="#0000FF">*    LOOP AT gt_data INTO DATA(ls_tmp_data) WHERE prueflos = &lt;fs_pop&gt;-prueflos.</font>
+<font color ="#0000FF">*      &lt;fs_pop&gt;-fail_qty = &lt;fs_pop&gt;-fail_qty + ls_tmp_data-fail_qty.</font>
+<font color ="#0000FF">*    ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 합격 수량 = 총수량(qi_qty) - 엑셀에 적힌 총 폐기수량(fail_qty)</font>
+<font color ="#0000FF">*    &lt;fs_pop&gt;-pass_qty = &lt;fs_pop&gt;-qi_qty - &lt;fs_pop&gt;-fail_qty.</font>
+<font color ="#0000FF">*  ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " 4) 모달 팝업 호출 (팝업 내 PAI에서 승인 시 gv_okcode = 'SAVE' 할당 후 닫힘)</font>
+<font color ="#0000FF">*  CALL SCREEN '0200' STARTING AT 20 5.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  " ==========================================================</font>
+<font color ="#0000FF">*  " 저장 처리 로직</font>
+<font color ="#0000FF">*  " ==========================================================</font>
+<font color ="#0000FF">*  IF gv_okcode = 'SAVE'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " PAI에서 체크된 건수 방어를 했지만, 이중 체크</font>
+<font color ="#0000FF">*    LOOP AT gt_upload_pop INTO gs_upload_pop WHERE mark = space.</font>
+<font color ="#0000FF">*      APPEND gs_upload_pop-prueflos TO lt_del_lot.</font>
+<font color ="#0000FF">*    ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 실제 저장할 엑셀 아이템 데이터(gt_data)에서 선택 안 된 로트를 삭제</font>
+<font color ="#0000FF">*    IF lt_del_lot IS NOT INITIAL.</font>
+<font color ="#0000FF">*      LOOP AT lt_del_lot INTO DATA(lv_del_prueflos).</font>
+<font color ="#0000FF">*        DELETE gt_data WHERE prueflos = lv_del_prueflos.</font>
+<font color ="#0000FF">*      ENDLOOP.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 전부 체크 해제하고 눌렀을 경우 방어</font>
+<font color ="#0000FF">*    IF gt_data IS INITIAL.</font>
+<font color ="#0000FF">*      MESSAGE s000 WITH '선택된 검수 항목이 없어 취소되었습니다.' DISPLAY LIKE 'W'.</font>
+<font color ="#0000FF">*      RETURN.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 최종 건수 다시 계산</font>
+<font color ="#0000FF">*    DATA(lt_popup_count) = gt_data.</font>
+<font color ="#0000FF">*    SORT lt_popup_count BY prueflos.</font>
+<font color ="#0000FF">*    DELETE ADJACENT DUPLICATES FROM lt_popup_count COMPARING prueflos.</font>
+<font color ="#0000FF">*    lv_lot_cnt = lines( lt_popup_count ).</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 실제 DB 반영</font>
+<font color ="#0000FF">*    MOVE-CORRESPONDING gt_data TO lt_ins_table.</font>
+<font color ="#0000FF">*    MODIFY zte3qm0004 FROM TABLE lt_ins_table.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    IF sy-subrc = 0.</font>
+<font color ="#0000FF">*      PERFORM calc_update.</font>
+<font color ="#0000FF">*      PERFORM get_excel_data USING lv_skip_cnt.</font>
+<font color ="#0000FF">*      MESSAGE s000 WITH |선택한 { lv_lot_cnt }건의 검수 내역이 성공적으로 저장되었습니다.|.</font>
+<font color ="#0000FF">*    ELSE.</font>
+<font color ="#0000FF">*      ROLLBACK WORK.</font>
+<font color ="#0000FF">*      MESSAGE s000 WITH '저장 중 데이터베이스 오류 발생' DISPLAY LIKE 'E'.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ELSE.</font>
+<font color ="#0000FF">*    " 팝업에서 취소/종료(CANC)를 누른 경우</font>
+<font color ="#0000FF">*    MESSAGE s000 WITH '엑셀 업로드가 취소되었습니다.' DISPLAY LIKE 'S'.</font>
+<font color ="#0000FF">*    RETURN.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+
+  DATA: lt_excel     TYPE TABLE OF alsmex_tabline,
+        ls_excel     TYPE alsmex_tabline,
+        lv_begin_row TYPE i VALUE 1,
+        lv_row       TYPE kcd_ex_row_n VALUE 0,
+        lt_ins_table TYPE TABLE OF zte3qm0004,
+        ls_ins_table TYPE zte3qm0004,
+        lv_skip_cnt  TYPE i,
+        lv_lot_cnt   TYPE i,
+        lv_msg       TYPE string,
+        lv_answer    TYPE c.
+
+  " 헤더 한글 텍스트 체크용 구조체
+  DATA: ls_hdr       TYPE alsmex_tabline.
+  " 사용자가 체크 해제한(MARK = 빈칸) 검수 로트 번호 수집
+  DATA: lt_del_lot TYPE TABLE OF zte3qm0004-prueflos.
+
+  " ==========================================================
+  " ★ 1. 두 번째 업로드 시 꼬임 방지를 위한 강력한 초기화
+  " ==========================================================
+  CLEAR: gs_data, lv_skip_cnt, lv_lot_cnt, lv_answer, gv_okcode.
+  REFRESH: gt_data, lt_del_lot, gt_upload_pop.
+
+  IF gv_fname IS INITIAL.
+    MESSAGE s000 WITH '파일을 선택해주세요' DISPLAY LIKE 'E'. RETURN.
+  ENDIF.
+
+  " 1. 엑셀 데이터 로드
+  CALL FUNCTION 'ALSM_EXCEL_TO_INTERNAL_TABLE'
+    EXPORTING
+      filename    = gv_fname
+      i_begin_col = 1
+      i_begin_row = lv_begin_row
+      i_end_col   = 7
+      i_end_row   = 10000
+    TABLES
+      intern      = lt_excel
+    EXCEPTIONS
+      OTHERS      = 3.
+
+  CLEAR : gv_fname.
+  IF sy-subrc NE 0 OR lt_excel IS INITIAL.
+    MESSAGE s000 WITH '데이터가 없거나 파일을 읽을 수 없습니다.' DISPLAY LIKE 'E'. RETURN.
+  ENDIF.
+
+  "헤더검사
+  SORT lt_excel BY row col.
+
+  READ TABLE lt_excel INTO ls_hdr WITH KEY row = 1 col = 1.
+  IF ls_hdr-value &lt;&gt; '검수번호'.
+    MESSAGE s000 WITH '검수결과 업로드 양식이 아닙니다. 지정된 양식을 사용하세요.' DISPLAY LIKE 'E'. RETURN.
+  ENDIF.
+
+  READ TABLE lt_excel INTO ls_hdr WITH KEY row = 1 col = 2.
+  IF ls_hdr-value &lt;&gt; '자재코드'.
+    MESSAGE s000 WITH '검수결과 업로드 양식이 아닙니다. 지정된 양식을 사용하세요.' DISPLAY LIKE 'E'. RETURN.
+  ENDIF.
+
+  " 2. 데이터 파싱 루프
+  LOOP AT lt_excel INTO ls_excel.
+
+    " 1행 헤더 타이틀은 스킵
+    IF ls_excel-row = 1.
+      CONTINUE.
+    ENDIF.
+    IF lv_row &lt;&gt; 0 AND lv_row &lt;&gt; ls_excel-row.
+      IF gs_data-prueflos IS NOT INITIAL.
+
+        " 마스터 테이블 존재 여부 검사
+        SELECT SINGLE matnr INTO @DATA(lv_matnr_chk)
+          FROM zte3qm0002
+         WHERE prueflos = @gs_data-prueflos.
+
+        IF sy-subrc &lt;&gt; 0.
+          MESSAGE s000 WITH |행({ lv_row }): 존재하지 않는 검사 ({ gs_data-prueflos }) 번호입니다.| DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+
+        IF lv_matnr_chk &lt;&gt; gs_data-matnr.
+          MESSAGE s000 WITH |행({ lv_row }): { gs_data-prueflos }의 자재정보가 일치하지 않습니다.| DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+
+        " 에러가 없으면 무조건 추가
+        APPEND gs_data TO gt_data.
+      ENDIF.
+      CLEAR gs_data.
+    ENDIF.
+
+    lv_row = ls_excel-row.
+    CONDENSE ls_excel-value.
+
+    CASE ls_excel-col.
+      WHEN 1. gs_data-prueflos = |{ ls_excel-value ALPHA = IN }|.
+      WHEN 2. gs_data-matnr    = |{ ls_excel-value ALPHA = IN }|.
+      WHEN 3. gs_data-insp_cd  = ls_excel-value.
+      WHEN 4. gs_data-insp_nm  = ls_excel-value.
+      WHEN 5. " 수량: 음수 체크 및 숫자 체크
+        " 1) 음수(-) 기호가 포함되어 있는지 확인
+        IF ls_excel-value CA '-'.
+          MESSAGE s000 WITH |행({ lv_row }): 폐기 수량에 음수({ ls_excel-value })를 입력할 수 없습니다.| DISPLAY LIKE 'E'.
+          RETURN.
+
+          " 2) 정상적인 숫자/소수점인지 확인
+        ELSEIF ls_excel-value CO '0123456789. '.
+          gs_data-fail_qty = ls_excel-value.
+        ELSE.
+          MESSAGE s000 WITH |행({ lv_row }): 수량에 올바른 숫자를 입력하세요.| DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+      WHEN 6. gs_data-meins    = ls_excel-value.
+      WHEN 7. " 사번: 숫자 체크
+        IF ls_excel-value CO '0123456789 '.
+          gs_data-pernr = |{ ls_excel-value ALPHA = IN }|.
+
+          " 1. 해당 검수번호(로트)의 검사유형 조회
+          SELECT SINGLE insp_type
+            INTO @DATA(lv_up_insp_type)
+            FROM zte3qm0001
+           WHERE prueflos = @gs_data-prueflos.
+          " 2. 검사 유형에 따른 부서(BTRTL) 결정
+          DATA: lv_up_team TYPE zte3cm0005-btrtl.
+          IF lv_up_insp_type = '02'.
+            lv_up_team = 'QM_QA'. " ★ 반품 부서
+          ELSE.
+            lv_up_team = 'QM_QC'. " ★ 일반 검수 부서
+          ENDIF.
+
+          SELECT SINGLE pernr
+            INTO @DATA(lv_up_chk)
+            FROM zte3cm0005
+           WHERE pernr = @gs_data-pernr
+             AND btrtl = @lv_up_team.
+
+          IF sy-subrc NE 0.
+            MESSAGE s000 WITH |행({ lv_row }): 잘못된 사번({ ls_excel-value })입니다.| DISPLAY LIKE 'E'.
+            RETURN.
+          ENDIF.
+
+        ELSE.
+          MESSAGE s000 WITH |행({ lv_row }): 사번에 올바른 숫자를 입력하세요.| DISPLAY LIKE 'E'.
+          RETURN.
+        ENDIF.
+    ENDCASE.
+
+  ENDLOOP.
+
+  " 마지막 행 처리
+  IF gs_data-prueflos IS NOT INITIAL.
+
+    SELECT SINGLE matnr INTO @DATA(lv_last_chk)
+      FROM zte3qm0002
+     WHERE prueflos = @gs_data-prueflos.
+
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE s000 WITH |마지막 행({ lv_row }): 존재하지 않는 검사 번호입니다.| DISPLAY LIKE 'E'.
+      RETURN.
+    ENDIF.
+
+    IF lv_last_chk &lt;&gt; gs_data-matnr.
+      MESSAGE s000 WITH |마지막 행({ lv_row }): 검사로트 정보 오류| DISPLAY LIKE 'E'.
+      RETURN.
+    ENDIF.
+
+    APPEND gs_data TO gt_data.
+  ENDIF.
+
+  " 3. 키 값 기준 중복 제거 및 완료 건(stats = '3') 필터링
+  SORT gt_data BY prueflos insp_cd.
+  DELETE ADJACENT DUPLICATES FROM gt_data COMPARING prueflos insp_cd.
+
+  IF gt_data IS NOT INITIAL.
+    " 3-1. 엑셀에 있는 검수번호 중 이미 완료('3')된 번호만 한 번에 DB에서 조회
+    SELECT prueflos
+      INTO TABLE @DATA(lt_completed)
+      FROM zte3qm0001
+       FOR ALL ENTRIES IN @gt_data
+     WHERE prueflos = @gt_data-prueflos
+       AND stats = '3'.
+
+    " 3-2. 완료된 건이 존재하면 gt_data에서 안전하게 일괄 삭제
+    IF sy-subrc = 0 AND lt_completed IS NOT INITIAL.
+      SORT lt_completed BY prueflos.
+      DELETE ADJACENT DUPLICATES FROM lt_completed COMPARING prueflos.
+      lv_skip_cnt = lines( lt_completed ).
+
+      LOOP AT lt_completed INTO DATA(ls_comp).
+        DELETE gt_data WHERE prueflos = ls_comp-prueflos.
+      ENDLOOP.
+    ENDIF.
+  ENDIF.
+
+  " 3-3. 방어 로직: 남은 데이터가 없다면 빈 팝업을 띄우지 않고 종료
+  IF gt_data IS INITIAL.
+    MESSAGE s000 WITH |업로드한 파일의 모든 항목이 이미 검수 완료되었습니다.| DISPLAY LIKE 'I'.
+    RETURN.
+  ENDIF.
+
+  " 1) 엑셀 상세 아이템(gt_data)에서 고유한 검수번호(PRUEFLOS) 목록만 추출
+  DATA(lt_tmp_lot) = gt_data.
+  SORT lt_tmp_lot BY prueflos.
+  DELETE ADJACENT DUPLICATES FROM lt_tmp_lot COMPARING prueflos.
+
+  " 2) DB에서 기본 정보(총수량, 자재코드 등)만 가져오기
+  IF lt_tmp_lot IS NOT INITIAL.
+    SELECT a~prueflos, a~insp_type, a~aufnr, a~budat, a~stats,
+           b~matnr,    b~charg,     b~qi_qty,  b~meins,
+           c~gltrp
+      INTO CORRESPONDING FIELDS OF TABLE @gt_upload_pop
+      FROM zte3qm0001 AS a
+     INNER JOIN zte3qm0002 AS b ON a~prueflos = b~prueflos
+      LEFT OUTER JOIN zte3pp0005 AS c ON a~aufnr = c~aufnr
+       FOR ALL ENTRIES IN @lt_tmp_lot
+     WHERE a~prueflos = @lt_tmp_lot-prueflos
+       AND b~pruef_pos = '0001'.
+  ENDIF.
+
+  " 3) 엑셀에서 입력받은 항목(gt_data)의 폐기 수량을 합산하여 팝업에 반영
+  LOOP AT gt_upload_pop ASSIGNING FIELD-SYMBOL(&lt;fs_pop&gt;).
+    &lt;fs_pop&gt;-mark = 'X'. " ★ 2. 팝업 진입 시 기본으로 전체 선택
+
+    " 폐기 수량 누적 변수 초기화
+    &lt;fs_pop&gt;-fail_qty = 0.
+
+    " 해당 검수번호(로트)의 엑셀 데이터(gt_data)를 순회하며 폐기 수량 누적
+    LOOP AT gt_data INTO DATA(ls_tmp_data) WHERE prueflos = &lt;fs_pop&gt;-prueflos.
+      &lt;fs_pop&gt;-fail_qty = &lt;fs_pop&gt;-fail_qty + ls_tmp_data-fail_qty.
+    ENDLOOP.
+
+    " 합격 수량 = 총수량(qi_qty) - 엑셀에 적힌 총 폐기수량(fail_qty)
+    &lt;fs_pop&gt;-pass_qty = &lt;fs_pop&gt;-qi_qty - &lt;fs_pop&gt;-fail_qty.
+  ENDLOOP.
+
+  " ==========================================================
+  " ★ 3. ALV 그리드가 이미 메모리에 떠있다면, 최신 데이터로 화면 즉시 갱신!
+  " ==========================================================
+  IF gcl_grid_popup IS BOUND.
+    gcl_grid_popup-&gt;refresh_table_display(
+      EXPORTING
+        is_stable      = gs_stable
+        i_soft_refresh = space ).
+  ENDIF.
+
+  " 4) 모달 팝업 호출
+  CALL SCREEN '0200' STARTING AT 20 5.
+
+  " ==========================================================
+  " 저장 처리 로직
+  " ==========================================================
+  IF gv_okcode = 'SAVE'.
+
+    " 체크 안 된 항목 수집
+    LOOP AT gt_upload_pop INTO gs_upload_pop WHERE mark = space.
+      APPEND gs_upload_pop-prueflos TO lt_del_lot.
+    ENDLOOP.
+
+    " 실제 저장할 엑셀 아이템 데이터(gt_data)에서 선택 안 된 로트를 삭제
+    IF lt_del_lot IS NOT INITIAL.
+      LOOP AT lt_del_lot INTO DATA(lv_del_prueflos).
+        DELETE gt_data WHERE prueflos = lv_del_prueflos.
+      ENDLOOP.
+    ENDIF.
+
+    " 전부 체크 해제하고 눌렀을 경우 방어
+    IF gt_data IS INITIAL.
+      MESSAGE s000 WITH '선택된 검수 항목이 없어 취소되었습니다.' DISPLAY LIKE 'W'.
+      RETURN.
+    ENDIF.
+
+    " 최종 건수 다시 계산
+    DATA(lt_popup_count) = gt_data.
+    SORT lt_popup_count BY prueflos.
+    DELETE ADJACENT DUPLICATES FROM lt_popup_count COMPARING prueflos.
+    lv_lot_cnt = lines( lt_popup_count ).
+
+    " 실제 DB 반영
+    MOVE-CORRESPONDING gt_data TO lt_ins_table.
+    MODIFY zte3qm0004 FROM TABLE lt_ins_table.
+
+    IF sy-subrc = 0.
+      PERFORM calc_update.
+      PERFORM get_excel_data USING lv_skip_cnt.
+      MESSAGE s000 WITH |선택한 { lv_lot_cnt }건의 검수 내역이 성공적으로 저장되었습니다.|.
+    ELSE.
+      ROLLBACK WORK.
+      MESSAGE s000 WITH '저장 중 데이터베이스 오류 발생' DISPLAY LIKE 'E'.
+    ENDIF.
+
+  ELSE.
+    " 팝업에서 취소/종료(CANC)를 누른 경우
+    MESSAGE s000 WITH '엑셀 업로드가 취소되었습니다.' DISPLAY LIKE 'S'.
+    RETURN.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat_layout .
+
+  gs_layout-zebra      = 'X'.
+  gs_layout-sel_mode   = 'D'.
+  gs_layout-cwidth_opt = 'A'.
+  gs_layout-ctab_fname = 'COLOR'.
+  gs_layout-grid_title = TEXT-t02.
+  gs_layout-stylefname   = 'STYLE'.
+
+  gs_stable-row = 'X'.
+  gs_stable-col = 'X'.
+
+<font color ="#0000FF">* 왼쪽</font>
+  PERFORM make_fcat USING :
+      'X'  'ICON'       TEXT-t04      ' '            ' ' ,
+      'X'  'PRUEFLOS'   ' '           'ZTE3QM0001'   ' ' ,
+      ' '  'MATNR'      ' '           'ZTE3QM0002'   ' ' ,
+      ' '  'CHARG'      ' '           'ZTE3QM0002'   ' ' ,
+      ' '  'AUFNR'      ' '           'ZTE3QM0001'   ' ' ,
+      ' '  'GLTRP'      '생산 일자'   'ZTE3PP0005'   ' ' ,
+      ' '  'BUDAT'      '검수 일자'   'ZTE3QM0001'   ' ' ,
+      ' '  'QI_QTY'     '총수량'      'ZTE3QM0002'   ' ' ,
+      ' '  'PASS_QTY'   '합격 수량'   'ZTE3QM0002'   ' ' ,
+      ' '  'FAIL_QTY'   '폐기 수량'   'ZTE3QM0002'   ' ' ,
+      ' '  'MEINS'      '수량'        'ZTE3QM0002'   ' ' ,
+      ' '  'STATS_TXT'  '검사'        ' '            ' ' .
+
+  PERFORM make_fcat_fail USING :
+      'X'  'PRUEFLOS'  ' '        'ZTE3QM0004'     ' '        ' ',
+      'X'  'MATNR'     ' '        'ZTE3MM0001'     ' '        ' ',
+      'X'  'INSP_CD'   ' '        'ZTE3QM0004'     ' '        ' ',
+      ' '  'INSP_NM'   ' '        'ZTE3QM0004'     ' '        ' ',
+      ' '  'FAIL_QTY'  ' '        'ZTE3QM0004'     ' '        ' ',
+      ' '  'MEINS'     ' '        'ZTE3QM0004'     ' '        ' '.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_alv</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv .
+
+  CREATE OBJECT gcl_con_alv
+    EXPORTING
+      container_name = 'GCL_CON_ALV'.
+
+  CREATE OBJECT gcl_grid
+    EXPORTING
+      i_parent = gcl_con_alv.
+
+  gs_variant-report = sy-repid.
+  gs_variant-handle = 'TAB1'.
+
+  SET HANDLER : lcl_event_handler=&gt;handle_hotspot FOR gcl_grid,
+                lcl_event_handler=&gt;handle_toolbar FOR gcl_grid,
+                lcl_event_handler=&gt;handle_user_command FOR gcl_grid.
+
+
+  CALL METHOD gcl_grid-&gt;set_table_for_first_display
+    EXPORTING
+      is_layout       = gs_layout
+      is_variant      = gs_variant
+      i_save          = 'A'
+      i_default       = 'X'
+    CHANGING
+      it_outtab       = gt_header
+      it_fieldcatalog = gt_fcat
+      it_sort         = gt_sort.
+
+  SET HANDLER lcl_event_handler=&gt;handle_on_button_click FOR gcl_grid.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; TEXT_T04</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_fcat  USING    pv_key
+                         pv_field
+                         pv_text
+                         pv_ref_table
+                         pv_ref_field.
+
+  gs_fcat = VALUE #(
+                    key       = pv_key
+                    fieldname = pv_field
+                    coltext   = pv_text
+                    ref_table = pv_ref_table
+                    ref_field = pv_ref_field
+                    ).
+
+  CASE pv_field.
+
+    WHEN 'ICON'.
+      gs_fcat-icon = 'X'.
+      gs_fcat-just = 'C'.
+    WHEN 'QI_QTY' OR 'FAIL_QTY' OR 'PASS_QTY'.
+      gs_fcat-qfieldname = 'MEINS'.
+    WHEN 'STATS_TXT'.
+      gs_fcat-just = 'C'.
+    WHEN 'AUFNR'.
+      gs_fcat-hotspot = 'X'.
+
+    WHEN 'MATNR'.
+      gs_fcat-hotspot = 'X'.
+
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_fcat.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_title</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_title .
+
+  CLEAR: gv_total, gv_wait, gv_done, gv_rate, gv_fail_amt.
+
+  DATA: lv_pass  TYPE p DECIMALS 3,
+        lv_qi    TYPE p DECIMALS 3,
+        lv_perid TYPE zte3co0014-perid,
+        lv_c(10).
+
+  REFRESH gt_cnt.
+
+  SELECT prueflos, stats, matnr, qi_qty, budat,
+         pass_qty, fail_qty, charg, meins
+    FROM zcds_e3_qm_0001
+    INTO CORRESPONDING FIELDS OF TABLE @gt_cnt.
+
+  gv_total = lines( gt_cnt ).
+
+  LOOP AT gt_cnt INTO gs_cnt.
+
+    CASE gs_cnt-stats.
+      WHEN '1'. " 검수대기
+        gv_wait = gv_wait + 1.
+
+      WHEN '3'. " 결과조회(완료)
+        gv_done = gv_done + 1.
+        lv_pass = lv_pass + gs_cnt-pass_qty.
+        lv_qi   = lv_qi   + gs_cnt-qi_qty.
+
+        " 폐기금액 계산 — 표준원가(gt_price)에서 월별 단가 매핑
+        IF gs_cnt-fail_qty &gt; 0.
+          lv_perid = gs_cnt-budat+4(2). " 전기일자(budat)에서 '월' 2자리 추출
+
+          READ TABLE gt_price INTO DATA(ls_price)
+            WITH KEY matnr = gs_cnt-matnr
+                     perid = lv_perid.
+
+          IF sy-subrc EQ 0.
+            " 폐기수량 * 표준원가 총액
+            gv_fail_amt += gs_cnt-fail_qty * ls_price-total.
+          ENDIF.
+        ENDIF.
+    ENDCASE.
+
+  ENDLOOP.
+
+  " 합격률 및 폐기율 계산
+  IF lv_qi &gt; 0.
+    gv_rate = ( lv_pass / lv_qi ) * 100.
+  ENDIF.
+  gv_fail_rate = 100 - gv_rate.
+
+  " UI 화면 출력용 문자열 포맷팅 및 공백 제거 (CONDENSE)
+  lv_c = gv_total.
+  CONDENSE lv_c.
+  WRITE lv_c TO gv_total.
+  lv_c = gv_done.
+  CONDENSE lv_c.
+  WRITE lv_c TO gv_done.
+  lv_c = gv_wait.
+  CONDENSE lv_c.
+  WRITE lv_c TO gv_wait.
+
+  " 6. 대시보드 화면 갱신을 위한 커맨드 강제 유발
+  cl_gui_cfw=&gt;set_new_ok_code( new_code = 'A' ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_on_button_click</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&      --&gt; ES_COL_ID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_on_button_click  USING    ps_row TYPE lvc_s_roid
+                                      ps_col TYPE lvc_s_col.
+
+  DATA: ls_color TYPE lvc_s_scol.
+
+  " ps_row-row_id = 클릭한 행 번호, 바로 사용
+  READ TABLE gt_header INTO gs_header INDEX ps_row-row_id.
+  CHECK sy-subrc EQ 0.
+
+  " 색상 초기화 후 선택 행 하이라이트
+  MODIFY gt_header FROM gs_header
+    TRANSPORTING color WHERE color IS NOT INITIAL.
+
+  ls_color-color-col = 5.
+  ls_color-color-int = 0.
+  ls_color-color-inv = 0.
+  APPEND ls_color TO gs_header-color.
+  MODIFY gt_header FROM gs_header INDEX ps_row-row_id
+    TRANSPORTING color.
+
+  IF gs_header-stats_txt EQ '결과조회'.
+    PERFORM show_html USING gs_header-prueflos.
+  ELSE.
+    PERFORM show_html_empty.
+  ENDIF.
+
+  PERFORM refresh_grid.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_fcat_fail</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_fcat_fail  USING    pv_key
+                              pv_field
+                              pv_text
+                              pv_ref_table
+                              pv_ref_field
+                              pv_edit.
+
+  CLEAR gs_fcat.
+
+  gs_fcat = VALUE #(
+                    key       = pv_key
+                    fieldname = pv_field
+                    coltext   = pv_text
+                    ref_table = pv_ref_table
+                    ref_field = pv_ref_field
+                    edit      = pv_edit
+                    ).
+
+  CASE pv_field.
+    WHEN 'FAIL_QTY'.
+      gs_fcat-qfieldname = 'MEINS'.
+
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_fcat2.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form calc_update</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM calc_update .
+
+  DATA: lv_total_fail TYPE zte3qm0004-fail_qty,
+        lv_total_pass TYPE p DECIMALS 3,
+        lv_qi_qty     TYPE zte3qm0002-qi_qty,
+        lv_charg      TYPE zte3qm0002-charg,
+        lv_upd_pernr  TYPE zte3cm0005-pernr,
+        lv_subrc      TYPE sy-subrc.
+
+  DATA: ls_price_key  LIKE LINE OF gt_price.
+
+  SORT gt_data BY prueflos.
+
+  LOOP AT gt_data ASSIGNING FIELD-SYMBOL(&lt;fs_data&gt;).
+
+    AT NEW prueflos.
+      CLEAR: lv_total_fail, lv_qi_qty.
+    ENDAT.
+
+    lv_total_fail = lv_total_fail + &lt;fs_data&gt;-fail_qty.
+
+    AT END OF prueflos.
+      " 1. 헤더 정보 조회
+      SELECT SINGLE qi_qty, charg
+        FROM zte3qm0002
+        INTO (@lv_qi_qty, @lv_charg)
+       WHERE prueflos = @&lt;fs_data&gt;-prueflos.
+
+
+      lv_total_pass = lv_qi_qty - lv_total_fail.
+
+      " 담당자 결정
+      lv_upd_pernr = COND #( WHEN &lt;fs_data&gt;-pernr IS NOT INITIAL
+                             THEN &lt;fs_data&gt;-pernr
+                             ELSE gv_insp_pernr ).
+
+      " 2. DB 업데이트
+      PERFORM update_process USING &lt;fs_data&gt; lv_qi_qty lv_charg
+                                    lv_total_pass lv_total_fail lv_upd_pernr.
+
+      " 3. 폐기 자재 전표 생성
+      IF lv_total_fail &gt; 0.
+        READ TABLE gt_price INTO ls_price_key
+             WITH KEY matnr = &lt;fs_data&gt;-matnr.
+
+        IF sy-subrc EQ 0.
+          CLEAR lv_subrc.
+          PERFORM post_fi_document USING    &lt;fs_data&gt;
+                                           lv_total_fail
+                                           ls_price_key
+                                  CHANGING lv_subrc.
+
+          IF lv_subrc = 0.
+            PERFORM post_mm_document USING    &lt;fs_data&gt;
+                                              lv_charg
+                                              lv_total_fail
+                                              ls_price_key
+                                     CHANGING lv_subrc.
+          ENDIF.
+
+          " 오류 발생 시 롤백 및 종료
+          IF lv_subrc NE 0.
+            ROLLBACK WORK.
+            MESSAGE '전표 생성 중 오류가 발생하여 취소되었습니다.' TYPE 'S' DISPLAY LIKE 'E'.
+            RETURN.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+
+    ENDAT.
+  ENDLOOP.
+
+  COMMIT WORK AND WAIT.
+  CLEAR gv_insp_pernr.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form show_html</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GS_HEADER_PRUEFLOS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM show_html  USING  pv_prueflos TYPE zte3qm0004-prueflos.
+
+  DATA: lv_obj_name TYPE wwwdataid-objid,
+        lv_url      TYPE swk_url,
+        lt_content  TYPE TABLE OF w3html,
+        lv_html_all TYPE string,
+        lv_rows_all TYPE string,
+        lv_maktx    TYPE zte3mm0001-maktx,
+        lv_insp_nm  TYPE zte3cm0005-pernam,
+        ls_hdr      TYPE zte3qm0002,
+        ls_hdr1     TYPE zte3qm0001,
+        lt_detail   TYPE TABLE OF zte3qm0004.
+
+  " 템플릿 로드 및 String 합치기
+  PERFORM load_html_template CHANGING lt_content lv_html_all.
+
+  CHECK lv_html_all IS NOT INITIAL.
+
+  " 데이터 조회
+  PERFORM get_html_display_data USING    pv_prueflos
+                                CHANGING ls_hdr ls_hdr1 lt_detail lv_maktx lv_insp_nm.
+
+  " 아이템 행(Row) 생성
+  PERFORM build_html_rows USING    lt_detail
+                          CHANGING lv_rows_all.
+
+  " 치환 작업 및 최종 출력
+  PERFORM replace_and_display_html USING    pv_prueflos ls_hdr ls_hdr1 lv_maktx lv_insp_nm lv_rows_all
+                                   CHANGING lv_html_all.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_style</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_style .
+
+  LOOP AT gt_header ASSIGNING FIELD-SYMBOL(&lt;fs_header&gt;).
+
+    CLEAR &lt;fs_header&gt;-style.
+    CHECK &lt;fs_header&gt;-stats_txt EQ '결과조회'.
+    INSERT VALUE #( fieldname = 'STATS_TXT'
+                    style     = cl_gui_alv_grid=&gt;mc_style_button )
+
+    INTO TABLE &lt;fs_header&gt;-style.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form show_html_empty</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM show_html_empty .
+
+  DATA: lt_content  TYPE TABLE OF w3html,
+        lv_url      TYPE swk_url,
+        lv_html_all TYPE string.
+
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 1. 템플릿 로드 및 String 합치기</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+  CALL FUNCTION 'WWW_GET_SCRIPT_AND_HTML'
+    EXPORTING
+      obj_name = 'ZPE3QM_HTML2'
+    TABLES
+      html     = lt_content.
+
+  IF sy-subrc &lt;&gt; 0. RETURN. ENDIF.
+
+  " 안전한 치환을 위해 전체를 하나의 String으로 합침
+  CONCATENATE LINES OF lt_content INTO lv_html_all.
+
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 2. 빈 테이블 행(Row) 정의</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+  DATA(lv_empty_row) =
+    |&lt;tr&gt;&lt;td colspan="5" class="ok-row" style="color:#95a5a6;background:#fafbfc;text-align:center;"&gt;|
+ && |● 좌측 LOT 목록에서 행을 선택하면 검사 결과가 표시됩니다 ●|
+ && |&lt;/td&gt;&lt;/tr&gt;|.
+
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 3. 모든 Placeholder를 기본값('-')으로 치환</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+  REPLACE ALL OCCURRENCES OF '@LOT_NO'     IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@MAKTX'      IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@AUFNR'      IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@BUDAT'      IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@QI_QTY'     IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@PASS_QTY'   IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@FAIL_QTY'   IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@PASS_RATE'  IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@MEINS'      IN lv_html_all WITH ''.
+  REPLACE ALL OCCURRENCES OF '@RATE_CLS'   IN lv_html_all WITH ''.
+  REPLACE ALL OCCURRENCES OF '@INSP_NM' IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@AEDAT'      IN lv_html_all WITH '-'.
+  REPLACE ALL OCCURRENCES OF '@AEZET'      IN lv_html_all WITH ''.
+  REPLACE ALL OCCURRENCES OF '@ITEM_ROWS'  IN lv_html_all WITH lv_empty_row.
+  REPLACE ALL OCCURRENCES OF '@ACTION_BTN' IN lv_html_all WITH ''.
+
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 4. 다시 테이블로 변환하여 출력</font>
+<font color ="#0000FF">*---------------------------------------------------------------------*</font>
+  CLEAR lt_content.
+  CALL FUNCTION 'SCMS_STRING_TO_FTEXT'
+    EXPORTING
+      text      = lv_html_all
+    TABLES
+      ftext_tab = lt_content.
+
+  CALL METHOD gcl_html-&gt;load_data
+    EXPORTING
+      type         = 'text'
+      subtype      = 'html'
+      charset      = 'UTF-8'
+    IMPORTING
+      assigned_url = lv_url
+    CHANGING
+      data_table   = lt_content.
+
+  gcl_html-&gt;show_url( url = lv_url ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form save_qi_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; PV_GETDATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM save_qi_data  USING pt_query TYPE cnht_query_table.
+
+  DATA: ls_hdr1    TYPE zte3qm0001,
+        ls_hdr2    TYPE zte3qm0002,
+        ls_data    TYPE zte3qm0004,
+        lt_data    TYPE TABLE OF zte3qm0004,
+        lv_qty     TYPE zte3qm0004-fail_qty,
+        lv_insp_nm TYPE zte3cm0005-pernam,
+        lv_pernr   TYPE zte3cm0005-pernr.
+
+  TYPES: BEGIN OF ty_insp,
+           key     TYPE string,
+           insp_cd TYPE string,
+           insp_nm TYPE string,
+         END OF ty_insp.
+
+  DATA: lt_insp TYPE TABLE OF ty_insp,
+        ls_insp TYPE ty_insp.
+
+  DATA lv_answer(1).
+
+  lt_insp = VALUE #(
+    ( key = 'Q1'  insp_cd = '1'  insp_nm = '색상' )
+    ( key = 'Q2'  insp_cd = '2'  insp_nm = '이물질' )
+    ( key = 'Q10' insp_cd = '10' insp_nm = 'PH' )
+    ( key = 'Q11' insp_cd = '11' insp_nm = '용량' )
+    ( key = 'Q12' insp_cd = '12' insp_nm = '납/수은' )
+    ( key = 'Q20' insp_cd = '20' insp_nm = '방부제' )
+    ( key = 'Q21' insp_cd = '21' insp_nm = '밀봉/상태' )
+    ( key = 'Q31' insp_cd = '31' insp_nm = '라벨/LOT' ) ).
+
+
+  LOOP AT pt_query ASSIGNING FIELD-SYMBOL(&lt;ls_q&gt;).
+    IF &lt;ls_q&gt;-name EQ 'PERNR'.
+      lv_pernr = &lt;ls_q&gt;-value.
+    ENDIF.
+  ENDLOOP.
+
+  IF lv_pernr IS INITIAL.
+    MESSAGE s000 WITH '검사자 사번을 입력하세요.' DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+
+  SELECT SINGLE prueflos, stats, insp_type
+    INTO CORRESPONDING FIELDS OF @ls_hdr1
+    FROM zte3qm0001
+   WHERE prueflos = @gv_save_prueflos.
+
+  DATA: lv_team TYPE zte3cm0005-btrtl.
+
+  CASE ls_hdr1-insp_type.
+    WHEN '02'.         " 반품 입고 검사
+      lv_team = 'QM_RT'.
+    WHEN OTHERS.       " 그 외 일반 검사 (01, 03 등)
+      lv_team = 'QM_QC'.
+  ENDCASE.
+
+  " 3. 사번 존재 여부 및 분기된 부서(lv_team) 일치 여부 체크
+  SELECT SINGLE pernr FROM zte3cm0005
+    INTO @DATA(lv_chk)
+   WHERE pernr EQ @lv_pernr
+     AND btrtl EQ @lv_team.
+
+  IF sy-subrc NE 0.
+    MESSAGE s000 WITH |해당 부서({ lv_team })에 소속된 검사자가 아닙니다: { lv_pernr }| DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+
+  SELECT SINGLE prueflos, stats
+    INTO CORRESPONDING FIELDS OF @ls_hdr1
+    FROM zte3qm0001
+   WHERE prueflos = @gv_save_prueflos.
+
+  SELECT SINGLE prueflos, matnr, qi_qty, meins
+    INTO CORRESPONDING FIELDS OF @ls_hdr2
+    FROM zte3qm0002
+   WHERE prueflos = @gv_save_prueflos.
+
+  LOOP AT pt_query ASSIGNING &lt;ls_q&gt;.
+    READ TABLE lt_insp INTO ls_insp WITH KEY key = &lt;ls_q&gt;-name.
+    IF sy-subrc EQ 0.
+      lv_qty = &lt;ls_q&gt;-value.
+      CLEAR ls_data.
+      ls_data-prueflos = gv_save_prueflos.
+      ls_data-matnr    = ls_hdr2-matnr.
+      ls_data-insp_cd  = ls_insp-insp_cd.
+      ls_data-insp_nm  = ls_insp-insp_nm.
+      ls_data-fail_qty = lv_qty.
+      ls_data-meins    = ls_hdr2-meins.
+      APPEND ls_data TO lt_data.
+    ENDIF.
+  ENDLOOP.
+
+  " 불량합계 &gt; 총수량 체크
+  DATA lv_total_fail TYPE p DECIMALS 3.
+  LOOP AT lt_data INTO ls_data.
+    lv_total_fail += ls_data-fail_qty.
+  ENDLOOP.
+
+  IF lv_total_fail &gt; ls_hdr2-qi_qty.
+    MESSAGE s000 WITH '불량수량 합계가 총수량을 초과합니다.' DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      titlebar              = '검사 결과 저장'
+      text_question         = |{ gv_save_prueflos } 검사 결과를 저장하시겠습니까?|
+      text_button_1         = '예'
+      icon_button_1         = '@01@'
+      text_button_2         = '아니오'
+      icon_button_2         = '@0W@'
+      default_button        = '1'
+      display_cancel_button = ' '
+    IMPORTING
+      answer                = lv_answer.
+
+  IF lv_answer NE '1'. RETURN. ENDIF.
+
+  IF lt_data IS NOT INITIAL.
+    MODIFY zte3qm0004 FROM TABLE lt_data.
+  ENDIF.
+
+  IF sy-subrc EQ 0.
+    COMMIT WORK AND WAIT.
+
+    gv_insp_pernr = lv_pernr.
+
+    DELETE gt_data WHERE prueflos = gv_save_prueflos.
+
+    SELECT prueflos matnr insp_cd insp_nm fail_qty meins
+      APPENDING CORRESPONDING FIELDS OF TABLE gt_data
+       FROM zte3qm0004
+      WHERE prueflos = gv_save_prueflos
+      ORDER BY insp_cd ASCENDING.
+
+    PERFORM calc_update.
+    PERFORM show_html USING gv_save_prueflos.
+    PERFORM set_title.
+    MESSAGE '검사 결과가 저장되었습니다.' TYPE 'S'.
+
+  ELSE.
+    ROLLBACK WORK.
+    MESSAGE '저장 실패.' TYPE 'S' DISPLAY LIKE 'E'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_sapevent</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; ACTION</font>
+<font color ="#0000FF">*&      --&gt; QUERY_TABLE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_sapevent  USING  pv_action     TYPE c
+                             pt_query      TYPE cnht_query_table.
+  CASE pv_action.
+    WHEN 'SAVE_QI'.
+
+      PERFORM save_qi_data USING pt_query.       " 테이블 저장 받을 수 있음
+      PERFORM refresh_grid.
+
+    WHEN 'PRINT_PDF'.
+
+      SET PARAMETER ID 'QM1' FIELD gs_header-aufnr.
+      SET PARAMETER ID 'QM2' FIELD gs_header-budat+4(2).
+
+      CALL TRANSACTION 'ZRE3CO0001' AND SKIP FIRST SCREEN.
+
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data_all</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data_all .
+
+  REFRESH : gt_header.
+
+  SELECT a~prueflos a~insp_type a~aufnr a~budat
+         a~stats b~matnr b~qi_qty b~pass_qty
+         b~fail_qty b~charg b~meins
+    INTO CORRESPONDING FIELDS OF TABLE gt_header
+    FROM zte3qm0001 AS a
+   INNER JOIN zte3qm0002 AS b
+      ON a~prueflos EQ b~prueflos
+   ORDER BY a~stats a~prueflos.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM refresh_grid .
+
+  gcl_grid-&gt;refresh_table_display(
+ EXPORTING is_stable = gs_stable i_soft_refresh = space ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_header_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_header_data USING pv_filter.
+
+  REFRESH gt_header.
+  " 1. 상태값 필터 조건 변환
+  DATA: lr_stats     TYPE RANGE OF zte3qm0001-stats,
+        lr_insp_type TYPE RANGE OF zte3qm0001-insp_type.
+
+  IF pv_filter NE 'ALL'.
+    lr_stats = VALUE #( ( low = pv_filter sign = 'I' option = 'EQ' ) ).
+  ENDIF.
+
+  " 검수유형 조건 - AL이면 전체
+  IF gv_insp_type NE 'AL' AND gv_insp_type IS NOT INITIAL.
+    lr_insp_type = VALUE #( ( low = gv_insp_type sign = 'I' option = 'EQ' ) ).
+  ELSE.
+    " 전체: 존재하는 유형 다 담기
+    SELECT DISTINCT domvalue_l
+      INTO TABLE @DATA(lt_types)
+      FROM dd07t
+     WHERE domname = 'ZDE3_QM_INSP_TYPE'.
+
+    lr_insp_type = VALUE #( FOR ls_t IN lt_types
+                            ( low = ls_t-domvalue_l sign = 'I' option = 'EQ' ) ).
+  ENDIF.
+
+  SELECT prueflos,  insp_type,  ebeln,   aufnr,   budat,
+         stats,     pernr,     matnr,   charg,   qi_qty,
+         pass_qty,  fail_qty,   meins,   gltrp,   icon,
+         stats_txt
+    FROM zcds_e3_qm_0001
+   WHERE stats IN @lr_stats
+         AND insp_type IN @lr_insp_type
+     AND ( @gv_aufnr IS INITIAL OR aufnr = @gv_aufnr )
+     AND ( @gv_matnr IS INITIAL OR matnr = @gv_matnr )
+     AND ( @gv_charg IS INITIAL OR charg = @gv_charg )
+     AND ( ( @gv_min_date IS INITIAL AND @gv_max_date IS INITIAL )
+      OR gltrp BETWEEN @gv_min_date AND @gv_max_date )
+   ORDER BY stats ASCENDING, budat DESCENDING, gltrp DESCENDING, prueflos ASCENDING
+    INTO CORRESPONDING FIELDS OF TABLE @gt_header.
+
+  " 3. 조회 결과 메시지 처리
+  IF sy-subrc NE 0.
+    MESSAGE s000 WITH '선택한 조건에 해당되는 데이터가 없습니다.'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_fname</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_fname .
+
+  CALL FUNCTION 'WS_FILENAME_GET'
+    EXPORTING
+      def_path         = 'C:/'
+      mask             = ',*.xls;*.xlsx,*.xls;*.xlsx,'
+      mode             = 'O'
+    IMPORTING
+      filename         = gv_fname
+    EXCEPTIONS
+      inv_winsys       = 1
+      no_batch         = 2
+      selection_cancel = 3
+      selection_error  = 4
+      OTHERS           = 5.
+
+  IF sy-subrc NE 0.
+    MESSAGE s000 WITH TEXT-m03. "파일선택이 취소 되었습니다.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form search_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM search_data .
+
+  DATA: lv_text TYPE string.
+
+  CASE 'X'.
+    WHEN gv_rb1. " 총건수
+      PERFORM get_header_data USING 'ALL'.
+      lv_text = '전체 데이터'.
+
+    WHEN gv_rb2. " 검수완료
+      PERFORM get_header_data USING '3'.
+      lv_text = '검수 완료'.
+      APPEND VALUE #( sign = 'I' option = 'EQ' low = '3' ) TO gr_stats.
+
+
+    WHEN gv_rb3. " 대기중
+      APPEND VALUE #( sign = 'I' option = 'EQ' low = '1' ) TO gr_stats.
+      PERFORM get_header_data USING '1'.
+      lv_text = '검수 대기'.
+  ENDCASE.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_excel_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_excel_data  USING pv_del_cnt TYPE i.
+
+  DATA: lv_msg_text TYPE string.
+
+  " 중복 제거로 성능 최적화
+  SORT gt_data BY prueflos.
+  DELETE ADJACENT DUPLICATES FROM gt_data COMPARING prueflos.
+
+  REFRESH gt_header.
+
+  IF gt_data IS NOT INITIAL.
+
+    SELECT a~prueflos, a~insp_type, a~aufnr, a~budat, a~stats,
+           b~matnr,    b~charg,     b~qi_qty,  b~pass_qty, b~fail_qty, b~meins,
+           c~gltrp
+      FROM zte3qm0001 AS a
+      INNER JOIN zte3qm0002 AS b ON a~prueflos = b~prueflos
+      LEFT OUTER JOIN zte3pp0005 AS c ON a~aufnr = c~aufnr
+     WHERE a~prueflos IN ( SELECT prueflos FROM @gt_data AS t )
+       AND b~pruef_pos = '0001'
+      INTO CORRESPONDING FIELDS OF TABLE @gt_header.
+  ENDIF.
+
+  IF sy-subrc &lt;&gt; 0 OR gt_header IS INITIAL.
+    MESSAGE s000 WITH '조회된 데이터가 없습니다.'. RETURN.
+  ENDIF.
+
+  PERFORM set_icon.
+
+  " 메시지 처리
+  IF pv_del_cnt &gt; 0.
+    lv_msg_text = |저장 완료. (이미 완료된 { pv_del_cnt }건은 제외됨)|.
+    MESSAGE s000 WITH lv_msg_text.
+  ELSE.
+    MESSAGE s000 WITH '데이터 집계 및 저장이 완료되었습니다.'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_icon</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_icon .
+
+  LOOP AT gt_header ASSIGNING FIELD-SYMBOL(&lt;fs_header&gt;).
+
+    CASE &lt;fs_header&gt;-stats.
+      WHEN '1'.
+        &lt;fs_header&gt;-icon      = '@5D@'.
+        &lt;fs_header&gt;-stats_txt = '검수대기'.
+      WHEN '3'.
+        &lt;fs_header&gt;-icon      = '@5B@'.
+        &lt;fs_header&gt;-stats_txt = '결과조회'.
+
+    ENDCASE.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_top_content</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_top_content .
+
+  DATA: lcl_table TYPE REF TO cl_dd_table_element,
+        lcl_col1  TYPE REF TO cl_dd_area,
+        lcl_col2  TYPE REF TO cl_dd_area,
+        lcl_col3  TYPE REF TO cl_dd_area,
+        lcl_gap   TYPE REF TO cl_dd_area,
+        lcl_col5  TYPE REF TO cl_dd_area,
+        lcl_col6  TYPE REF TO cl_dd_area,
+        lcl_col7  TYPE REF TO cl_dd_area,
+        lv_c      TYPE sdydo_text_element,
+        lv_a      TYPE sdydo_text_element.
+
+  " 타이틀
+  gcl_document_top-&gt;add_text(
+    text         = '완제품 검수 현황'
+    sap_fontsize = 'LARGE'
+    sap_emphasis = 'STRONG' ).
+  gcl_document_top-&gt;new_line( ).
+  gcl_document_top-&gt;new_line( ).
+
+  " 테이블 생성 (7컬럼)
+  gcl_document_top-&gt;add_table(
+    EXPORTING no_of_columns = 7 border = '0'
+    IMPORTING table         = lcl_table ).
+
+  lcl_table-&gt;add_column( IMPORTING column = lcl_col1 ).
+  lcl_table-&gt;add_column( IMPORTING column = lcl_col2 ).
+  lcl_table-&gt;add_column( EXPORTING width  = '10'
+                        IMPORTING column = lcl_gap ).
+  lcl_table-&gt;add_column( IMPORTING column = lcl_col3 ).
+  lcl_table-&gt;add_column( EXPORTING width  = '100'
+                          IMPORTING column = lcl_gap ).
+  lcl_table-&gt;add_column( IMPORTING column = lcl_col5 ).
+  lcl_table-&gt;add_column( IMPORTING column = lcl_col6 ).
+  lcl_table-&gt;add_column( IMPORTING column = lcl_col7 ).
+
+  " [1행] 총건수 / 합격률
+  lv_c = gv_total. CONDENSE lv_c.
+  lcl_col1-&gt;add_icon( 'ICON_FOLDER' ).
+  lcl_col2-&gt;add_text( text = |총건수| sap_emphasis = 'X' ).
+  lcl_col3-&gt;add_text( text = |{ lv_c }건| ).
+
+  lv_c = gv_rate.  CONDENSE lv_c.
+  lcl_col5-&gt;add_icon( 'ICON_CHECKED' ).
+  lcl_col6-&gt;add_text( text = '합격률' sap_emphasis = 'X' ).
+  lcl_col7-&gt;add_text( text = |{ lv_c } %| ).
+  lcl_table-&gt;new_row( ).
+
+  " [2행] 검수완료 / 폐기율
+  lv_c = gv_done.  CONDENSE lv_c.
+  lcl_col1-&gt;add_icon( 'ICON_LED_GREEN' ).
+  lcl_col2-&gt;add_text( text = '검수완료' sap_emphasis = 'X' ).
+  lcl_col3-&gt;add_text( text = |{ lv_c } 건| ).
+
+  lv_c = gv_fail_rate. CONDENSE lv_c.
+  lcl_col5-&gt;add_icon( 'ICON_LED_RED' ).
+  lcl_col6-&gt;add_text( text = '폐기율' sap_emphasis = 'X' ).
+  lcl_col7-&gt;add_text( text = |{ lv_c } %| ).
+  lcl_table-&gt;new_row( ).
+
+  " [3행] 대기중 / 폐기금액
+  lv_c = gv_wait. CONDENSE lv_c.
+  lcl_col1-&gt;add_icon( 'ICON_LED_YELLOW' ).
+  lcl_col2-&gt;add_text( text = '대기중' sap_emphasis = 'X' ).
+  lcl_col3-&gt;add_text( text = |{ lv_c }건| ).
+
+  WRITE gv_fail_amt TO lv_a CURRENCY 'KRW'. CONDENSE lv_a.
+  lcl_col5-&gt;add_icon( 'ICON_PAYMENT' ).
+  lcl_col6-&gt;add_text( text = '폐기금액' sap_emphasis = 'X' ).
+  lcl_col7-&gt;add_text( text = |{ lv_a } 원| ).
+
+  " 렌더링
+  gcl_document_top-&gt;merge_document( ).
+  gcl_document_top-&gt;display_document(
+    EXPORTING
+      reuse_control = 'X'
+      parent        = gcl_top_container ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_standard_price</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_standard_price .
+
+  "CO 표준원가 조회
+  SELECT bukrs gjahr perid werks matnr total waers
+    INTO CORRESPONDING FIELDS OF TABLE gt_price
+    FROM zte3co0014
+    WHERE perid = sy-datum+4(2)
+      AND gjahr = sy-datum(4).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form load_html_template</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- LT_CONTENT</font>
+<font color ="#0000FF">*&      &lt;-- LV_HTML_ALL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM load_html_template  CHANGING ct_content TYPE table
+                                  cv_html_all TYPE string.
+  DATA: lv_obj_name TYPE wwwdataid-objid VALUE 'ZPE3QM_HTML2'.
+
+  CALL FUNCTION 'WWW_GET_SCRIPT_AND_HTML'
+    EXPORTING
+      obj_name         = lv_obj_name
+    TABLES
+      html             = ct_content
+    EXCEPTIONS
+      object_not_found = 1
+      OTHERS           = 2.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE 'HTML Template not found' TYPE 'S' DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+  CONCATENATE LINES OF ct_content INTO cv_html_all.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form build_html_rows</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; LT_DETAIL</font>
+<font color ="#0000FF">*&      &lt;-- LV_ROWS_ALL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM build_html_rows    USING  it_detail TYPE table
+                     CHANGING  cv_rows_all TYPE string.
+
+  DATA: ls_detail       TYPE zte3qm0004,
+        lv_fail_qty(20) TYPE c,
+        lv_tag          TYPE string,
+        lv_row          TYPE string.
+
+  " --- HTML 행 정렬을 위한 임시 테이블 선언 ---
+  TYPES: BEGIN OF ty_html_sort,
+           insp_cd_num TYPE i,            " 숫자로 정렬하기 위한 Integer 필드
+           detail      TYPE zte3qm0004,
+         END OF ty_html_sort.
+
+  DATA: lt_html_sort TYPE TABLE OF ty_html_sort,
+        ls_html_sort TYPE ty_html_sort.
+
+  " 1. 들어온 데이터를 임시 테이블에 넣으면서 검사코드를 숫자로 자동 변환
+  LOOP AT it_detail INTO ls_detail.
+    CLEAR ls_html_sort.
+    ls_html_sort-insp_cd_num = ls_detail-insp_cd. " 알파벳/공백 제외한 숫자가 캐스팅됨
+    ls_html_sort-detail      = ls_detail.
+    APPEND ls_html_sort TO lt_html_sort.
+  ENDLOOP.
+
+  " 2. 텍스트 기준이 아닌 숫자 기준으로 오름차순 정렬 (1, 2, 10, 11...)
+  SORT lt_html_sort BY insp_cd_num ASCENDING.
+
+  " 3. 정렬된 임시 테이블을 가지고 HTML &lt;tr&gt; 태그 생성
+  LOOP AT lt_html_sort INTO ls_html_sort.
+    ls_detail = ls_html_sort-detail.
+
+    WRITE ls_detail-fail_qty TO lv_fail_qty DECIMALS 0.
+
+    IF ls_detail-fail_qty &gt; 0.
+      lv_tag = |&lt;span style="color:#FF0000;font-weight:600"&gt;폐기&lt;/span&gt;|.
+    ELSE.
+      lv_tag = |&lt;span style="color:#0a7f2e;font-weight:600"&gt;합격&lt;/span&gt;|.
+    ENDIF.
+
+    lv_row = |&lt;tr&gt;&lt;td&gt;{ ls_detail-insp_cd }&lt;/td&gt;|
+          && |&lt;td&gt;{ ls_detail-insp_nm }&lt;/td&gt;|
+          && |&lt;td class="num"&gt;{ lv_fail_qty }&lt;/td&gt;|
+          && |&lt;td&gt;{ ls_detail-meins }&lt;/td&gt;|
+          && |&lt;td&gt;{ lv_tag }&lt;/td&gt;&lt;/tr&gt;|.
+
+    cv_rows_all = cv_rows_all && lv_row.
+  ENDLOOP.
+
+  IF it_detail IS INITIAL.
+    cv_rows_all = |&lt;tr&gt;&lt;td colspan="5" class="ok-row"&gt;● 전량 합격 - 불량 없음&lt;/td&gt;&lt;/tr&gt;|.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_html_display_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; PV_PRUEFLOS</font>
+<font color ="#0000FF">*&      &lt;-- LS_HDR</font>
+<font color ="#0000FF">*&      &lt;-- LS_HDR1</font>
+<font color ="#0000FF">*&      &lt;-- LT_DETAIL</font>
+<font color ="#0000FF">*&      &lt;-- LV_MAKTX</font>
+<font color ="#0000FF">*&      &lt;-- LV_INSP_NM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_html_display_data USING    pv_prueflos TYPE zte3qm0004-prueflos
+                           CHANGING cs_hdr      TYPE zte3qm0002
+                                    cs_hdr1     TYPE zte3qm0001
+                                    ct_detail   TYPE table
+                                    cv_maktx    TYPE zte3mm0001-maktx
+                                    cv_insp_nm  TYPE zte3cm0005-pernam.
+
+  SELECT SINGLE prueflos aufnr budat stats pernr aedat aezet
+    FROM zte3qm0001
+    INTO CORRESPONDING FIELDS OF cs_hdr1
+   WHERE prueflos = pv_prueflos.
+
+  " 2. Item(0002) 조회: 자재코드(MATNR) 및 수량 정보
+  SELECT SINGLE prueflos matnr charg qi_qty pass_qty fail_qty meins
+    FROM zte3qm0002
+    INTO CORRESPONDING FIELDS OF cs_hdr
+   WHERE prueflos = pv_prueflos.
+
+  " 3. 자재명 조회 (cs_hdr-matnr 사용)
+  CLEAR cv_maktx.
+  IF cs_hdr-matnr IS NOT INITIAL.
+    SELECT SINGLE maktx FROM zte3mm0001 INTO cv_maktx
+     WHERE matnr = cs_hdr-matnr.
+  ENDIF.
+
+  " 4. 검사자 성명 조회 (QM_QC 조건 추가)
+  CLEAR cv_insp_nm.
+  IF cs_hdr1-pernr IS NOT INITIAL.
+    SELECT SINGLE pernam FROM zte3cm0005 INTO cv_insp_nm
+     WHERE pernr = cs_hdr1-pernr
+       AND btrtl = 'QM_QC'.
+  ENDIF.
+
+  SELECT prueflos matnr insp_cd insp_nm fail_qty meins
+    FROM zte3qm0004
+    INTO CORRESPONDING FIELDS OF TABLE ct_detail
+   WHERE prueflos = pv_prueflos.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form replace_and_display_html</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; PV_PRUEFLOS</font>
+<font color ="#0000FF">*&      --&gt; LS_HDR</font>
+<font color ="#0000FF">*&      --&gt; LS_HDR1</font>
+<font color ="#0000FF">*&      --&gt; LV_MAKTX</font>
+<font color ="#0000FF">*&      --&gt; LV_INSP_NM</font>
+<font color ="#0000FF">*&      --&gt; LV_ROWS_ALL</font>
+<font color ="#0000FF">*&      &lt;-- LV_HTML_ALL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM replace_and_display_html USING    pv_prueflos TYPE zte3qm0004-prueflos
+                                       is_hdr      TYPE zte3qm0002
+                                       is_hdr1     TYPE zte3qm0001
+                                       iv_maktx    TYPE zte3mm0001-maktx
+                                       iv_insp_nm  TYPE zte3cm0005-pernam
+                                       iv_rows_all TYPE string
+                              CHANGING cv_html_all TYPE string.
+
+  DATA: lv_rate     TYPE p DECIMALS 1,
+        lv_rate_cls TYPE string,
+        lv_btn_html TYPE string,
+        lv_url      TYPE swk_url,
+        lt_content  TYPE TABLE OF w3html,
+        lv_tmp      TYPE char50.
+
+  " 합격률 계산
+  IF is_hdr-qi_qty &gt; 0.
+    lv_rate = ( is_hdr-pass_qty / is_hdr-qi_qty ) * 100.
+  ENDIF.
+
+  " 클래스 결정
+  IF lv_rate &gt;= 95.
+    lv_rate_cls = 'rate-ok'.
+  ELSE.
+    lv_rate_cls = 'rate-ng'.
+  ENDIF.
+
+  " 버튼 로직
+  IF is_hdr1-stats = '3'.
+    CONCATENATE '&lt;div class="btn-area"&gt;'
+                '&lt;a class="btn-pdf" href="sapevent:PRINT_PDF"&gt;제조원가 확인&lt;/a&gt;'
+                '&lt;/div&gt;' INTO lv_btn_html.
+  ENDIF.
+
+  " 값 치환
+  REPLACE FIRST OCCURRENCE OF '@ITEM_ROWS' IN cv_html_all WITH iv_rows_all.
+
+  lv_tmp = pv_prueflos.
+  REPLACE ALL OCCURRENCES OF '@LOT_NO' IN cv_html_all WITH lv_tmp.
+
+  REPLACE ALL OCCURRENCES OF '@MAKTX' IN cv_html_all WITH iv_maktx.
+
+  lv_tmp = is_hdr1-aufnr.
+  REPLACE ALL OCCURRENCES OF '@AUFNR' IN cv_html_all WITH lv_tmp.
+
+  " 일자 치환 (사용자 포맷)
+  IF is_hdr1-budat IS NOT INITIAL.
+    WRITE is_hdr1-budat TO lv_tmp.
+    REPLACE ALL OCCURRENCES OF '@BUDAT' IN cv_html_all WITH lv_tmp.
+  ELSE.
+    REPLACE ALL OCCURRENCES OF '@BUDAT' IN cv_html_all WITH ' '.
+  ENDIF.
+
+  " 수량 및 합격률
+  WRITE is_hdr-qi_qty TO lv_tmp DECIMALS 0.
+  CONDENSE lv_tmp.
+  REPLACE ALL OCCURRENCES OF '@QI_QTY' IN cv_html_all WITH lv_tmp.
+
+  WRITE is_hdr-pass_qty TO lv_tmp DECIMALS 0.
+  CONDENSE lv_tmp.
+  REPLACE ALL OCCURRENCES OF '@PASS_QTY' IN cv_html_all WITH lv_tmp.
+
+  WRITE is_hdr-fail_qty TO lv_tmp DECIMALS 0.
+  CONDENSE lv_tmp.
+  REPLACE ALL OCCURRENCES OF '@FAIL_QTY' IN cv_html_all WITH lv_tmp.
+
+  WRITE lv_rate TO lv_tmp DECIMALS 1.
+  CONDENSE lv_tmp.
+  REPLACE ALL OCCURRENCES OF '@PASS_RATE' IN cv_html_all WITH lv_tmp.
+
+  REPLACE ALL OCCURRENCES OF '@MEINS'    IN cv_html_all WITH is_hdr-meins.
+  REPLACE ALL OCCURRENCES OF '@RATE_CLS' IN cv_html_all WITH lv_rate_cls.
+
+  " 검사자 정보
+  CONCATENATE iv_insp_nm '(' is_hdr1-pernr ')' INTO lv_tmp SEPARATED BY space.
+  REPLACE ALL OCCURRENCES OF '@INSP_NM' IN cv_html_all WITH lv_tmp.
+
+  " 확정 일자/시간
+  IF is_hdr1-aedat IS NOT INITIAL.
+    WRITE is_hdr1-aedat TO lv_tmp.
+    REPLACE ALL OCCURRENCES OF '@AEDAT' IN cv_html_all WITH lv_tmp.
+  ELSE.
+    REPLACE ALL OCCURRENCES OF '@AEDAT' IN cv_html_all WITH ' '.
+  ENDIF.
+
+  IF is_hdr1-aezet IS NOT INITIAL.
+    WRITE is_hdr1-aezet TO lv_tmp.
+    REPLACE ALL OCCURRENCES OF '@AEZET' IN cv_html_all WITH lv_tmp.
+  ELSE.
+    REPLACE ALL OCCURRENCES OF '@AEZET' IN cv_html_all WITH ' '.
+  ENDIF.
+
+  REPLACE ALL OCCURRENCES OF '@ACTION_BTN' IN cv_html_all WITH lv_btn_html.
+
+  " HTML 출력
+  CALL FUNCTION 'SCMS_STRING_TO_FTEXT'
+    EXPORTING
+      text      = cv_html_all
+    TABLES
+      ftext_tab = lt_content.
+
+  CALL METHOD gcl_html-&gt;load_data
+    EXPORTING
+      url          = 'ZPE3QM_HTML2'
+      type         = 'text'
+      subtype      = 'html'
+      charset      = 'UTF-8'
+    IMPORTING
+      assigned_url = lv_url
+    CHANGING
+      data_table   = lt_content.
+
+  CALL METHOD gcl_html-&gt;show_url( lv_url ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form post_mm_document</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; &lt;FS_DATA&gt;</font>
+<font color ="#0000FF">*&      --&gt; LV_CHARG</font>
+<font color ="#0000FF">*&      --&gt; LV_TOTAL_FAIL</font>
+<font color ="#0000FF">*&      --&gt; LS_PRICE_KEY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM post_mm_document  USING    ps_data      STRUCTURE gs_data
+                                iv_charg     TYPE zte3qm0002-charg
+                                iv_fail_qty  TYPE p
+                                is_price     LIKE LINE OF gt_price
+                       CHANGING pv_subrc TYPE sy-subrc.
+
+  DATA: lt_item   TYPE TABLE OF zse3mm0001,
+        ls_item   TYPE zse3mm0001,
+        lv_mblnr  TYPE zte3mm0006-mblnr,
+
+        lv_amount TYPE p DECIMALS 2.
+
+  lv_amount = iv_fail_qty * is_price-total.
+
+  CLEAR ls_item.
+  ls_item-matnr = ps_data-matnr.
+  ls_item-charg = iv_charg.
+  ls_item-menge = iv_fail_qty.
+  ls_item-netpr = lv_amount.
+  ls_item-meins = ps_data-meins.
+  ls_item-waers = is_price-waers.
+  APPEND ls_item TO lt_item.
+
+  zcl_e3_mm_document=&gt;post_mm_document(
+    EXPORTING
+      iv_bwart =  '552'             " [MM] 이동유형
+      iv_xblnr = ps_data-prueflos                 " [MM] 참조문서번호
+      it_item  = lt_item                " [MM] 자재문서 Table type
+      iv_belnr = gv_belnr                " [FI] 전표 번호
+      iv_gjahr = sy-datum(4)                " [FI] 회계연도
+    IMPORTING
+      ev_mblnr = lv_mblnr                " [MM] 자재문서번호
+  ).
+
+  IF lv_mblnr IS NOT INITIAL.
+    pv_subrc = 0.
+  ELSE.
+    pv_subrc = 4.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form post_fi_document</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; &lt;FS_DATA&gt;</font>
+<font color ="#0000FF">*&      --&gt; LV_TOTAL_FAIL</font>
+<font color ="#0000FF">*&      --&gt; LS_PRICE_KEY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM post_fi_document USING    ps_data      STRUCTURE gs_data
+                               iv_fail_qty  TYPE zte3qm0004-fail_qty
+                               is_price     LIKE LINE OF gt_price
+                      CHANGING pv_subrc     TYPE sy-subrc.
+
+  DATA: ls_fi_head TYPE zte3fi0002,
+        lt_fi_item TYPE ztte3fi0003,
+        ls_fi_item TYPE zte3fi0003,
+        lv_belnr   TYPE zte3fi0002-belnr,
+        lv_fi_msg  TYPE char50,
+        lv_amount  TYPE p DECIMALS 2,
+        lv_kostl   TYPE zte3fi0003-kostl.
+
+  lv_amount = iv_fail_qty * is_price-total.
+
+  SELECT SINGLE insp_type
+    INTO @DATA(lv_insp_type)
+    FROM zte3qm0001
+   WHERE prueflos = @ps_data-prueflos.
+
+  CASE lv_insp_type.
+    WHEN '02'.         " 반품 입고 검사
+      lv_kostl = 'CC_QM_QA'.
+    WHEN OTHERS.
+      lv_kostl = 'CC_QM_QC'.
+  ENDCASE.
+
+  CLEAR ls_fi_head.
+  ls_fi_head-blart = 'SA'.
+  ls_fi_head-budat = sy-datum.
+  ls_fi_head-bldat = sy-datum.
+  ls_fi_head-waers = is_price-waers.
+  ls_fi_head-bltxt = |QM폐기 { ps_data-prueflos }|.
+  ls_fi_head-pernr = ps_data-pernr.
+  ls_fi_head-xblnr = ps_data-prueflos.
+
+  ls_fi_item-shkzg = 'S'.
+  ls_fi_item-saknr = '5300000004'.
+  ls_fi_item-dmbtr = lv_amount.
+  ls_fi_item-kostl = lv_kostl.
+  APPEND ls_fi_item TO lt_fi_item.
+  CLEAR ls_fi_item.
+
+  ls_fi_item-shkzg = 'H'.
+  ls_fi_item-saknr = '1100000013'.
+  ls_fi_item-dmbtr = lv_amount.
+  APPEND ls_fi_item TO lt_fi_item.
+
+  " FI 전표 생성 클래스 호출
+  zcl_e3_fi_document=&gt;post_document(
+    EXPORTING
+      is_header = ls_fi_head
+      it_items  = lt_fi_item
+    IMPORTING
+      ev_msg    = lv_fi_msg
+       ev_belnr = lv_belnr
+  ).
+
+  gv_belnr = lv_belnr.
+
+
+  IF lv_belnr IS NOT INITIAL.
+    pv_subrc = 0.
+  ELSE.
+    pv_subrc = 4.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form update_process</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; &lt;FS_DATA&gt;</font>
+<font color ="#0000FF">*&      --&gt; LV_QI_QTY</font>
+<font color ="#0000FF">*&      --&gt; LV_CHARG</font>
+<font color ="#0000FF">*&      --&gt; LV_TOTAL_PASS</font>
+<font color ="#0000FF">*&      --&gt; LV_TOTAL_FAIL</font>
+<font color ="#0000FF">*&      --&gt; LV_UPD_PERNR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM update_process USING ps_data     STRUCTURE gs_data
+                          iv_qi_qty   TYPE zte3qm0002-qi_qty
+                          iv_charg    TYPE zte3qm0002-charg
+                          iv_pass_qty TYPE p
+                          iv_fail_qty TYPE p
+                          iv_pernr    TYPE zte3cm0005-pernr.
+
+  DATA: ls_qm0002    TYPE zte3qm0002,
+        lv_chk_pernr TYPE zte3cm0005-pernr,
+        lv_ts        TYPE timestamp.
+
+  SELECT SINGLE pernr
+    FROM zte3cm0005
+    INTO lv_chk_pernr
+   WHERE pernr = iv_pernr.
+
+  IF sy-subrc &lt;&gt; 0.
+    CLEAR lv_chk_pernr.
+  ELSE.
+    lv_chk_pernr = iv_pernr.
+  ENDIF.
+
+  CLEAR ls_qm0002.
+  ls_qm0002-prueflos  = ps_data-prueflos.
+  ls_qm0002-pruef_pos = '0001'.
+  ls_qm0002-matnr     = ps_data-matnr.
+  ls_qm0002-charg     = iv_charg.
+  ls_qm0002-qi_qty    = iv_qi_qty.
+  ls_qm0002-fail_qty  = iv_fail_qty.
+  ls_qm0002-pass_qty  = iv_pass_qty.
+  ls_qm0002-meins     = ps_data-meins.
+  ls_qm0002-aedat     = sy-datum.
+  ls_qm0002-aezet     = sy-uzeit.
+  ls_qm0002-aenam     = sy-uname.
+
+  MODIFY zte3qm0002 FROM ls_qm0002.
+
+  GET TIME STAMP FIELD lv_ts.
+
+  UPDATE zte3qm0001
+     SET stats    = '3'            " 상태
+         budat    = sy-datum       " 검사일자 (오늘 날짜)
+         aedat    = sy-datum
+         aezet    = sy-uzeit
+         aenam    = sy-uname
+         pernr    = lv_chk_pernr   " 검사자 사번 기록
+   WHERE prueflos = ps_data-prueflos.
+
+  UPDATE zte3mm0003
+     SET clabs = clabs + iv_pass_qty "가용수량 = 가용수량 + 합격
+         labst = labst - iv_fail_qty
+         insme = insme - iv_qi_qty   "QI 수량 /
+         aedat = sy-datum
+         aezet = sy-uzeit
+         aenam = sy-uname
+   WHERE matnr = ps_data-matnr
+     AND charg = iv_charg.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM check_data.
+
+  CLEAR gv_error.
+
+  IF gv_aufnr    IS INITIAL AND
+     gv_matnr    IS INITIAL AND
+     gv_charg    IS INITIAL AND
+     gv_min_date IS INITIAL AND
+     gv_max_date IS INITIAL.
+
+    MESSAGE s000 WITH '검색 조건을 하나 이상 입력해주세요' DISPLAY LIKE 'E'.
+    RETURN.
+  ENDIF.
+
+  IF gv_aufnr IS NOT INITIAL.
+    SELECT SINGLE aufnr
+      FROM zte3qm0001
+      INTO @DATA(lv_aufnr)
+     WHERE aufnr = @gv_aufnr.
+
+    IF sy-subrc NE 0.
+      MESSAGE s000 WITH '존재하지 않는 생산번호입니다' DISPLAY LIKE 'E'.
+      gv_error = 'X'.
+      RETURN.
+    ENDIF.
+  ENDIF.
+
+  IF gv_matnr IS NOT INITIAL.
+    SELECT SINGLE matnr FROM zte3mm0001 INTO @DATA(lv_matnr)
+     WHERE matnr = @gv_matnr.
+    IF sy-subrc NE 0.
+      MESSAGE s000 WITH '존재하지 않는 자재코드입니다' DISPLAY LIKE 'E'.
+      gv_error = 'X'.
+      RETURN.
+    ENDIF.
+  ENDIF.
+
+  IF gv_charg IS NOT INITIAL.
+
+    SELECT SINGLE charg
+      FROM zte3qm0002
+      INTO @DATA(lv_charg)
+     WHERE charg = @gv_charg.
+
+    IF sy-subrc NE 0.
+      MESSAGE s000 WITH '존재하지 않는 배치번호입니다' DISPLAY LIKE 'E'.
+      gv_error = 'X'.
+      RETURN.
+    ENDIF.
+  ENDIF.
+
+  IF gv_min_date IS NOT INITIAL AND gv_max_date IS NOT INITIAL.
+    IF gv_min_date &gt; gv_max_date.
+      MESSAGE s000 WITH '시작일이 종료일보다 클 수 없습니다' DISPLAY LIKE 'E'.
+      gv_error = 'X'.
+      RETURN.
+    ENDIF.
+  ENDIF.
+
+  IF gv_min_date IS INITIAL AND gv_max_date IS INITIAL.
+    MESSAGE s000 WITH '날짜는 필수 입력입니다.' DISPLAY LIKE 'E'.
+    gv_error = 'X'.
+    RETURN.
+  ENDIF.
+
+  IF gv_max_date - gv_min_date &gt; 31.
+    MESSAGE s000 WITH '조회 기간은 최대 1개월(31일)까지만 가능합니다' DISPLAY LIKE 'E'.
+    gv_error = 'X'.
+    RETURN.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_date</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_date .
+
+  CLEAR : gv_aufnr, gv_matnr, gv_charg, gv_min_date, gv_max_date.
+
+  "오늘 날짜로 한달 전에만 조회
+  gv_min_date = sy-datum - 30.
+  gv_max_date = sy-datum.
+
+  gv_insp_type = 'AL'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form excel_tem</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM excel_tem .
+
+  DATA : lv_filename    TYPE string,
+         lv_path        TYPE string,
+         lv_fullpath    TYPE string,
+         lv_user_action TYPE i,
+         ls_key         TYPE wwwdatatab.
+
+  SELECT SINGLE *
+    INTO CORRESPONDING FIELDS OF ls_key
+    FROM wwwdata
+   WHERE objid = 'ZPE3QM_EXCEL'.
+
+  IF sy-subrc NE 0.
+    MESSAGE s000 WITH '엑셀 템플릿 Object를 찾을 수 없습니다.' DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+  CALL METHOD cl_gui_frontend_services=&gt;file_save_dialog
+    EXPORTING
+      default_extension = 'XLSX'
+      default_file_name = '검수결과_업로드_템플릿.xlsx'
+      file_filter       = 'Excel 파일 (*.xlsx)|*.xlsx|'
+    CHANGING
+      filename          = lv_filename
+      path              = lv_path
+      fullpath          = lv_fullpath
+      user_action       = lv_user_action
+    EXCEPTIONS
+      OTHERS            = 1.
+
+  IF lv_user_action = cl_gui_frontend_services=&gt;action_cancel.
+    EXIT.
+  ENDIF.
+
+  CALL FUNCTION 'DOWNLOAD_WEB_OBJECT'
+    EXPORTING
+      key         = ls_key
+      destination = CONV rlgrap-filename( lv_fullpath ).
+
+  MESSAGE s000 WITH '검수결과 업로드 템플릿이 다운로드되었습니다.'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_html</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_html .
+
+  DATA: lt_events TYPE cntl_simple_events,
+        ls_event  TYPE cntl_simple_event.
+
+  CREATE OBJECT gcl_con_html
+    EXPORTING
+      container_name = 'GCL_CON_HTML'.
+
+  " 3. HTML Viewer 생성
+  CREATE OBJECT gcl_html
+    EXPORTING
+      parent = gcl_con_html.
+
+  ls_event-eventid    = gcl_html-&gt;m_id_sapevent.
+  ls_event-appl_event = space.
+  APPEND ls_event TO lt_events.
+
+  gcl_html-&gt;set_registered_events( events = lt_events ).
+
+  SET HANDLER lcl_event_handler=&gt;handle_sapevent FOR gcl_html.
+
+  PERFORM show_html_empty.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_hotspot</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_ROW_ID</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN_ID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_hotspot  USING    ps_row TYPE lvc_s_row
+                              ps_col TYPE lvc_s_col.
+
+  READ TABLE gt_header INTO gs_header INDEX ps_row-index.
+  CHECK sy-subrc EQ 0.
+
+
+  CASE ps_col-fieldname.
+    WHEN 'MATNR'.
+      call function <a href ="zfe3fi0007/zfe3fi0007.html">'ZFE3FI0007'</a>
+        EXPORTING
+          iv_matnr = gs_header-matnr.                 " [MM] 자재코드
+
+    WHEN 'AUFNR'.
+
+      call function <a href ="zfe3fi0008/zfe3fi0008.html">'ZFE3FI0008'</a>
+        EXPORTING
+          iv_aufnr = gs_header-aufnr.                 " [PP] 생산 오더 번호
+  ENDCASE.
+  IF gs_header-stats EQ '3'.
+
+    CASE ps_col-fieldname.
+      WHEN 'CHARG'. " 제품 배치 클릭 시
+        call function <a href ="zfe3co0001/zfe3co0001.html">'ZFE3CO0001'</a>
+          EXPORTING
+            iv_charg = gs_header-charg.
+
+    ENDCASE.
+
+  ELSE.
+
+<font color ="#0000FF">*    MESSAGE s000 WITH '완제품에 대해서만 조회 가능합니다.'.</font>
+    RETURN.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form f4_aufnr</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM f4_aufnr .
+
+  DATA: BEGIN OF ls_val,
+          aufnr TYPE zte3qm0001-aufnr,
+          matnr TYPE zte3qm0002-matnr,
+          maktx TYPE zte3mm0001-maktx,
+          gltrp TYPE zte3pp0005-gltrp,
+        END OF ls_val,
+        lt_val LIKE TABLE OF ls_val.
+
+  IF gv_min_date IS INITIAL OR gv_max_date IS INITIAL.
+
+    SELECT a~aufnr b~matnr c~maktx p~gltrp
+      INTO CORRESPONDING FIELDS OF TABLE lt_val
+      FROM zte3qm0001 AS a
+      INNER JOIN zte3qm0002 AS b ON b~prueflos = a~prueflos
+      INNER JOIN zte3mm0001 AS c ON c~matnr    = b~matnr
+      LEFT OUTER JOIN zte3pp0005 AS p ON p~aufnr = a~aufnr.
+
+
+  ELSE.
+    " 날짜 범위 조건
+    SELECT a~aufnr b~matnr c~maktx p~gltrp
+      INTO CORRESPONDING FIELDS OF TABLE lt_val
+      FROM zte3qm0001 AS a
+      INNER JOIN zte3qm0002 AS b ON b~prueflos = a~prueflos
+      INNER JOIN zte3mm0001 AS c ON c~matnr    = b~matnr
+      INNER JOIN zte3pp0005 AS p ON p~aufnr    = a~aufnr
+     WHERE p~gltrp BETWEEN gv_min_date AND gv_max_date.
+
+  ENDIF.
+
+  SORT lt_val BY aufnr.
+  DELETE ADJACENT DUPLICATES FROM lt_val COMPARING aufnr.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'AUFNR'
+      dynpprog     = sy-repid
+      dynpnr       = sy-dynnr
+      dynprofield  = 'GV_AUFNR'
+      window_title = '생산번호'
+      value_org    = 'S'
+    TABLES
+      value_tab    = lt_val.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form f4_matnr</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM f4_matnr .
+
+  DATA: BEGIN OF ls_val,
+          matnr TYPE zte3mm0001-matnr,
+          maktx TYPE zte3mm0001-maktx,
+        END OF ls_val,
+        lt_val LIKE TABLE OF ls_val.
+
+  IF gv_min_date IS INITIAL OR gv_max_date IS INITIAL.
+    SELECT m~matnr m~maktx
+      INTO CORRESPONDING FIELDS OF TABLE lt_val
+      FROM zte3mm0001 AS m
+      INNER JOIN zte3qm0002 AS b ON b~matnr    = m~matnr
+      INNER JOIN zte3qm0001 AS q ON q~prueflos = b~prueflos
+      LEFT OUTER JOIN zte3pp0005 AS p ON p~aufnr = q~aufnr
+     WHERE m~mtart = 'FERT'.
+  ELSE.
+    SELECT m~matnr m~maktx
+      INTO CORRESPONDING FIELDS OF TABLE lt_val
+      FROM zte3mm0001 AS m
+      INNER JOIN zte3qm0002 AS b ON b~matnr    = m~matnr
+      INNER JOIN zte3qm0001 AS q ON q~prueflos = b~prueflos
+      INNER JOIN zte3pp0005 AS p ON p~aufnr    = q~aufnr
+     WHERE m~mtart   = 'FERT'
+       AND p~gltrp BETWEEN gv_min_date AND gv_max_date.
+  ENDIF.
+
+  SORT lt_val BY matnr.
+  DELETE ADJACENT DUPLICATES FROM lt_val COMPARING matnr.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'MATNR'
+      dynpprog     = sy-repid
+      dynpnr       = sy-dynnr
+      dynprofield  = 'GV_MATNR'
+      window_title = '자재코드'
+      value_org    = 'S'
+    TABLES
+      value_tab    = lt_val.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form f4_charg</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM f4_charg .
+
+  DATA: BEGIN OF ls_val,
+          charg TYPE zte3qm0002-charg,
+          matnr TYPE zte3qm0002-matnr,
+          maktx TYPE zte3mm0001-maktx,
+        END OF ls_val,
+        lt_val LIKE TABLE OF ls_val.
+
+  IF gv_min_date IS INITIAL OR gv_max_date IS INITIAL.
+
+    IF gv_matnr IS NOT INITIAL.
+      SELECT b~charg b~matnr a~maktx
+        INTO CORRESPONDING FIELDS OF TABLE lt_val
+        FROM zte3qm0002 AS b
+        INNER JOIN zte3mm0001  AS a ON a~matnr  = b~matnr
+        INNER JOIN zte3qm0001  AS q ON q~prueflos = b~prueflos
+        LEFT OUTER JOIN zte3pp0005 AS p ON p~aufnr = q~aufnr
+       WHERE b~matnr = gv_matnr.
+    ELSE.
+
+      SELECT b~charg b~matnr a~maktx
+        INTO CORRESPONDING FIELDS OF TABLE lt_val
+        FROM zte3qm0002 AS b
+        INNER JOIN zte3mm0001  AS a ON a~matnr  = b~matnr
+        INNER JOIN zte3qm0001  AS q ON q~prueflos = b~prueflos
+        LEFT OUTER JOIN zte3pp0005 AS p ON p~aufnr = q~aufnr.
+
+    ENDIF.
+
+  ELSE.
+
+    IF gv_matnr IS NOT INITIAL.
+
+      SELECT b~charg b~matnr a~maktx
+        INTO CORRESPONDING FIELDS OF TABLE lt_val
+        FROM zte3qm0002 AS b
+        INNER JOIN zte3mm0001  AS a ON a~matnr    = b~matnr
+        INNER JOIN zte3qm0001  AS q ON q~prueflos = b~prueflos
+        INNER JOIN zte3pp0005  AS p ON p~aufnr    = q~aufnr
+       WHERE b~matnr  =  gv_matnr
+         AND p~gltrp BETWEEN gv_min_date AND gv_max_date.
+
+    ELSE.
+
+      SELECT b~charg b~matnr a~maktx
+        INTO CORRESPONDING FIELDS OF TABLE lt_val
+        FROM zte3qm0002 AS b
+        INNER JOIN zte3mm0001  AS a ON a~matnr    = b~matnr
+        INNER JOIN zte3qm0001  AS q ON q~prueflos = b~prueflos
+        INNER JOIN zte3pp0005  AS p ON p~aufnr    = q~aufnr
+       WHERE p~gltrp BETWEEN gv_min_date AND gv_max_date.
+
+    ENDIF.
+  ENDIF.
+
+  SORT lt_val BY charg.
+  DELETE ADJACENT DUPLICATES FROM lt_val COMPARING charg.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'CHARG'
+      dynpprog     = sy-repid
+      dynpnr       = sy-dynnr
+      dynprofield  = 'GV_CHARG'
+      window_title = '배치번호'
+      value_org    = 'S'
+    TABLES
+      value_tab    = lt_val.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form go_fiori</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM go_fiori .
+
+  CALL FUNCTION 'CALL_BROWSER'
+    EXPORTING
+      url                    = 'https://bgissap3.bgissap.co.kr:44300/sap/bc/ui2/flp?sap-client=100&sap-language=EN#ze3_qm_display-display'
+    EXCEPTIONS
+      frontend_not_available = 1
+      program_error          = 2
+      OTHERS                 = 3.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT_&gt;MT_TOOLBAR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_toolbar   USING  pt_toolbar TYPE ttb_button.
+
+  DATA : ls_toolbar TYPE stb_button.
+
+  ls_toolbar-butn_type = 3.
+
+  APPEND ls_toolbar TO pt_toolbar.
+  CLEAR  ls_toolbar.
+
+  ls_toolbar-function  = 'INSP_TOTAL'.
+  ls_toolbar-icon      = icon_folder.
+  ls_toolbar-quickinfo = '전체'.
+  ls_toolbar-text      = '전체'.
+  ls_toolbar-disabled  = ' '.
+
+  APPEND ls_toolbar TO pt_toolbar.
+
+  ls_toolbar-butn_type = 3.
+
+  APPEND ls_toolbar TO pt_toolbar.
+  CLEAR  ls_toolbar.
+
+  ls_toolbar-function  = 'INSP_SAVE'.
+  ls_toolbar-icon      = icon_led_green.
+  ls_toolbar-quickinfo = '검수완료'.
+  ls_toolbar-text      = '검수완료'.
+
+  APPEND ls_toolbar TO pt_toolbar.
+
+  ls_toolbar-function  = 'INSP_WAIT'.
+  ls_toolbar-icon      = icon_led_yellow.
+  ls_toolbar-quickinfo = '대기중'.
+  ls_toolbar-text      = '대기중'.
+
+  APPEND ls_toolbar TO pt_toolbar.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form handle_user_command</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM handle_user_command  USING pv_ucomm TYPE sy-ucomm.
+
+  CASE pv_ucomm.
+    WHEN 'INSP_TOTAL'.
+      CLEAR pv_ucomm.
+      PERFORM insp_total.
+      PERFORM set_icon.
+      PERFORM set_style.
+      PERFORM refresh_grid.
+
+    WHEN 'INSP_SAVE'.
+      CLEAR pv_ucomm.
+      PERFORM insp_save.
+      PERFORM set_icon.
+      PERFORM set_style.
+      PERFORM refresh_grid.
+
+    WHEN 'INSP_WAIT'.
+      CLEAR pv_ucomm.
+      PERFORM insp_wait.
+      PERFORM set_icon.
+      PERFORM set_style.
+      PERFORM refresh_grid.
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form insp_total</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM insp_total .
+
+  PERFORM get_header_data USING 'ALL'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form insp_save</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM insp_save .
+
+  PERFORM get_header_data USING '3'. "검사완료
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form insp_wait</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM insp_wait .
+
+  PERFORM get_header_data USING '1'. "검수대기
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form f4_insp_type</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM f4_insp_type .
+
+  DATA: BEGIN OF ls_val,
+          key  TYPE dd07t-domvalue_l,
+          text TYPE dd07t-ddtext,
+        END OF ls_val,
+        lt_val LIKE TABLE OF ls_val.
+
+  SELECT domvalue_l AS key,
+         ddtext     AS text
+    INTO CORRESPONDING FIELDS OF TABLE @lt_val
+    FROM dd07t
+   WHERE domname = 'ZDE3_QM_INSP_TYPE'.
+
+  INSERT VALUE #( key = 'AL' text = '전체' ) INTO lt_val INDEX 1.
+  SORT lt_val BY key.
+  DELETE lt_val INDEX 1.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'KEY'
+      dynpprog     = sy-repid
+      dynpnr       = sy-dynnr
+      dynprofield  = 'GV_INSP_TYPE'
+      window_title = '검수유형'
+      value_org    = 'S'
+    TABLES
+      value_tab    = lt_val.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_top_document</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_top_document .
+
+  IF gcl_top_container IS NOT BOUND.
+    CREATE OBJECT gcl_top_container
+      EXPORTING
+        container_name = 'GCL_TOP_CONTAINER'
+      EXCEPTIONS
+        OTHERS         = 1.
+  ENDIF.
+
+  " 문서 초기화
+  IF gcl_document_top IS NOT BOUND.
+    CREATE OBJECT gcl_document_top
+      EXPORTING
+        style            = 'ALV_TO_HTML'
+        background_color = 1
+        no_margins       = space.
+  ELSE.
+    gcl_document_top-&gt;initialize_document( ).
+  ENDIF.
+
+  PERFORM set_top_content.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_alv_0200</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv_0200 .
+
+  CREATE OBJECT gcl_con_pop_top
+    EXPORTING
+      container_name = 'GCL_CON_POP_TOP'.
+
+  CREATE OBJECT gcl_con_pop_bot
+    EXPORTING
+      container_name = 'GCL_CON_POP_BOT'.
+
+
+  PERFORM create_top_document_pop.
+
+  gcl_doc_popup_top-&gt;display_document(
+  EXPORTING parent = gcl_con_pop_top ).
+
+  " 3. 하단 컨테이너: 헤더 ALV 그리드 생성
+  CREATE OBJECT gcl_grid_popup
+    EXPORTING
+      i_parent = gcl_con_pop_bot.
+
+
+  " 5. 메인 화면의 헤더용 필드카탈로그(gt_fcat)를 재사용하여 출력
+  gcl_grid_popup-&gt;set_table_for_first_display(
+    EXPORTING
+      is_layout       = gs_layout_pop
+    CHANGING
+      it_outtab       = gt_upload_pop
+      it_fieldcatalog = gt_fcat_pop ).
+
+  " 이미 생성되어 있는 경우 데이터만 갱신
+  gcl_grid_popup-&gt;refresh_table_display( ).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout_0200</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout_0200 .
+
+  gs_layout_pop = VALUE #(
+                      zebra      = 'X'
+                      sel_mode   = 'D'
+                      cwidth_opt = 'A'
+                      box_fname = 'MARK'
+                      no_toolbar = 'X'
+<font color ="#0000FF">*                      ctab_fname = 'COLOR'</font>
+<font color ="#0000FF">*                      grid_title = TEXT-t02</font>
+<font color ="#0000FF">*                      stylefname   = 'STYLE'</font>
+  ).
+
+  gs_stable-row = 'X'.
+  gs_stable-col = 'X'.
+
+<font color ="#0000FF">* 왼쪽</font>
+  PERFORM make_fcat_pop USING :
+      'X'  'MARK'       '선택'      ' '              'X' ,
+      'X'  'PRUEFLOS'   ' '           'ZTE3QM0001'   ' ' ,
+      ' '  'MATNR'      ' '           'ZTE3QM0002'   ' ' ,
+      ' '  'CHARG'      ' '           'ZTE3QM0002'   ' ' ,
+      ' '  'AUFNR'      ' '           'ZTE3QM0001'   ' ' ,
+      ' '  'GLTRP'      '생산 일자'   'ZTE3PP0005'   ' ' ,
+      ' '  'QI_QTY'     '총수량'      'ZTE3QM0002'   ' ' ,
+      ' '  'PASS_QTY'   '합격 수량'   'ZTE3QM0002'   ' ' ,
+      ' '  'FAIL_QTY'   '폐기 수량'   'ZTE3QM0002'   ' ' ,
+      ' '  'MEINS'      '수량'        'ZTE3QM0002'   ' ' .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_fcat_pop</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&      --&gt; P_</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_fcat_pop USING    pv_key
+                         pv_field
+                         pv_text
+                         pv_ref_table
+                         pv_edit.
+
+  gs_fcat = VALUE #(
+                    key       = pv_key
+                    fieldname = pv_field
+                    coltext   = pv_text
+                    ref_table = pv_ref_table
+                    edit  = pv_edit
+                    ).
+
+  CASE pv_field.
+
+    WHEN 'MARK'.
+      gs_fcat-checkbox = 'X'.
+<font color ="#0000FF">*      gs_fcat-icon = 'X'.</font>
+<font color ="#0000FF">*      gs_fcat-just = 'C'.</font>
+    WHEN 'QI_QTY' OR 'FAIL_QTY' OR 'PASS_QTY'.
+      gs_fcat-qfieldname = 'MEINS'.
+
+  ENDCASE.
+
+  APPEND gs_fcat TO gt_fcat_pop.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_top_document_pop</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_top_document_pop .
+
+  " 2. 상단 컨테이너: 요약 정보 (HTML Document)
+  CREATE OBJECT gcl_doc_popup_top
+    EXPORTING
+      style = 'ALV_TO_HTML'.
+
+  gcl_doc_popup_top-&gt;add_text( text         = 'Master Pack 엑셀 업로드 항목'
+                             sap_fontsize = 'LARGE'
+                             sap_emphasis = 'STRONG' ).
+  gcl_doc_popup_top-&gt;new_line( ).
+  gcl_doc_popup_top-&gt;add_text( text = | 업로드 대상 검수 항목: { lines( gt_upload_pop ) } 건| ).
+  gcl_doc_popup_top-&gt;new_line( ).
+  gcl_doc_popup_top-&gt;add_text( text = ' 완료 처리할 검수 항목만 선택 후 [확인] 버튼을 누르세요.' ).
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

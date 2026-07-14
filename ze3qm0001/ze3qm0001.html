@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZE3QM0001</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZE3QM0001</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [QM] 완제품 품질 검수 프로그램</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool      ZE3QM0001</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="ze3qm0001_top.html">ZE3QM0001_TOP</a>.    " Global Data
+
+include <a href ="ze3qm0001_c01.html">ZE3QM0001_C01</a>.  " PBO-Modules
+include <a href ="ze3qm0001_o01.html">ZE3QM0001_O01</a>.  " PBO-Modules
+include <a href ="ze3qm0001_i01.html">ZE3QM0001_I01</a>.  " PAI-Modules
+include <a href ="ze3qm0001_f01.html">ZE3QM0001_F01</a>.  " FORM-Routines
+
+"CDS -&gt; ZCDS_E3_QM_0001 사용
+
+"마이너스 막야아함, 순서 order by
+
+<font color ="#0000FF">*검수전 팝업을 올리면 좋은데</font>
+<font color ="#0000FF">*한번더 검수 더 메세지로 체크</font>
+"저장 . 취소가 있어야할거 같음
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T0100 --&gt; [QM] 완제품 검수 프로그램</font>
+<font color ="#0000FF">* T0200 --&gt; 검수 팝업</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* M03 파일선택이 취소 되었습니다.</font>
+<font color ="#0000FF">* T04 상태</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   전표 생성 중 오류가 발생하여 취소되었습니다.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZMCE3</font>
+<font color ="#0000FF">*000   & & & &</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>

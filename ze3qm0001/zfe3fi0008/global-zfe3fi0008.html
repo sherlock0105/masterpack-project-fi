@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>LZFGE3FI01TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: LZFGE3FI01TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [FI] 생산정보 팝업</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">* regenerated at 2026.04.01 16:03:44</font>
+FUNCTION-POOL zfge3fi01                  MESSAGE-ID sv.
+
+<font color ="#0000FF">* INCLUDE LZFGE3FI01D...                     " Local class definition</font>
+INCLUDE lsvimdat                                . "general data decl.
+INCLUDE lzfge3fi01t00                           . "view rel. data dcl.
+
+
+DATA : gv_prueflos       TYPE zte3qm0001-prueflos,
+       gv_prueflos2      TYPE zte3qm0001-prueflos,
+       gv_insp_type      TYPE zte3qm0001-insp_type,
+       gv_ebeln          TYPE zte3qm0001-ebeln,
+       gv_aufnr2         TYPE zte3qm0001-aufnr,
+       gv_claim_no       TYPE zte3qm0001-claim_no,
+       gv_budat2         TYPE zte3qm0001-budat,
+       gv_stats          TYPE zte3qm0001-stats,
+       gv_pernr2         TYPE zte3qm0001-pernr,
+       gv_pernam2        TYPE zte3cm0005-pernam,
+       gv_ref_label(15),
+       gv_ref_xblnr(15),
+       gv_xblnr          TYPE zte3fi0002-xblnr,
+       gv_stats_text(10).
+
+
+
+DATA: BEGIN OF gs_pop_qm,
+        prueflos TYPE zte3qm0002-prueflos,
+        matnr    TYPE zte3qm0002-matnr,
+        maktx    TYPE zte3mm0001-maktx,
+        charg    TYPE zte3qm0002-charg,
+        qi_qty   TYPE zte3qm0002-qi_qty,
+        pass_qty TYPE zte3qm0002-pass_qty,
+        fail_qty TYPE zte3qm0002-fail_qty,
+        meins    TYPE zte3qm0002-meins,
+        def_code TYPE zte3qm0002-def_code,
+        def_text TYPE zte3qm0002-def_text,
+        belnr    TYPE zte3qm0002-belnr,
+        gjahr    TYPE zte3qm0002-gjahr,
+        meins2   TYPE zte3qm0002-meins,
+      END OF gs_pop_qm.
+
+DATA: gt_pop_qm      LIKE TABLE OF gs_pop_qm.
+
+DATA: gs_fcat_pop TYPE lvc_s_fcat,
+      gt_fcat_pop TYPE lvc_t_fcat.
+
+DATA: gs_layout_pop TYPE lvc_s_layo.
+
+DATA: gcl_con_pop  TYPE REF TO cl_gui_custom_container,
+      gcl_grid_pop TYPE REF TO cl_gui_alv_grid.
+
+DATA : gv_lfnum  TYPE zte3sd0012-lfnum,
+       gv_lfnum2 TYPE zte3sd0012-lfnum,
+       gv_vbeln  TYPE zte3sd0012-vbeln,
+       gv_kunnr2 TYPE zte3sd0012-kunnr,
+       gv_expkz2 TYPE zte3sd0012-expkz,
+       gv_name12 TYPE zte3sd0012-name1,
+       gv_lfdat  TYPE zte3sd0012-lfdat,
+       gv_wadat  TYPE zte3sd0012-wadat,
+       gv_parvw2 TYPE zte3sd0012-parvw.
+
+" ── TOP 선언 ──────────────────────────
+DATA: BEGIN OF gs_pop_sd,
+        lfnum TYPE zte3sd0013-lfnum,
+        posnr TYPE zte3sd0013-posnr,
+        matnr TYPE zte3sd0013-matnr,
+        maktx TYPE zte3mm0001-maktx,
+        charg TYPE zte3sd0013-charg,
+        lgort TYPE zte3sd0013-lgort,
+        lfimg TYPE zte3sd0013-lfimg,
+        vrkme TYPE zte3sd0013-vrkme,
+        netpr TYPE zte3sd0013-netpr,
+        waers TYPE zte3sd0013-waers,
+      END OF gs_pop_sd.
+
+DATA: gt_pop_sd      LIKE TABLE OF gs_pop_sd.
+
+DATA: gs_fcat_sd TYPE lvc_s_fcat,
+      gt_fcat_sd TYPE lvc_t_fcat.
+
+DATA: gs_layout_sd   TYPE lvc_s_layo.
+
+DATA: gcl_con_sd  TYPE REF TO cl_gui_custom_container,
+      gcl_grid_sd TYPE REF TO cl_gui_alv_grid.
+
+DATA : gt_fcat_503 TYPE lvc_t_fcat.
+
+"생산 정보 팝업
+DATA: gcl_pop_con  TYPE REF TO cl_gui_custom_container,
+      gcl_pop_grid TYPE REF TO cl_gui_alv_grid.
+
+DATA : gt_pop_sort TYPE lvc_t_sort,
+       gs_pop_sort TYPE lvc_s_sort.
+
+DATA : gv_status_text(4).
+
+DATA : gv_aufnr  TYPE zte3pp0005-aufnr,
+       gv_pernr  TYPE zte3pp0005-pernr,   " 사원ID
+       gv_gstrp  TYPE zte3pp0005-gstrp,   " 시작예정일
+       gv_gltrp  TYPE zte3pp0005-gltrp,   " 종료예정일
+       gv_statu2 TYPE zte3pp0005-statu,   " 오더상태
+       gv_gamng  TYPE zte3pp0005-gamng,   " 오더총수량
+       gv_gmein  TYPE zte3pp0005-gmein,   " 단위
+       gv_ktext  TYPE zte3pp0005-ktext,   " 오더내역
+       gv_pernam TYPE zte3cm0005-pernam.
+
+" 팝업 자재 내역 구조 (ZTE3PP0014 + ZTE3MM0001)
+DATA: BEGIN OF gs_pop_mat,
+        matnr TYPE zte3pp0014-matnr,   " 자재코드
+        maktx TYPE zte3mm0001-maktx,   " 자재명
+        charg TYPE zte3pp0014-charg,   " 배치번호
+        bdmng TYPE zte3pp0014-bdmng,   " 소요량
+        enmng TYPE zte3pp0014-enmng,   " 출고량
+        meins TYPE zte3pp0014-meins,   " 단위
+        lgort TYPE zte3pp0014-lgort,   " 저장위치
+        vfdat TYPE zte3mm0003-vfdat,
+      END OF gs_pop_mat,
+      gt_pop_mat LIKE TABLE OF gs_pop_mat.
+
+DATA: gt_pop_fcat TYPE lvc_t_fcat,
+      gs_pop_fcat TYPE lvc_s_fcat,
+      gs_pop_layo TYPE lvc_s_layo.
+
+
+" ===== ALV 0500 필드카탈로그 =====
+DATA: gt_fcat_0500   TYPE lvc_t_fcat,
+      gs_fcat_0500   TYPE lvc_s_fcat,
+      gs_layout_0500 TYPE lvc_s_layo,
+      gs_sort_0500   TYPE lvc_s_sort,
+      gt_sort_0500   TYPE lvc_t_sort.
+
+DATA: gv_iv_kunnr   TYPE zte3sd0001-kunnr,
+      gv_kunnr      TYPE zte3sd0001-kunnr,
+      gv_expkz      TYPE zte3sd0001-expkz,
+      gv_name1      TYPE zte3sd0001-name1,
+      gv_stcd1      TYPE zte3sd0001-stcd1,
+      gv_telf1      TYPE zte3sd0001-telf1,
+      gv_stras      TYPE zte3sd0001-stras,
+      gv_parvw      TYPE zte3sd0001-parvw,
+      gv_zterm      TYPE zte3sd0001-zterm,
+      gv_sd_bankac  TYPE zte3sd0001-bankac,
+      gv_sd_banknm  TYPE zte3sd0001-banknm,
+      gv_sd_bankown TYPE zte3sd0001-bankown,
+      gv_useflag    TYPE zte3sd0001-useflag,
+      gv_sdemail    TYPE zte3sd0001-sdemail,
+      gv_sdname     TYPE zte3sd0001-sdname.
+
+" ===== 공급업체(MM) =====
+DATA: gv_iv_lifnr   TYPE zte3mm0002-lifnr,
+      gv_lifnr      TYPE zte3mm0002-lifnr,
+      gv_vennm      TYPE zte3mm0002-vennm,
+      gv_land1      TYPE zte3mm0002-land1,
+      gv_busino     TYPE zte3mm0002-busino,
+      gv_adrnr      TYPE zte3mm0002-adrnr,
+      gv_repnm      TYPE zte3mm0002-repnm,
+      gv_ventel     TYPE zte3mm0002-ventel,
+      gv_venmail    TYPE zte3mm0002-venmail,
+      gv_importduty TYPE zte3mm0002-importduty,
+      gv_mm_bankac  TYPE zte3mm0002-bankac,
+      gv_mm_banknm  TYPE zte3mm0002-banknm,
+      gv_mm_bankown TYPE zte3mm0002-bankown,
+      gv_statu      TYPE zte3mm0002-statu,
+      gv_payterm    TYPE zte3mm0002-payterm.
+
+" ===== 전표 헤더 =====
+DATA: gv_iv_belnr      TYPE zte3fi0002-belnr,
+      gv_iv_bukrs      TYPE zte3fi0002-bukrs,
+      gv_iv_gjahr      TYPE zte3fi0002-gjahr,
+      gv_belnr         TYPE zte3fi0002-belnr,
+      gv_blart         TYPE zte3fi0002-blart,
+      gv_blart_txt(10),
+      gv_bldat         TYPE zte3fi0002-bldat,
+      gv_budat         TYPE zte3fi0002-budat,
+      gv_monat         TYPE zte3fi0002-monat,
+      gv_bltxt         TYPE zte3fi0002-bltxt,
+      gv_waers         TYPE zte3fi0002-waers,
+      gv_kursf         TYPE zte3fi0002-kursf,
+      gv_bstat         TYPE zte3fi0002-bstat.
+
+
+DATA: BEGIN OF gs_belnr_item,
+        buzei        TYPE zte3fi0003-buzei,
+        saknr        TYPE zte3fi0003-saknr,
+        saknr_txt    TYPE text40,
+        shkzg_txt(2),
+        fwaer        TYPE zte3fi0002-waers,
+        koart        TYPE zte3fi0003-koart,
+        kostl        TYPE zte3fi0003-kostl,
+        shkzg        TYPE zte3fi0003-shkzg,
+        wrbtr        TYPE zte3fi0003-wrbtr,
+        waers        TYPE zte3fi0003-waers,
+        dmbtr        TYPE zte3fi0003-dmbtr,
+        dmbtr_s      TYPE zte3fi0003-dmbtr,
+        waers_s      TYPE zte3fi0003-waers,
+        dmbtr_h      TYPE zte3fi0003-dmbtr,
+        waers_h      TYPE zte3fi0003-waers,
+        augbl        TYPE zte3fi0003-augbl,
+        augdt        TYPE zte3fi0003-augdt,
+      END OF gs_belnr_item.
+DATA gt_belnr_item LIKE TABLE OF gs_belnr_item.
+
+" ===== 전표 팝업 컨테이너 =====
+DATA: gcl_con_belnr_item  TYPE REF TO cl_gui_custom_container,
+      gcl_grid_belnr_item TYPE REF TO cl_gui_alv_grid,
+      gcl_con_top_0500    TYPE REF TO cl_gui_custom_container,
+      gcl_top_document    TYPE REF TO cl_dd_document.
+
+
+
+DATA : gv_matnr TYPE zte3mm0001-matnr.
+
+DATA : gt_fcat_0501 TYPE lvc_t_fcat.
+
+<font color ="#0000FF">*DATA : BEGIN OF gs_matnr,</font>
+DATA : gv_matnr2 TYPE zte3mm0001-matnr,
+       gv_maktx2 TYPE zte3mm0001-maktx,
+       gv_charg  TYPE zte3mm0003-charg,
+       gv_vfdat  TYPE zte3mm0003-vfdat,
+       gv_labst  TYPE zte3mm0003-labst,
+       gv_meins  TYPE zte3mm0003-meins,
+       gv_netpr  TYPE zte3mm0003-netpr,
+       gv_waers2 TYPE zte3mm0003-waers.
+<font color ="#0000FF">*       END OF gs_matnr.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 758
+</font>
+</body>
+</html>
