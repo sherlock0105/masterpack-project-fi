@@ -6,16 +6,26 @@ SAP CODE 1기 교육 프로젝트의 FI 중심 ABAP 프로그램과 SAPUI5/Fiori
 
 ## 저장소 구성
 
-| 경로 | 내용 |
-| --- | --- |
-| `ze3_fi_asset/` | 자산 관련 UI5 앱 |
-| `ze3_fi_bpmaster/` | 거래처 관련 UI5 앱 |
-| `ze3_fi_employee/` | 사원 관련 UI5 앱 |
-| `ze3_fi_financial/` | 재무상태표 UI5 앱 |
-| `ze3_fi_hbk_rate/` | 환율 관련 UI5 앱 |
-| `ze3_fi_post_search/` | 전표 조회 UI5 앱 |
-| `ze3_qm_display/`, `ze3_qm_insp/` | QM 관련 UI5 앱 |
-| `ze3fi0002/`, `ze3qm0001/`, `zre3fi*/` | ABAP 프로그램, Include, 화면 및 관련 사전 객체 자료 |
+| 폴더 | 기능 설명 | 구분 |
+| --- | --- | --- |
+| [`ze3_fi_asset/`](ze3_fi_asset/) | 고정자산 조회 | UI5 화면 |
+| [`ze3_fi_bpmaster/`](ze3_fi_bpmaster/) | 고객·공급업체 마스터 관리 | UI5 화면 |
+| [`ze3_fi_employee/`](ze3_fi_employee/) | 사원 정보 등록 및 급여 지급 | UI5 화면 |
+| [`ze3_fi_financial/`](ze3_fi_financial/) | 재무제표 조회 | UI5 화면 |
+| [`ze3_fi_hbk_rate/`](ze3_fi_hbk_rate/) | 외화통장 보유액 조회 및 환율 평가 | UI5 화면 |
+| [`ze3_fi_post_search/`](ze3_fi_post_search/) | 전표 조회 | UI5 화면 |
+| [`ze3_qm_display/`](ze3_qm_display/) | 완제품 폐기 현황 | UI5 화면 |
+| [`ze3_qm_insp/`](ze3_qm_insp/) | 완제품 품질 검사 | UI5 화면 |
+| [`ze3fi0002/`](ze3fi0002/) | 외화평가 및 환손익 분석 | ABAP 프로그램 |
+| [`ze3qm0001/`](ze3qm0001/) | 완제품 품질 검수 | ABAP 프로그램 |
+| [`zre3fi0001/`](zre3fi0001/) | 환율 API 수신 | ABAP 프로그램 |
+| [`zre3fi0003/`](zre3fi0003/) | 전표 조회 및 역분개 | ABAP 프로그램 |
+| [`zre3fi0007/`](zre3fi0007/) | 감가상각 자동 처리 (배치) | ABAP 프로그램 |
+| [`zre3fi0008/`](zre3fi0008/) | 자산 관리 및 감가상각 | ABAP 프로그램 |
+| [`zre3fi0009/`](zre3fi0009/) | 외화평가 자동 처리 (배치) | ABAP 프로그램 |
+| [`zre3fi0010/`](zre3fi0010/) | 재무상태표 | ABAP 프로그램 |
+
+전표 조회 및 역분개는 **[zre3fi0003/](zre3fi0003/)** 폴더입니다. 역분개는 기존 전표의 회계 처리를 취소하기 위해 반대 내용의 전표를 만드는 기능입니다.
 
 ## 코드 살펴보기
 
